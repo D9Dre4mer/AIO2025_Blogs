@@ -1,0 +1,237 @@
+\documentclass[11pt]{article}
+\usepackage[english]{babel}
+\usepackage{hyperref}
+\usepackage{makecell}
+\usepackage{blindtext}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{listings}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=red,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+    }
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+
+\setlength{\topmargin}{-.5in} \setlength{\textheight}{9.25in}
+\setlength{\oddsidemargin}{0in} \setlength{\textwidth}{6.8in}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{pythonhighlight}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcounter{mycounter} % create a new counter, called 'mycounter'
+% default def'n of '\themycounter' is '\arabic{mycounter}'
+%% command to increment 'mycounter' by 1 and to display its value:
+\newcommand\showmycounter{\stepcounter{mycounter}\themycounter}
+\usepackage{lipsum}
+\newcommand\showlips{\stepcounter{mycounter}\lipsum[\value{mycounter}]}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{framed}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{\LARGE}
+\author{\Huge \begin{minipage}{\textwidth}\centering LocalAI code review\end{minipage}}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\bfseries AI VIETNAM}
+\rhead{\bfseries  aivietnam.edu.vn}
+
+\begin{document}
+\maketitle
+%\Largebf Ma 12 Long Test 1\hfill 9 February 2017}
+%\medskip\hr
+%\noindent{\ule
+
+
+
+Note: 
+\begin{itemize}
+    \item The sections below may not be included in the research paper, people can add/delete sections depending on the specific article.
+    \item Questions may not contain information in the article, so we have the part of suggested questions to help and support you to implement summary ideas.
+\end{itemize}
+
+
+\begin{enumerate}
+    \item
+    \textbf{Introduction:}
+
+    
+    Suggested questions: 
+    \begin{itemize}
+        \item Why is this topic important?        
+        \item What is the object of research and why is it remarkable?  
+        \item What is the main goal of the research?
+        \item Let's use some short sentences to summarize the content of the introduction.
+    \end{itemize}
+    Introduction summary: 
+    \begin{itemize}
+        \item \blindtext[0]
+    \end{itemize}
+    
+    \item
+    \textbf{History and Scenarios:}
+
+    
+    Suggested questions:
+    \begin{itemize}
+        \item What is the historical development of the research field?  
+        \item What is the current situation of the topic and why is it important?
+        \item Self-recognise the process before, current and after of the research topic and describe it by a paragraph.
+    \end{itemize}
+    History and Scenarios summary:
+    \begin{itemize}
+        \item \blindtext[0]
+    \end{itemize}
+    
+    \item
+    \textbf{Previous studies:}
+
+
+    Suggested questions:
+    \begin{itemize}
+        \item Are there any important research projects related to the topic?
+        \item What results have previous studies achieved?
+        \item What are the limitations of previous studies?
+        \item List out some important researches and summarize these impacts on the whole topic.
+    \end{itemize}
+
+    Previous studies summary:
+    \begin{itemize}
+        \item \blindtext[0]
+    \end{itemize}
+    \item
+    \textbf{Unresolved issues:}
+
+    
+    Suggested questions:
+    \begin{itemize}
+        \item Are there any unresolved problems in this area?
+        \item Why is it necessary to address these issues?
+        \item Do you have any ideas to solve these problems ?
+    \end{itemize}
+
+    Unresolved issues summary:
+    \begin{itemize}
+        \item \blindtext[0]
+    \end{itemize}
+
+    
+    \item
+    \textbf{Objectives and Significance:}
+
+    
+    Suggested questions:
+    \begin{itemize}
+        \item What does the research want to achieve?
+        \item Why is this research important to the field?
+        \item In your opinion, how much does this research receive there desire ?
+    \end{itemize}
+
+    Objectives and Significance summary:
+    \begin{itemize}
+        \item \blindtext[0]
+    \end{itemize}
+    
+    \item
+    \textbf{Hypothesis:}
+
+    
+    Suggested questions:
+    \begin{itemize}
+        \item What are the specific research questions?
+        \item Does the research have any hypotheses that need to be tested?
+        \item Review the history and unsolved issues, what do you think is the underlying reasons for authors to bring these hypotheses ? 
+    \end{itemize}
+
+    Hypothesis summary:
+    \begin{itemize}
+        \item \blindtext[0]
+    \end{itemize}
+    
+    \item
+    \textbf{Scope:}
+
+    
+    Suggested questions:
+    \begin{itemize}
+        \item In what scope is the research limited?
+        \item What factors are and are not included in the study?
+        \item Does the research have the potential to develop in the future ?
+    \end{itemize}
+        
+        
+    Scope summary:
+    \begin{itemize}
+        \item \blindtext[0]
+    \end{itemize}
+
+    \item 
+    \textbf{Experimental method and research result:}
+
+    Suggested questions: 
+    \begin{itemize}
+        \item Which methods does author use in the research ? 
+        \item In your opinion, are these methods suitable for the topic of the research paper ? 
+        \item How manu results does the research reach ? 
+        \item Is the result suitable with the topic mentioned ?  
+    \end{itemize}
+
+    Overview summary:
+    \begin{itemize}
+        \item \blindtext[0]
+    \end{itemize}   
+
+    \item
+    \textbf{Overview:}
+
+    
+    Suggested questions:
+    \begin{itemize}
+        \item A few words summarizing the content of the research article.
+        \item Your own thoughts after reading the article.
+        \item What is your next research paper in your reading list ? 
+    \end{itemize}
+
+    Overview summary:
+    \begin{itemize}
+        \item \blindtext[0]
+    \end{itemize}     
+\end{enumerate}
+
+
+\end{document} 

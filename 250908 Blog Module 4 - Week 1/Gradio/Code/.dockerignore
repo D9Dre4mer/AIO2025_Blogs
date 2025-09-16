@@ -1,0 +1,40 @@
+# Ignore Python cache and venvs
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.venv/
+venv/
+ENV/
+
+# Ignore local development files
+.DS_Store
+.git/
+.gitignore
+.idea/
+.vscode/
+
+# Ignore notebooks & large data by default (uncomment to include if needed)
+*.ipynb
+*.csv
+*.tsv
+*.parquet
+*.feather
+*.h5
+*.hdf5
+*.pt
+*.pth
+*.onnx
+*.joblib
+*.pkl
+*.pickle
+*.gz
+*.zip
+*.tar
+*.tar.gz
+
+# Logs and temp
+*.log
+/tmp/

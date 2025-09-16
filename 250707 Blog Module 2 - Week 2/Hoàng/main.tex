@@ -1,0 +1,579 @@
+\documentclass[12pt]{article}
+\input{setup}
+
+\begin{document}
+\begin{center}
+    \LARGE{Linear Algebra and Applications}
+\end{center}
+\begin{center}
+    \large{\textit{Dao Lam Hoang}}
+\end{center}
+
+% \vspace{0.1cm}
+\section{Vector và Matrix}
+\subsection{Khái niệm}
+
+\begin{center}
+\begin{tabular}{|p{3cm}|p{6cm}|p{6cm}|}
+\hline
+\textbf{} & \textbf{Vector} & \textbf{Matrix} \\
+\hline
+Khái niệm & Vector là một dãy có thứ tự các số, dùng để biểu diễn tọa độ trong không gian nhiều chiều. & Matrix là một bảng chữ nhật các số (sắp xếp thành hàng và cột), và là một cấu trúc mở rộng của vector.&
+\hline
+Kí hiệu &  $\vec{v} \in \mathbb{R}^n$ & $A \in \mathbb{R}^{m \times n}$&
+\hline
+Biểu diễn & $\vec{v}$ = \begin{bmatrix}
+v_1 \\
+v_2 \\
+v_3
+\end{bmatrix} \in \mathbb{R}^3 & A = \begin{bmatrix}
+a_{11} & a_{12} \\
+a_{21} & a_{22} \\
+a_{31} & a_{32}
+\end{bmatrix} \in $\mathbb{R^{m \times n}}$ &
+\hline
+\end{tabular}
+\end{center}
+\subsection{Các phép toán vector}
+\subsubsection{Các phép toán}
+\paragraph{1} \textbf{Phép toán cơ bản}
+\begin{tcolorbox}[title= Vector ,coltitle =black,fonttitle=\large\bfseries, colback=green!5!white,colframe=green!75!black]
+    \begin{itemize}
+        \item Phép cộng:\[ \vec{v} + \vec{u} = 
+                \begin{bmatrix}
+                    v_1 \\
+                    v_2 \\
+                    \vdots \\
+                    v_n 
+                \end{bmatrix} + \begin{bmatrix}
+                    u_1 \\
+                    u_2 \\
+                    \vdots \\
+                    u_n 
+                \end{bmatrix}
+                = \begin{bmatrix}
+                    v_1 + u_1 \\
+                    v_2 + u_2 \\
+                    \vdots \\
+                    v_n + u_n
+                \end{bmatrix}\]
+
+        \item Phép trừ: \[ \vec{v} - \vec{u} = 
+                \begin{bmatrix}
+                    v_1 \\
+                    v_2 \\
+                    \vdots \\
+                    v_n 
+                \end{bmatrix} - \begin{bmatrix}
+                    u_1 \\
+                    u_2 \\
+                    \vdots \\
+                    u_n 
+                \end{bmatrix}
+                = \begin{bmatrix}
+                    v_1 - u_1 \\
+                    v_2 - u_2 \\
+                    \vdots \\
+                    v_n - u_n
+                \end{bmatrix} \]
+    \end{itemize} 
+\end{tcolorbox}
+
+\begin{lstlisting}[language = python]
+import numpy as np
+X = np.array([5,6,7,8])
+Y = np.array([1,2,3,4])
+#Tổng
+print(X+Y) # 6 8 10 12
+print(np.add(X, Y)) # 6 8 10 12
+# Hiệu
+print(X-Y) # 4 4 4 4
+print(np.substract(X, Y)) # 4 4 4 4
+\end{lstlisting}
+\paragraph{2} \textbf{Phép toán khác}
+\begin{tcolorbox}[title= Vector ,coltitle =black,fonttitle=\large\bfseries, colback=green!5!white,colframe=green!75!black]
+    \begin{itemize}
+        \item Nhân vector với một số
+            \[
+            c \vec{v} = c 
+            \begin{bmatrix}
+            v_1 \\
+            v_2 \\
+            \vdots \\
+            v_n
+            \end{bmatrix}
+            =
+            \begin{bmatrix}
+            c v_1 \\
+            c v_2 \\
+            \vdots \\
+            c v_n
+            \end{bmatrix}
+            \]
+        \item Độ dài vector
+            \[
+            \| \vec{v} \| = \sqrt{v_1^2 + v_2^2 + \dots + v_n^2}
+            \]
+    \end{itemize}
+\end{tcolorbox}
+
+\begin{lstlisting}[language = python]
+import numpy as np
+data = np.array([1,2,4,2])
+
+#Nhan so 
+data_2 = data*2 #[2, 4, 8, 4]
+
+#chieu dai vector
+data_length = np.linalg.norm(data) #5.0
+\end{lstlisting}
+\paragraph{3} \textbf{Element-wise}
+\begin{tcolorbox}[title= Vector ,coltitle =black,fonttitle=\large\bfseries, colback=green!5!white,colframe=green!75!black]
+\begin{itemize}
+    \item Tích Hadamard
+        \[
+            \vec{v} \odot \vec{u} = 
+            \begin{bmatrix}
+            v_1 \\
+            \vdots \\
+            v_n
+            \end{bmatrix}
+            \odot
+            \begin{bmatrix}
+            u_1 \\
+            \vdots \\
+            u_n
+            \end{bmatrix}
+            =
+            \begin{bmatrix}
+            v_1 \times u_1 \\
+            \vdots \\
+            v_n \times u_n
+            \end{bmatrix}
+            \]
+
+        \item Chia Hadamard
+                \[
+        \vec{v} \oslash \vec{u} = 
+        \begin{bmatrix}
+        v_1 \\
+        \vdots \\
+        v_n
+        \end{bmatrix}
+        \oslash
+        \begin{bmatrix}
+        u_1 \\
+        \vdots \\
+        u_n
+        \end{bmatrix}
+        =
+        \begin{bmatrix}
+        \dfrac{v_1}{u_1} \\
+        \vdots \\
+        \dfrac{v_n}{u_n}
+        \end{bmatrix}
+        \]
+\end{itemize}
+\end{tcolorbox}
+
+\begin{lstlisting}[language = python]
+import numpy as np
+x = np.array([1,2,3,4])
+y = np.array([5,6,7,8])
+
+#Element wise prod
+prod = x*y 
+
+#Element wise div
+div = x/y 
+\end{lstlisting}
+
+\paragraph{4} \textbf{Tích vô hướng}
+\begin{tcolorbox}[title= Vector ,coltitle =black,fonttitle=\large\bfseries, colback=green!5!white,colframe=green!75!black]
+\begin{itemize}
+    \item Tích vô hướng\[
+\vec{v} \cdot \vec{u} = 
+\begin{bmatrix}
+v_1 \\
+v_2 \\
+\vdots \\
+v_n
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+u_1 \\
+u_2 \\
+\vdots \\
+u_n
+\end{bmatrix}
+=
+v_1 u_1 + v_2 u_2 + \dots + v_n u_n
+\]
+\end{itemize}
+\end{tcolorbox}
+
+\begin{lstlisting}[language = python]
+import numpy as np
+v = np.array([1,2])
+w = np.array([2,3])
+product = np.dot(v,w) #8
+\end{lstlisting}
+\newpage
+\paragraph{5} \textbf{Min-max}
+\begin{tcolorbox}[title= Vector ,coltitle =black,fonttitle=\large\bfseries, colback=green!5!white,colframe=green!75!black]
+    \begin{itemize}
+        \item \textbf{Giá trị nhỏ nhất (min):}
+        \[
+        \min(\vec{v}) = \min \begin{bmatrix} v_1 \\ v_2 \\ \vdots \\ v_n \end{bmatrix}
+        = \text{giá trị nhỏ nhất trong } \vec{v}
+        \]
+
+        \item \textbf{Giá trị lớn nhất (max):}
+        \[
+        \max(\vec{v}) = \max \begin{bmatrix} v_1 \\ v_2 \\ \vdots \\ v_n \end{bmatrix}
+        = \text{giá trị lớn nhất trong } \vec{v}
+        \]
+
+        \item \textbf{Vị trí của giá trị nhỏ nhất (argmin):}
+        \[
+        \operatorname{argmin}(\vec{v}) = \text{chỉ số } i \text{ sao cho } v_i = \min(\vec{v})
+        \]
+
+        \item \textbf{Vị trí của giá trị lớn nhất (argmax):}
+        \[
+        \operatorname{argmax}(\vec{v}) = \text{chỉ số } i \text{ sao cho } v_i = \max(\vec{v})
+        \]
+    \end{itemize}
+\end{tcolorbox}
+
+\begin{lstlisting}[language=python]
+import numpy as np
+
+# Vector v
+v = np.array([10, 5, 7, 3, 9])
+
+# Giá trị nhỏ nhất
+print("Min:", np.min(v))          # Min: 3
+
+# Giá trị lớn nhất
+print("Max:", np.max(v))          # Max: 10
+
+# Vị trí giá trị nhỏ nhất
+print("Argmin:", np.argmin(v))    # Argmin: 3
+
+# Vị trí giá trị lớn nhất
+print("Argmax:", np.argmax(v))    # Argmax: 0
+\end{lstlisting}
+
+\subsection{Các phép toán Matrix}
+\subsubsection{Các phép toán}
+\paragraph{1} \textbf{Phép toán cơ bản}
+\begin{tcolorbox}[title= Matrix ,coltitle =black,fonttitle=\large\bfseries, colback=green!5!white,colframe=green!75!black]
+\begin{itemize}
+    \item Phép cộng\[
+        A + B = 
+        \left[
+        \begin{array}{cccc}
+        (a_{11} + b_{11}) & \cdots & (a_{1n} + b_{1n}) \\
+        \vdots & \ddots & \vdots \\
+        (a_{m1} + b_{m1}) & \cdots & (a_{mn} + b_{mn})
+        \end{array}
+        \right]
+        \]
+    \item Phép trừ
+        \[
+        A - B = 
+        \left[
+        \begin{array}{cccc}
+        (a_{11} - b_{11}) & \cdots & (a_{1n} - b_{1n}) \\
+        \vdots & \ddots & \vdots \\
+        (a_{m1} - b_{m1}) & \cdots & (a_{mn} - b_{mn})
+        \end{array}
+        \right]
+        \]
+
+\end{itemize}
+
+\end{tcolorbox}
+
+
+\begin{lstlisting}[language=python]
+import numpy as np
+
+# Khởi tạo hai ma trận A và B (cùng kích thước 2x2)
+A = np.array([
+    [1, 2],
+    [3, 4]
+])
+
+B = np.array([
+    [5, 6],
+    [7, 8]
+])
+
+# Phép cộng ma trận
+sum_matrix = A + B
+print("A + B =")
+print(sum_matrix)
+
+# Phép trừ ma trận
+diff_matrix = A - B
+print("A - B =")
+print(diff_matrix)
+
+# Output:
+# A + B =
+# [[ 6  8]
+#  [10 12]]
+#
+# A - B =
+# [[-4 -4]
+#  [-4 -4]]
+\end{lstlisting}
+\paragraph{2} \textbf{Matrix x vector}
+\begin{tcolorbox}[title= Matrix ,coltitle =black,fonttitle=\large\bfseries, colback=green!5!white,colframe=green!75!black]
+
+\[
+A = 
+\begin{bmatrix}
+a_{11} & a_{12} & \cdots & a_{1n} \\
+a_{21} & a_{22} & \cdots & a_{2n} \\
+\vdots & \vdots & \ddots & \vdots \\
+a_{m1} & a_{m2} & \cdots & a_{mn}
+\end{bmatrix}, \quad
+\vec{x} = 
+\begin{bmatrix}
+x_1 \\
+x_2 \\
+\vdots \\
+x_n
+\end{bmatrix}
+\]
+
+\[
+A \vec{x} = 
+\begin{bmatrix}
+a_{11}x_1 + a_{12}x_2 + \cdots + a_{1n}x_n \\
+a_{21}x_1 + a_{22}x_2 + \cdots + a_{2n}x_n \\
+\vdots \\
+a_{m1}x_1 + a_{m2}x_2 + \cdots + a_{mn}x_n
+\end{bmatrix} \in \mathbb{R}^m
+\]
+\end{tcolorbox}
+
+\begin{lstlisting}[language=python]
+import numpy as np
+
+# Ma trận A có kích thước 3x2
+A = np.array([
+    [1, 2],
+    [3, 4],
+    [5, 6]
+])
+
+# Vector x có kích thước 2x1
+x = np.array([7, 8])
+
+# Tính tích A.x
+result = A @ x
+print(result) #[23 53 83]
+\end{lstlisting}
+\paragraph{3} \textbf{Matrix x Matrix}
+\begin{tcolorbox}[title= Matrix ,coltitle =black,fonttitle=\large\bfseries, colback=green!5!white,colframe=green!75!black]
+
+    \textbf{Giả sử:}
+    \[
+    A =
+    \begin{bmatrix}
+    a_{11} & a_{12} & a_{13} \\
+    a_{21} & a_{22} & a_{23}
+    \end{bmatrix} \in \mathbb{R}^{2 \times 3}, \quad
+    B =
+    \begin{bmatrix}
+    b_{11} & b_{12} \\
+    b_{21} & b_{22} \\
+    b_{31} & b_{32}
+    \end{bmatrix} \in \mathbb{R}^{3 \times 2}
+    \]
+
+    \textbf{Tích:}
+    \[
+    A \cdot B =
+    \begin{bmatrix}
+    a_{11}b_{11} + a_{12}b_{21} + a_{13}b_{31} & 
+    a_{11}b_{12} + a_{12}b_{22} + a_{13}b_{32} \\
+    a_{21}b_{11} + a_{22}b_{21} + a_{23}b_{31} & 
+    a_{21}b_{12} + a_{22}b_{22} + a_{23}b_{32}
+    \end{bmatrix} \in \mathbb{R}^{2 \times 2}
+    \]
+
+    \textit{Mỗi phần tử của kết quả là tích vô hướng giữa hàng của $A$ và cột tương ứng của $B$.}
+\end{tcolorbox}
+
+\begin{lstlisting}[language=python]
+import numpy as np
+
+# Matrix A: shape (2, 3)
+A = np.array([
+    [1, 2, 3],
+    [4, 5, 6]
+])
+
+# Matrix B: shape (3, 2)
+B = np.array([
+    [7, 8],
+    [9, 10],
+    [11, 12]
+])
+
+# Matrix multiplication
+C = A @ B
+# hoặc dùng C = np.matmul(A,B)
+print("A @ B =")
+print(C)
+
+# Output:
+# A @ B =
+# [[ 58  64]
+#  [139 154]]
+\end{lstlisting}
+
+\subsection{Cosine simularity}
+\begin{tcolorbox}[title= Cosine Similarity, 
+    coltitle=black, fonttitle=\large\bfseries, 
+    colback=green!5!white, colframe=green!75!black]
+
+    \textbf{Định nghĩa:} Cosine similarity đo lường mức độ tương tự giữa hai vector bằng cách tính cosin của góc giữa chúng.
+
+    \[
+    \cos(\theta) = \frac{\vec{v} \cdot \vec{u}}{\|\vec{v}\| \cdot \|\vec{u}\|} = 
+    \frac{\sum_{i=1}^{n} v_i u_i}{\sqrt{\sum_{i=1}^{n} v_i^2} \cdot \sqrt{\sum_{i=1}^{n} u_i^2}}
+    \]
+
+    \textbf{Tính chất:}
+    \begin{itemize}
+        \item $-1 \leq \cos(\theta) \leq 1$
+        \item cs($\vec{x}, \vec{y}$) = cs($a\vec{x}, b\vec{y}$), với ab > 0
+        \item cs($\vec{x}, \vec{y}$) $\neq$ cs($\vec{x}$ + c, $\vec{y}$ + d)
+    \end{itemize}
+\end{tcolorbox}
+
+\begin{lstlisting}[language=python]
+import numpy as np
+
+# Hai vector
+v = np.array([1, 2, 3])
+u = np.array([4, 5, 6])
+
+# Tính cosine similarity
+cos_sim = np.dot(v, u) / (np.linalg.norm(v) * np.linalg.norm(u))
+
+print("Cosine Similarity:", cos_sim)
+
+# Output:
+# Cosine Similarity: 0.974631846
+\end{lstlisting}
+
+
+\section{Ứng dụng}
+\subsection{Background Substraction}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.74\linewidth]{image/linalg.png}
+    \caption{Sample}
+    \label{fig:enter-label}
+\end{figure}
+\paragraph{1.} Ý tưởng 
+\begin{itemize}
+    \item So sánh sự khác nhau giữa hai ảnh B và I
+    \item Ta sẽ tìm một mức điểm để phân biệt các pixel gần giống nhau gắn giá trị 0 và khác nhau để mask
+    \item Ta ghép lại ảnh I vào F bằng cách thay các pixel của F bằng các pixel có giá trị 0 sau khi mask, còn lại là pixel I.
+\end{itemize}
+
+\begin{tcolorbox}[title= Background Substraction, 
+    coltitle=black, fonttitle=\large\bfseries, 
+    colback=green!5!white, colframe=green!75!black]
+\begin{align*}
+A &= |I - B| \\
+M &= 
+\begin{cases}
+0 & \text{if } A < th \\
+1 & \text{otherwise}
+\end{cases} \\
+O &= 
+\begin{cases}
+F & \text{if } M == 0 \\
+I & \text{otherwise}
+\end{cases}
+\end{align*}
+\end{tcolorbox}
+
+
+\paragraph{2.} Code
+
+\begin{lstlisting}[language=Python]
+import numpy as np
+import cv2
+
+bg = cv2.imread('background.png', 1)
+bg = cv2.resize(bg, (640, 480))
+
+img = cv2.imread('StillImage.png', 1)
+img = cv2.resize(img, (640, 480))
+
+difference = cv2.absdiff(bg, img)
+difference = np.sum(differnce, axis = 2)/3.0 #lấy trung bình giữa 3 lớp R,G,B
+
+_, difference_binary = cv2.threshold(difference, 15, 255, cv2.THRESH_BINARY)
+
+new_bg = cv2.imread('FakeBackground.png')
+new_bg = cv2.resize(new_bg, (640, 480))
+
+output = np.where(difference_binary==0, new_bg, img)
+cv2.imwrite('output.png', output)
+\end{lstlisting}
+\subsection{Traffic Sign Matching}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{image/sign.png}
+    \caption{Sample}
+    \label{fig:enter-label}
+\end{figure}
+Ý tưởng sử dụng L1-norm và hàm cosine để kiểm tra sự giống nhau giữa 2 ảnh.
+\paragraph{1.} L1-norm
+\begin{lstlisting}[language = python]
+import cv2
+import matplotlip.pyplot as plt
+
+#read img
+img1 = cv2.imread('sign1.png')
+img2 = cv2.imread('sign2.png')
+#resize img
+img1 = cv2.resize(img1,(100,100))
+img2 = cv2.resize(img2,(100,100))s
+# doi type de tinh toan
+img1 = img1.astype(np.float32)
+img 2 = img2.astype(np.float32)
+distance = np.mean(np.abs(img1 - img2))
+print(distance)
+\end{lstlisting}
+\paragraph{2.} Cosine simularity
+\begin{lstlisting}[language = python]
+from numpy.linalg import norm
+
+def cos_sim(x, y):
+    x = x.flatten()
+    y = y.flatten()
+
+    x = x.astype(np.float64)
+    y = y.astype(np.float64)
+
+    result = np.dot(x, y) / (norm(x) * norm(y))
+    return result
+
+cs12 = cos_sim(img1, img2) #gia tri tra ra tu -1 den 1
+\end{lstlisting}
+\end{document}
+

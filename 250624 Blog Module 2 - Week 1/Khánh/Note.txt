@@ -1,0 +1,17 @@
+
+\subsection*{Gợi ý hình ảnh minh họa}
+
+Để bài viết trực quan và dễ hiểu hơn, bạn nên thêm các hình ảnh minh họa sau tại các vị trí đã được đánh dấu:
+
+\begin{itemize}
+    \item \textbf{Hình 2}: Sơ đồ UML đơn giản cho ví dụ lớp \texttt{Nguoi} hoặc \texttt{Car}.
+    \item \textbf{Hình 3}: Sơ đồ kế thừa giữa các lớp \texttt{Animal}, \texttt{Dog}, \texttt{Cat}.
+    \item \textbf{Hình 4}: Minh họa đa hình: cùng một phương thức \texttt{speak()}, nhưng mỗi lớp cho kết quả khác nhau.
+    \item \textbf{Hình 5}: Sơ đồ Stack thể hiện nguyên tắc LIFO (Push/Pop).
+    \item \textbf{Hình 6}: Sơ đồ Queue thể hiện nguyên tắc FIFO (Enqueue/Dequeue).
+    \item \textbf{Hình 7}: Cấu trúc tổng quát của cây (Tree) với root, leaf, children.
+    \item \textbf{Hình 8a}: Minh họa thuật toán DFS (Depth-First Search) trên cây.
+    \item \textbf{Hình 8b}: Minh họa thuật toán BFS (Breadth-First Search) trên cây.
+    \item \textbf{Hình 9}: Minh họa cấu trúc và nguyên lý hoạt động của Binary Search Tree (BST).
+    \item \textbf{Hình 10}: Minh họa custom layer trong PyTorch sử dụng kế thừa từ \texttt{nn.Module}.
+\end{itemize}

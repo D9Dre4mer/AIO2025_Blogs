@@ -1,0 +1,220 @@
+\documentclass{article}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{geometry}
+\usepackage[T5]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
+\usepackage{titlesec}
+\geometry{margin=1in}
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.5em}{}
+\title{Tổng hợp Lệnh SQL Cơ Bản và Tính Năng Đầy Đủ}
+\author{}
+\date{}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{white},
+  frame=single,
+  breaklines=true,
+  keywordstyle=\color{blue}\bfseries,
+  showstringspaces=false
+}
+
+\begin{document}
+\maketitle
+
+\section{CREATE DATABASE — Tạo Cơ Sở Dữ Liệu}
+
+\begin{lstlisting}[language=SQL]
+CREATE DATABASE LibraryDB;
+\end{lstlisting}
+
+\textbf{Tính năng:}
+\begin{itemize}
+  \item Tạo cơ sở dữ liệu mới tên là \texttt{LibraryDB}.
+  \item Tuỳ chọn: \texttt{IF NOT EXISTS} để tránh lỗi nếu CSDL đã tồn tại.
+\end{itemize}
+
+\begin{lstlisting}[language=SQL]
+CREATE DATABASE IF NOT EXISTS LibraryDB;
+\end{lstlisting}
+
+\section{CREATE TABLE — Tạo Bảng}
+
+\begin{lstlisting}[language=SQL]
+USE LibraryDB;
+
+CREATE TABLE Books (
+    BookID INT AUTO_INCREMENT PRIMARY KEY,
+    Title VARCHAR(100),
+    Author VARCHAR(100),
+    Genre VARCHAR(50),
+    PublishedYear INT,
+    Available BOOLEAN
+);
+\end{lstlisting}
+
+\textbf{Tính năng:}
+\begin{itemize}
+  \item \texttt{AUTO\_INCREMENT} — Tăng tự động giá trị \texttt{BookID}.
+  \item \texttt{PRIMARY KEY} — Khoá chính, xác định duy nhất từng dòng.
+  \item Kiểu dữ liệu gồm: \texttt{VARCHAR}, \texttt{INT}, \texttt{BOOLEAN}, v.v.
+  \item Ràng buộc phổ biến: \texttt{NOT NULL}, \texttt{UNIQUE}, \texttt{DEFAULT}, \texttt{CHECK}.
+\end{itemize}
+
+\section{DROP DATABASE — Xoá Cơ Sở Dữ Liệu}
+
+\begin{lstlisting}[language=SQL]
+DROP DATABASE LibraryDB;
+\end{lstlisting}
+
+\textbf{Tính năng:}
+\begin{itemize}
+  \item Xoá hoàn toàn cơ sở dữ liệu và tất cả bảng bên trong.
+  \item Tuỳ chọn: \texttt{IF EXISTS} để tránh lỗi nếu không tồn tại.
+\end{itemize}
+
+\section{INSERT DATA — Chèn Dữ Liệu}
+
+\begin{lstlisting}[language=SQL]
+INSERT INTO Books (Title, Author, Genre, PublishedYear, Available) VALUES
+('1984', 'George Orwell', 'Dystopian', 1949, TRUE),
+('To Kill a Mockingbird', 'Harper Lee', 'Fiction', 1960, TRUE),
+('The Great Gatsby', 'F. Scott Fitzgerald', 'Classic', 1925, FALSE),
+('Brave New World', 'Aldous Huxley', 'Dystopian', 1932, TRUE),
+('The Catcher in the Rye', 'J.D. Salinger', 'Classic', 1951, FALSE);
+\end{lstlisting}
+
+\textbf{Tính năng:}
+\begin{itemize}
+  \item Chèn một hoặc nhiều dòng dữ liệu vào bảng.
+  \item Cần khớp thứ tự cột hoặc ghi rõ tên cột.
+  \item Có thể dùng giá trị mặc định hoặc truy vấn phụ.
+\end{itemize}
+
+\section{SELECT — Truy vấn Dữ Liệu}
+
+\begin{lstlisting}[language=SQL]
+SELECT * FROM Books;
+\end{lstlisting}
+
+\textbf{Tính năng:}
+\begin{itemize}
+  \item \texttt{*} chọn tất cả các cột.
+  \item Có thể chọn cột cụ thể: \texttt{SELECT Title, Author FROM Books;}
+  \item Có thể đặt bí danh: \texttt{SELECT Title AS TenSach;}
+\end{itemize}
+
+\section{WHERE — Điều Kiện Lọc}
+
+\begin{lstlisting}[language=SQL]
+SELECT * FROM Books
+WHERE Genre = 'Dystopian';
+\end{lstlisting}
+
+\textbf{Tính năng:}
+\begin{itemize}
+  \item Lọc dòng theo điều kiện.
+  \item Hỗ trợ các toán tử logic: \texttt{=, <, >, <=, >=, <>, AND, OR, NOT}
+  \item Có thể sử dụng biểu thức: \texttt{WHERE PublishedYear + 10 < 2000}
+\end{itemize}
+
+\section{IN và BETWEEN}
+
+\begin{lstlisting}[language=SQL]
+-- IN
+SELECT * FROM Books
+WHERE Genre IN ('Classic', 'Fiction');
+
+-- BETWEEN
+SELECT * FROM Books
+WHERE PublishedYear BETWEEN 1930 AND 1960;
+\end{lstlisting}
+
+\textbf{Tính năng:}
+\begin{itemize}
+  \item \texttt{IN} — Kiểm tra giá trị nằm trong danh sách.
+  \item \texttt{BETWEEN} — Kiểm tra giá trị trong khoảng (bao gồm giới hạn).
+  \item Có thể dùng \texttt{NOT IN}, \texttt{NOT BETWEEN}.
+\end{itemize}
+
+\section{IS NULL — Kiểm Tra Giá Trị Rỗng}
+
+\begin{lstlisting}[language=SQL]
+SELECT * FROM Books
+WHERE Author IS NULL;
+\end{lstlisting}
+
+\textbf{Tính năng:}
+\begin{itemize}
+  \item Kiểm tra các giá trị \texttt{NULL} (không có dữ liệu).
+  \item Dùng \texttt{IS NOT NULL} để tìm dữ liệu không rỗng.
+\end{itemize}
+
+\section{ORDER BY — Sắp Xếp}
+
+\begin{lstlisting}[language=SQL]
+SELECT * FROM Books
+ORDER BY PublishedYear DESC;
+\end{lstlisting}
+
+\textbf{Tính năng:}
+\begin{itemize}
+  \item Sắp xếp kết quả theo một hoặc nhiều cột.
+  \item ASC = tăng dần (mặc định), DESC = giảm dần.
+  \item Có thể kết hợp nhiều tiêu chí sắp xếp.
+\end{itemize}
+
+\begin{lstlisting}[language=SQL]
+SELECT * FROM Books
+ORDER BY Genre ASC, PublishedYear DESC;
+\end{lstlisting}
+
+\section{LIMIT — Giới Hạn Số Dòng}
+
+\begin{lstlisting}[language=SQL]
+SELECT * FROM Books
+ORDER BY PublishedYear DESC
+LIMIT 3;
+\end{lstlisting}
+
+\textbf{Tính năng:}
+\begin{itemize}
+  \item Giới hạn số dòng trả về.
+  \item Có thể dùng \texttt{LIMIT offset, count} để phân trang.
+\end{itemize}
+
+\begin{lstlisting}[language=SQL]
+SELECT * FROM Books
+LIMIT 5, 10;
+\end{lstlisting}
+5 là offset — bỏ qua 5 dòng đầu. 10 là số dòng sẽ lấy tiếp theo.
+
+\section{LIKE và REGEXP — Tìm Kiếm Mẫu}
+
+\begin{lstlisting}[language=SQL]
+-- LIKE
+SELECT * FROM Books
+WHERE Title LIKE 'The%';
+
+-- REGEXP
+SELECT * FROM Books
+WHERE Author REGEXP '^J';
+\end{lstlisting}
+
+\textbf{Tính năng:}
+\begin{itemize}
+  \item \texttt{LIKE} sử dụng ký tự đại diện:
+    \begin{itemize}
+      \item \texttt{\%} — khớp mọi chuỗi ký tự.
+      \item \texttt{\_} — khớp một ký tự duy nhất.
+    \end{itemize}
+  \item \texttt{REGEXP} sử dụng biểu thức chính quy:
+    \begin{itemize}
+      \item \texttt{^} — bắt đầu bằng, \texttt{.}, \texttt{*}, \texttt{[a-z]}, v.v.
+    \end{itemize}
+\end{itemize}
+
+\end{document}

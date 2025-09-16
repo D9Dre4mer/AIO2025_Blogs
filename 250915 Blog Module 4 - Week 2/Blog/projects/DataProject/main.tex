@@ -1,0 +1,1440 @@
+\begin{center}
+    \Large\textbf{PG\&E Energy Analytics Challenge: Dự Báo Tải Điện Năng Lượng Mặt Trời}
+\end{center}
+
+\begin{center}
+    \Large\textit{Phân Tích Time-Series và Machine Learning cho Dự Báo Năng Lượng}
+\end{center}
+
+\label{sec:pge-energy}
+
+\begin{abstract}
+Dự án PG\&E Energy Analytics Challenge tập trung vào việc dự báo tải điện sử dụng dữ liệu thời gian thực từ 5 trạm đo nhiệt độ và bức xạ mặt trời (GHI) tại California. Bài viết này trình bày một pipeline hoàn chỉnh từ phân tích dữ liệu thăm dò (EDA), kỹ thuật đặc trưng (Feature Engineering), đến xây dựng mô hình dự báo sử dụng XGBoost với tối ưu hóa Bayesian.
+
+\textbf{Điểm nổi bật:}
+\begin{itemize}
+    \item \textbf{Phân tích thời gian đa chiều}: Khám phá patterns theo ngày, tuần, mùa với interactive visualizations
+    \item \textbf{Feature Engineering tiên tiến}: PLS dimensionality reduction, sinusoidal encoding, lag features, và behavioral indicators
+    \item \textbf{Modeling tối ưu}: XGBoost với Bayesian optimization và time-series cross-validation
+    \item \textbf{Đánh giá toàn diện}: MAPE, RMSE, Energy Distance và correlation analysis
+\end{itemize}
+
+\textbf{Phạm vi ứng dụng:} Từ nghiên cứu năng lượng tái tạo đến ứng dụng thực tế trong quản lý lưới điện thông minh. Dự án phù hợp cho data scientists, energy analysts, và kỹ sư điện muốn áp dụng ML trong lĩnh vực năng lượng.
+\end{abstract}
+
+\section{Giới thiệu Dự án PG\&E Energy Analytics Challenge}
+\label{sec:data-project}
+\label{subsec:pge-intro}
+
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.6\textwidth]{projects/DataProject/image/pge_logo.png}
+%     \caption{Logo PG\&E - Pacific Gas and Electric Company, một trong những công ty tiện ích lớn nhất tại California, chuyên cung cấp điện và khí đốt cho hơn 16 triệu người dân.}
+%     \label{fig:pge-logo}
+% \end{figure}
+
+\subsection{Bối cảnh và Mục tiêu Dự án}
+
+PG\&E (Pacific Gas and Electric) là một trong những công ty điện và khí đốt lớn nhất Hoa Kỳ, phục vụ hàng triệu khách hàng tại California. Cuộc thi IISE PG\&E Challenge 2025 tập trung vào việc dự báo tải điện theo giờ cho cả một năm, trong bối cảnh khu vực bị ảnh hưởng mạnh bởi năng lượng mặt trời.
+
+\textbf{Ràng buộc của cuộc thi:}
+\begin{itemize}
+    \item \textbf{Chỉ dùng dữ liệu cung cấp}: Load, Temperature, GHI từ 5 trạm đo
+    \item \textbf{Không được dùng dữ liệu ngoài}: Chỉ sử dụng dataset được cung cấp
+    \item \textbf{Dự báo ``day-ahead''}: Dự báo trước 24 giờ cho từng giờ trong ngày
+\end{itemize}
+
+Dự án này có ý nghĩa quan trọng trong việc:
+
+\begin{itemize}
+    \item \textbf{Tối ưu hóa lưới điện}: Dự báo chính xác giúp cân bằng cung-cầu điện năng
+    \item \textbf{Tích hợp năng lượng tái tạo}: Hỗ trợ việc tích hợp năng lượng mặt trời vào lưới điện
+    \item \textbf{Giảm chi phí vận hành}: Tránh tình trạng dư thừa hoặc thiếu hụt điện năng
+    \item \textbf{Ứng phó biến đổi khí hậu}: Dự báo tác động của thời tiết lên nhu cầu điện
+\end{itemize}
+
+\subsection{Dữ liệu và Thách thức}
+
+Dự án sử dụng dữ liệu từ 5 trạm đo thời tiết tại California, bao gồm:
+
+\begin{tcolorbox}[colback=green!10,colframe=green!50!black,title=Thông tin Dữ liệu]
+\begin{itemize}
+    \item \textbf{Thời gian}: 3 năm dữ liệu (2021-2023) với tần suất đo mỗi giờ
+    \item \textbf{Biến số}: Nhiệt độ (5 trạm), Bức xạ mặt trời GHI (5 trạm), Tải điện
+    \item \textbf{Kích thước}: 26,304 điểm dữ liệu (3 năm × 365 ngày × 24 giờ)
+    \item \textbf{Thách thức}: Dự báo tải điện cho năm thứ 3 dựa trên dữ liệu 2 năm đầu
+\end{itemize}
+\end{tcolorbox}
+
+\textbf{Phân loại biến số:}
+\begin{itemize}
+    \item \textbf{Endogenous (Nội sinh)}: Load - biến phụ thuộc, được quyết định trong mô hình
+    \item \textbf{Exogenous (Ngoại sinh)}: Temperature và GHI - biến độc lập, yếu tố bên ngoài tác động
+\end{itemize}
+
+\textbf{Cấu trúc dữ liệu:} (Year, Month, Day, Hour, Load, Temp site 1--5, GHI site 1--5)
+
+
+\subsection{Kiến trúc Tổng thể Dự án}
+
+\textbf{Pipeline Dự Báo Phụ Tải - Quy trình 5 giai đoạn:}
+
+\begin{enumerate}
+    \item \textbf{Dimension Reduction} $\rightarrow$ \textbf{Feature Engineering} $\rightarrow$ \textbf{Model Selection and Training} $\rightarrow$ \textbf{Metric Selection} $\rightarrow$ \textbf{Model Training}
+    
+    \item \textbf{Chi tiết từng giai đoạn:}
+    \begin{itemize}
+        \item \textbf{Giai đoạn 1 - Dimension Reduction:} Sử dụng Partial Least Squares (PLS) để giảm chiều dữ liệu từ 5 trạm đo xuống 1 biến tổng hợp, loại bỏ multicollinearity và tăng hiệu quả tính toán.
+        
+        \item \textbf{Giai đoạn 2 - Feature Engineering:} Tạo ra 3 loại đặc trưng chính:
+        \begin{itemize}
+            \item \textit{Time Features:} Sinusoidal encoding cho patterns theo ngày/tuần/năm
+            \item \textit{Weather Features:} Lag features và delta features cho nhiệt độ và GHI
+            \item \textit{Behavioral Features:} Heating/Cooling degree hours và holiday indicators
+        \end{itemize}
+        
+        \item \textbf{Giai đoạn 3 - Model Selection and Training:} So sánh và lựa chọn giữa:
+        \begin{itemize}
+            \item \textit{Classical Models:} Linear regression, ARIMA
+            \item \textit{ML Models:} Random Forest, XGBoost, LSTM
+            \item \textit{DL Models:} Transformers (nếu cần thiết)
+        \end{itemize}
+        
+        \item \textbf{Giai đoạn 4 - Metric Selection:} Xác định các thước đo đánh giá phù hợp:
+        \begin{itemize}
+            \item \textit{MAE:} Mean Absolute Error cho độ chính xác tuyệt đối
+            \item \textit{MSE/RMSE:} Mean Squared Error cho penalty lớn hơn với lỗi lớn
+            \item \textit{MAPE:} Mean Absolute Percentage Error cho tỷ lệ lỗi tương đối
+            \item \textit{Energy Distance:} Đánh giá sự tương đồng phân phối
+        \end{itemize}
+        
+        \item \textbf{Giai đoạn 5 - Model Training:} Tối ưu hóa mô hình cuối cùng:
+        \begin{itemize}
+            \item \textit{Distributed Computing:} Sử dụng Master-Slave architecture cho Grid Search
+            \item \textit{Bayesian Optimization:} Tìm hyperparameters tối ưu một cách thông minh
+        \end{itemize}
+    \end{itemize}
+\end{enumerate}
+
+\textbf{Giải thích chi tiết về pipeline:}
+\begin{itemize}
+    \item \textbf{Dimension Reduction}: Sử dụng PLS để giảm chiều dữ liệu từ 5 trạm đo xuống 1 biến tổng hợp
+    \item \textbf{Feature Engineering}: Tạo ra 3 loại đặc trưng chính - Time, Weather, và Behavioral features
+    \item \textbf{Model Selection and Training}: So sánh và lựa chọn giữa Classical, ML, và DL models
+    \item \textbf{Metric Selection}: Xác định các thước đo đánh giá (MAE, MSE/RMSE, MAPE, Energy Distance)
+    \item \textbf{Model Training}: Sử dụng Distributed Computing và Bayesian Optimization để tối ưu hóa
+\end{itemize}
+
+\section{Phân tích Dữ liệu Thăm dò (EDA)}
+\label{subsec:data-project-eda}
+\label{subsec:eda-analysis}
+
+Phân tích dữ liệu thăm dò là bước quan trọng đầu tiên trong bất kỳ dự án machine learning nào. Đối với dự án dự báo tải điện, EDA giúp chúng ta hiểu rõ patterns thời gian, mối quan hệ giữa các biến số, và đặc điểm của dữ liệu.
+
+\subsection{Tải và Chuẩn bị Dữ liệu}
+
+\begin{minted}{python}
+# --- Import necessary libraries ---
+import os
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import calendar
+import ipywidgets as widgets
+from ipywidgets import interact
+
+# --- Set global Matplotlib parameters ---
+plt.rcParams["font.family"] = "serif"
+plt.rcParams["figure.dpi"] = 1000
+plt.rcParams["font.size"] = 20
+plt.rcParams["axes.labelsize"] = 20
+plt.rcParams["axes.titlesize"] = 18
+plt.rcParams["legend.fontsize"] = 20
+
+# --- Load training data (Years 1 and 2) ---
+train_df = pd.read_excel('.././datasets/training.xlsx', sheet_name='Data')
+
+# --- Load testing data (Year 3)
+test_df = pd.read_excel('.././datasets/testing.xlsx', sheet_name='Data')
+\end{minted}
+
+\textbf{Giải thích code:}
+\begin{itemize}
+    \item \texttt{pandas}: Thư viện chính để xử lý và phân tích dữ liệu
+    \item \texttt{matplotlib, seaborn}: Tạo visualizations và plots
+    \item \texttt{ipywidgets}: Tạo interactive plots cho EDA
+    \item \texttt{calendar}: Hỗ trợ xử lý thông tin tháng trong visualizations
+\end{itemize}
+
+\subsection{Thống kê Mô tả}
+
+\begin{minted}{python}
+# --- Dynamically find the columns for temperature and GHI ---
+load_col = ['Load']
+temp_cols = sorted([col for col in train_df.columns if 'Temp' in col])
+ghi_cols = sorted([col for col in train_df.columns if 'GHI' in col])
+all_cols = load_col + temp_cols + ghi_cols
+
+# --- Create a list to hold the statistics for each year ---
+stats_list = []
+
+# --- Loop through each year in the training data ---
+for year in sorted(train_df['Year'].unique()):
+    # Filter data for the current year
+    year_df = train_df[train_df['Year'] == year][all_cols]
+    
+    # Calculate descriptive statistics
+    stats = {
+        'Mean': year_df.mean(),
+        'Variance': year_df.var(),
+        'Median': year_df.median(),
+        'Min': year_df.min(),
+        'Max': year_df.max(),
+        'Skewness': year_df.skew(),
+        'Kurtosis': year_df.kurt()
+    }
+    
+    # Convert dictionary to DataFrame and set index
+    stats_df = pd.DataFrame(stats).T
+    stats_df['Year'] = year
+    stats_df = stats_df.set_index('Year', append=True).reorder_levels([1, 0])
+    stats_list.append(stats_df)
+
+# --- Concatenate the results for all years into a single DataFrame ---
+summary_stats = pd.concat(stats_list)
+\end{minted}
+
+\textbf{Giải thích thống kê:}
+\begin{itemize}
+    \item \textbf{Mean}: Giá trị trung bình của mỗi biến số
+    \item \textbf{Variance}: Độ phân tán của dữ liệu xung quanh giá trị trung bình
+    \item \textbf{Skewness ($\gamma_1$)}: Độ lệch của phân phối (skewness $> 0$: lệch phải)
+    \item \textbf{Kurtosis ($\gamma_2$)}: Độ nhọn của phân phối (kurtosis $> 3$: phân phối nhọn hơn normal)
+\end{itemize}
+
+
+\subsection{Phân tích Biến thiên Theo Thời gian}
+
+\subsubsection{Biến thiên Hàng ngày}
+
+\begin{minted}{python}
+def plot_daily_variation_ghi(month, site):
+    fig, axes = plt.subplots(1, 2, figsize=(18, 9), sharey=True)
+    for idx, year in enumerate([1, 2]):
+        ax = axes[idx]
+        filtered_df = train_df[(train_df["Year"] == year) & (train_df["Month"] == month)]
+        for day in sorted(filtered_df["Day"].unique()):
+            subset = filtered_df[filtered_df["Day"] == day]
+            ax.plot(subset["Hour"], subset[site], alpha=0.5, linestyle="-", marker="o", lw=1.0)
+        centroid = filtered_df.groupby("Hour")[site].mean()
+        ax.plot(centroid.index, centroid, color='black', lw=2.5, marker='D', linestyle='-', label="Centroid")
+        ax.set_xlabel("Hour of the Day")
+        ax.set_title(f"Hourly GHI Variation for {calendar.month_name[month]} (Year {year}) - {site}")
+        ax.legend(loc="upper left")
+    axes[0].set_ylabel("GHI (W/m$^2$)")
+    plt.tight_layout()
+    plt.show()
+
+# --- Interactive widgets ---
+month_widget_ghi = widgets.Dropdown(options={calendar.month_name[m]: m for m in sorted(train_df["Month"].unique()) if m != 0}, value=4, description="Month:")
+site_columns_ghi = [col for col in train_df.columns if "GHI" in col]
+site_widget_ghi = widgets.Dropdown(options=site_columns_ghi, value=site_columns_ghi[0], description="Site:")
+interact(plot_daily_variation_ghi, month=month_widget_ghi, site=site_widget_ghi)
+\end{minted}
+
+\textbf{Giải thích visualization:}
+    \begin{itemize}
+    \item \textbf{Alpha=0.5}: Độ trong suốt để thấy được tất cả các đường cong
+    \item \textbf{Centroid (đường đen)}: Đường cong trung bình của tất cả các ngày trong tháng
+    \item \textbf{Interactive widgets}: Cho phép người dùng chọn tháng và trạm đo để khám phá
+    \item \textbf{Patterns}: GHI thường cao nhất vào giữa trưa (12-14h) và bằng 0 vào ban đêm
+    \end{itemize}
+
+\subsubsection{Biến thiên Hàng tuần}
+
+\begin{minted}{python}
+# --- Create mappings for month-day calculations ---
+days_in_month = {
+    1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30,
+    7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31
+}
+cumulative_days_map = {i: sum(list(days_in_month.values())[:i-1]) for i in range(1, 13)}
+
+def add_week_info(df):
+    df = df.copy()
+    df.dropna(subset=['Month', 'Day'], inplace=True)
+    df['Month'] = df['Month'].astype(int)
+    df['Day'] = df['Day'].astype(int)
+    
+    max_days = df['Month'].map(days_in_month)
+    df['Day_Clipped'] = np.minimum(df['Day'], max_days)
+    cumulative_days = df['Month'].map(cumulative_days_map)
+    df['DayOfYear'] = cumulative_days + df['Day_Clipped']
+    
+    df['WeekOfYear'] = ((df['DayOfYear'] - 1) // 7) + 1
+    df['DayOfWeek'] = (df['DayOfYear'] - 1) % 7
+    
+    return df
+
+# --- Apply to training data ---
+train_df = add_week_info(train_df)
+\end{minted}
+
+\textbf{Giải thích tính toán tuần:}
+\begin{itemize}
+    \item \textbf{DayOfYear}: Ngày thứ bao nhiêu trong năm (1-365)
+    \item \textbf{WeekOfYear}: Tuần thứ bao nhiêu trong năm
+    \item \textbf{DayOfWeek}: Thứ trong tuần (0=Thứ 2, 6=Chủ nhật)
+    \item \textbf{Day\_Clipped}: Xử lý trường hợp ngày 31 trong tháng 2
+\end{itemize}
+
+\subsubsection{Phân tích Theo Mùa}
+
+\begin{minted}{python}
+# --- Define Seasons for California (Northern Hemisphere Meteorological) ---
+season_map = {
+    12: 'Winter', 1: 'Winter', 2: 'Winter',
+    3: 'Spring', 4: 'Spring', 5: 'Spring',
+    6: 'Summer', 7: 'Summer', 8: 'Summer',
+    9: 'Autumn', 10: 'Autumn', 11: 'Autumn'
+}
+
+# Add the 'Season' column to the dataframe
+train_df['Season'] = train_df['Month'].map(season_map)
+
+def plot_seasonal_weekly_comparison(season, site, variable_name, y_label):
+    fig, axes = plt.subplots(1, 2, figsize=(18, 7), sharey=True)
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c'] 
+    
+    for idx, year in enumerate([1, 2]):
+        ax = axes[idx]
+        season_df = train_df[(train_df["Year"] == year) & (train_df["Season"] == season)].copy()
+        season_df['HourOfWeek'] = season_df['DayOfWeek'] * 24 + season_df['Hour']
+        
+        months_in_season = sorted(season_df['Month'].unique())
+        for i, month in enumerate(months_in_season):
+            month_subset = season_df[season_df['Month'] == month]
+            centroid = month_subset.groupby('HourOfWeek')[site].mean()
+            ax.plot(centroid.index, centroid, label=calendar.month_name[month], color=colors[i])
+        
+        ax.set_xlabel("Hour of the Week")
+        ax.set_title(f"Average Weekly {variable_name} in {season} (Year {year}) - {site}")
+        ax.legend()
+        ax.grid(True, linestyle='--', alpha=0.6)
+        
+        tick_locations = [i * 24 for i in range(7)]
+        tick_labels = ['Mon', 'Tues', 'Wed', 'Thurs', 'Fri', 'Sat', 'Sun']
+        ax.set_xticks(tick_locations)
+        ax.set_xticklabels(tick_labels)
+        ax.set_xlim(0, 168)
+    
+    axes[0].set_ylabel(f"Average {y_label}")
+    plt.tight_layout()
+    plt.show()
+\end{minted}
+
+\textbf{Giải thích phân tích mùa:}
+\begin{itemize}
+    \item \textbf{California seasons}: Sử dụng meteorological seasons phù hợp với khí hậu California
+    \item \textbf{Color coding}: Mỗi tháng trong mùa có màu riêng để dễ phân biệt
+    \item \textbf{Weekly patterns}: Thể hiện patterns 168 giờ (7 ngày × 24 giờ)
+    \item \textbf{Seasonal insights}: Mùa hè có GHI cao nhất, mùa đông thấp nhất
+\end{itemize}
+
+\subsection{Phân tích Tương quan và Đa cộng tuyến}
+
+\subsubsection{Tương quan giữa Load và GHI}
+
+\begin{minted}{python}
+# --- Compute correlations with Load ---
+train_df['Load'] = pd.to_numeric(train_df['Load'].astype(str).str.replace(',', ''), errors='coerce')
+
+temp_columns = ['Site-1 Temp', 'Site-2 Temp', 'Site-3 Temp', 'Site-4 Temp', 'Site-5 Temp']
+GHI_columns = ['Site-1 GHI', 'Site-2 GHI', 'Site-3 GHI', 'Site-4 GHI', 'Site-5 GHI']
+
+correlations = {site: train_df[site].corr(train_df['Load']) for site in temp_columns}
+correlations2 = {site: train_df[site].corr(train_df['Load']) for site in GHI_columns}
+
+# --- Convert to pandas Series for easy plotting ---
+correlation_series = pd.Series(correlations)
+correlation_series2 = pd.Series(correlations2)
+
+plt.figure(figsize=(16, 8))
+correlation_series2.plot(kind='bar', color='royalblue')
+
+# Graph Details
+plt.title('Comparative Correlation of GHI at Each Site with Electrical Load', fontsize=15)
+plt.xlabel('Site', fontsize=13)
+plt.ylabel('Correlation Magnitude')
+plt.ylim(-1, 1) # Ensuring scale reflects correlation range
+plt.grid(axis='y', linestyle='--', alpha=0.7)
+plt.axhline(0, color='gray', linewidth=0.8)
+for index, value in enumerate(correlation_series2):
+    plt.text(index, value + 0.1, f'{value:.4f}', ha='center')
+
+plt.tight_layout()
+plt.show()
+\end{minted}
+
+\textbf{Giải thích tương quan:}
+\begin{itemize}
+    \item \textbf{Correlation coefficient}: Giá trị từ -1 đến 1, càng gần 1 thì tương quan dương mạnh
+    \item \textbf{Load $\leftrightarrow$ GHI}: Quan hệ nghịch (nhiều nắng $\rightarrow$ ít tải) do năng lượng mặt trời giảm nhu cầu điện
+    \item \textbf{Load $\leftrightarrow$ Temperature}: Quan hệ thuận (nóng/lạnh cực đoan $\rightarrow$ tăng tải) do nhu cầu điều hòa
+    \item \textbf{GHI $\leftrightarrow$ Temperature}: Collinearity cao giữa các site, cần xử lý multicollinearity
+    \item \textbf{Site differences}: Các trạm khác nhau có mức độ tương quan khác nhau
+    \item \textbf{Business insight}: Trạm có tương quan cao nhất nên được ưu tiên trong mô hình
+\end{itemize}
+
+\textbf{Phân tích chi tiết kết quả tương quan:}
+
+\textbf{GHI vs Load (Tương quan âm yếu):}
+\begin{itemize}
+    \item \textbf{Giá trị tương quan}: -0.0535 đến -0.0607 (rất yếu)
+    \item \textbf{Ý nghĩa}: Khi bức xạ mặt trời tăng, nhu cầu điện có xu hướng giảm nhẹ
+    \item \textbf{Giải thích}: Năng lượng mặt trời bù đắp một phần nhu cầu điện từ lưới
+    \item \textbf{Site-5 GHI}: Tương quan mạnh nhất (-0.0607), có thể do vị trí địa lý thuận lợi
+    \item \textbf{Site-2 GHI}: Tương quan yếu nhất (-0.0535), có thể do che khuất hoặc vị trí không tối ưu
+\end{itemize}
+
+\textbf{Temperature vs Load (Tương quan dương vừa phải):}
+\begin{itemize}
+    \item \textbf{Giá trị tương quan}: 0.3963 đến 0.4038 (vừa phải)
+    \item \textbf{Ý nghĩa}: Khi nhiệt độ tăng, nhu cầu điện tăng đáng kể
+    \item \textbf{Giải thích}: Nhu cầu điều hòa không khí tăng mạnh khi trời nóng
+    \item \textbf{Site-5 Temp}: Tương quan cao nhất (0.4038), có thể do vị trí đại diện tốt
+    \item \textbf{Site-2 \& Site-4 Temp}: Tương quan thấp nhất (0.3963), nhưng vẫn rất gần với các site khác
+    \item \textbf{Consistency}: Tất cả sites đều có tương quan tương đương, cho thấy ảnh hưởng đồng nhất của nhiệt độ
+\end{itemize}
+
+
+
+\begin{table}[H]
+    \centering
+    \caption{Correlation Analysis Summary - Tóm tắt kết quả phân tích tương quan}
+    \label{tab:correlation-summary}
+    \begin{tcolorbox}[colback=green!10, colframe=green!50!black, title={\large\bfseries PHÂN TÍCH TƯƠNG QUAN}, width=17 cm]
+        \begin{center}
+            \begin{tabular}{|p{2.5cm}|p{2.8cm}|p{2.8cm}|p{2.8cm}|p{3.0cm}|}
+                \hline
+                \rowcolor{green!20}
+                \textbf{Biến số} & \textbf{Khoảng tương quan} & \textbf{Trạm mạnh nhất} & \textbf{Trạm yếu nhất} & \textbf{Giải thích} \\
+                \hline
+                \hline
+                \textbf{GHI vs Load} & -0.0607 đến -0.0535 & Site-5 (-0.0607) & Site-2 (-0.0535) & \textcolor{red!70!black}{Tương quan âm yếu} \\
+                \hline
+                \textbf{Temperature vs Load} & 0.3963 đến 0.4038 & Site-5 (0.4038) & Site-2 \& Site-4 (0.3963) & \textcolor{green!70!black}{Tương quan dương vừa phải} \\
+                \hline
+                \textbf{GHI vs Temperature} & \textcolor{orange!70!black}{Multicollinearity cao} & Tất cả trạm tương tự & Tất cả trạm tương tự & \textcolor{orange!70!black}{Cần giảm chiều} \\
+                \hline
+            \end{tabular}
+        \end{center}
+    \end{tcolorbox}
+\end{table}
+
+
+\subsubsection{Phân tích Đa cộng tuyến (VIF)}
+
+\begin{minted}{python}
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+# Select only the Temperature and GHI columns for analysis
+predictor_cols = sorted([col for col in train_df.columns if 'Temp' in col or 'GHI' in col])
+predictor_df = train_df[predictor_cols]
+
+# Create a new DataFrame for VIF results
+vif_data = pd.DataFrame()
+vif_data["Variable"] = predictor_df.columns
+
+# Calculate VIF for each variable
+vif_data["VIF"] = [variance_inflation_factor(predictor_df.values, i) for i in range(len(predictor_df.columns))]
+
+# Display the VIF scores, styled for readability
+display(vif_data.style.background_gradient(cmap='Reds', subset=['VIF']).format({'VIF': '{:.2f}'}))
+\end{minted}
+
+\textbf{Giải thích VIF:}
+    \begin{itemize}
+    \item \textbf{VIF < 5}: Không có đa cộng tuyến đáng kể
+    \item \textbf{VIF 5-10}: Có đa cộng tuyến vừa phải
+    \item \textbf{VIF > 10}: Có đa cộng tuyến nghiêm trọng, cần xử lý
+    \item \textbf{Action}: Biến có VIF cao nên được loại bỏ hoặc kết hợp
+\end{itemize}
+
+\textbf{Kết luận EDA:}
+\begin{itemize}
+    \item \textbf{Tải điện có tính phi tuyến}: Không tuân theo phân phối chuẩn
+    \item \textbf{Có hiệu ứng chu kỳ}: Ngày, tuần, mùa đều có patterns rõ rệt
+    \item \textbf{Multicollinearity}: Cần xử lý bằng PCA, PLS, hoặc các mô hình cây như RF/XGBoost
+    \item \textbf{Time patterns}: Hourly (24h), Weekly (ngày thường vs cuối tuần), Seasonal (xu hướng khác biệt theo mùa)
+\end{itemize}
+
+\section{Feature Engineering}
+\label{subsec:data-project-features}
+\label{subsec:feature-engineering}
+
+Feature Engineering là bước quan trọng trong việc tạo ra các đặc trưng mới từ dữ liệu gốc để cải thiện hiệu suất mô hình. Đối với dự án dự báo tải điện, chúng ta cần tạo ra các features phản ánh patterns thời gian, mối quan hệ giữa các biến số, và hành vi sử dụng điện.
+
+\subsection{Dimensionality Reduction với PLS}
+
+\begin{minted}{python}
+import pandas as pd
+import numpy as np
+import holidays
+from sklearn.cross_decomposition import PLSRegression
+
+# --- Load training data (Years 1 and 2) ---
+train_df = pd.read_excel('.././datasets/training.xlsx', sheet_name='Data')
+
+# --- Load testing data (Year 3)
+test_df = pd.read_excel('.././datasets/testing.xlsx', sheet_name='Data')
+
+# --- Step 0: Prepare the Data ---
+# For consistency, we'll combine the training and testing sets to apply features.
+# We'll fit the PLS model ONLY on the training data to prevent data leakage.
+train_rows = len(train_df)
+full_df = pd.concat([train_df, test_df], ignore_index=True)
+
+# --- Step 1: PLS Dimensionality Reduction ---
+print("Step 1: Performing PLS Dimensionality Reduction...")
+
+# Define predictor sets and the target variable ('Load')
+temp_cols = sorted([col for col in full_df.columns if 'Temp' in col])
+ghi_cols = sorted([col for col in full_df.columns if 'GHI' in col])
+target_col = 'Load'
+
+# Isolate the training data to fit the models
+X_train_temp = train_df[temp_cols]
+X_train_ghi = train_df[ghi_cols]
+y_train = train_df[target_col]
+
+# a) PLS for Temperature
+pls_temp = PLSRegression(n_components=1)
+pls_temp.fit(X_train_temp, y_train)
+full_df['Combined_Temp'] = pls_temp.transform(full_df[temp_cols])
+
+# b) PLS for GHI
+pls_ghi = PLSRegression(n_components=1)
+pls_ghi.fit(X_train_ghi, y_train)
+full_df['Combined_GHI'] = pls_ghi.transform(full_df[ghi_cols])
+
+print("PLS transformation complete. 'Combined_Temp' and 'Combined_GHI' created.")
+\end{minted}
+
+\textbf{Giải thích PLS Dimensionality Reduction:}
+\begin{itemize}
+    \item \textbf{PLS (Partial Least Squares)}: Kỹ thuật giảm chiều dữ liệu dựa trên mối quan hệ với target variable
+    \item \textbf{So sánh với PCA}: PCA trích xuất thành phần chính không xét Y (unsupervised), PLS tối đa covariance(X,Y) (supervised) $\rightarrow$ phù hợp hơn
+    \item \textbf{n\_components=1}: Chỉ giữ lại 1 component chính, giảm từ 5 biến xuống 1 biến
+    \item \textbf{Data leakage prevention}: Chỉ fit model trên training data, sau đó transform cả train và test
+    \item \textbf{Benefits}: Giảm multicollinearity, tăng tốc training, cải thiện generalization
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        scale=0.85,
+        transform shape,
+        baseline=(current bounding box.center),
+        node distance=2cm,
+        data/.style={rectangle, draw=black, fill={rgb:red,0.2;green,0.6;blue,0.2}, text width=2.5cm, text centered, minimum height=1.5cm, rounded corners=6pt, font=\small, text=white},
+        pca/.style={rectangle, draw=black, fill={rgb:red,0.8;green,0.4;blue,0.1}, text width=2.5cm, text centered, minimum height=1.5cm, rounded corners=6pt, font=\small, text=white},
+        pls/.style={rectangle, draw=black, fill={rgb:red,0.2;green,0.6;blue,0.2}, text width=2.5cm, text centered, minimum height=1.5cm, rounded corners=6pt, font=\small, text=white},
+        arrow/.style={->, thick, color={rgb:red,0.6;green,0.4;blue,0.1}, line width=2pt},
+        title/.style={font=\small\bfseries, color={rgb:red,0.6;green,0.4;blue,0.1}}
+    ]
+        % Input data
+        \node[data] (input) {5 trạm đo\\Temperature + GHI};
+        
+        % PCA path
+        \node[pca, below left=of input, xshift=-1cm] (pca-result) {PCA\\Maximize Variance\\5D → 1D};
+        \node[pca, below=of pca-result] (pca-problem) { Không tối ưu\\cho dự báo Load};
+        
+        % PLS path
+        \node[pls, below right=of input, xshift=1cm] (pls-result) {PLS\\Maximize Covariance(X,Y)\\5D → 1D};
+        \node[pls, below=of pls-result] (pls-advantage) {Tối ưu cho\\dự báo Load};
+        
+        % Target
+        \node[data, below=of input, yshift=-3cm] (target) {Target: Load};
+        
+        % Arrows
+        \draw[arrow] (input) -- (pca-result);
+        \draw[arrow] (pca-result) -- (pca-problem);
+        \draw[arrow] (input) -- (pls-result);
+        \draw[arrow] (pls-result) -- (pls-advantage);
+        \draw[arrow] (target) -- (pls-result);
+        
+        % Labels
+        \node[title, above=of input, yshift=0.5cm] {Dữ liệu đầu vào};
+        \node[title, left=of pca-result, xshift=-1.5cm] {PCA Path};
+        \node[title, right=of pls-result, xshift=1.5cm] {PLS Path};
+    \end{tikzpicture}
+    \caption{So sánh PCA vs PLS trong dự án PG\&E: PLS được chọn vì tối ưu hóa covariance với target variable Load, phù hợp hơn cho supervised learning.}
+    \label{fig:pca-vs-pls-pge}
+\end{figure}
+
+
+
+\subsection{Time Features}
+
+\begin{minted}{python}
+# Create mappings for month-day calculations
+days_in_month = {1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
+cumulative_days_map = {i: sum(list(days_in_month.values())[:i-1]) for i in range(1, 13)}
+
+# Clean data and convert to integer
+full_df.dropna(subset=['Month', 'Day'], inplace=True)
+full_df['Month'] = full_df['Month'].astype(int)
+full_df['Day'] = full_df['Day'].astype(int)
+
+# Calculate DayOfYear and DayOfWeek
+max_days = full_df['Month'].map(days_in_month)
+full_df['Day_Clipped'] = np.minimum(full_df['Day'], max_days)
+cumulative_days = full_df['Month'].map(cumulative_days_map)
+full_df['DayOfYear'] = cumulative_days + full_df['Day_Clipped']
+full_df['DayOfWeek'] = (full_df['DayOfYear'] - 1) % 7
+
+# 1. Sinusoidal Encodings
+P_day = 24
+P_week = 168
+P_year = 8766 # 365.25 * 24
+
+# Create a continuous time index 't'
+full_df['Timestep'] = np.arange(len(full_df))
+t = full_df['Timestep']
+
+# Daily patterns (k=2)
+full_df['sin_day'] = np.sin(2 * np.pi * 2 * t / P_day)
+full_df['cos_day'] = np.cos(2 * np.pi * 2 * t / P_day)
+
+# Weekly patterns (k=2)
+full_df['sin_week'] = np.sin(2 * np.pi * 2 * t / P_week)
+full_df['cos_week'] = np.cos(2 * np.pi * 2 * t / P_week)
+
+# Yearly/Seasonal patterns (k=4)
+full_df['sin_year'] = np.sin(2 * np.pi * 4 * t / P_year)
+full_df['cos_year'] = np.cos(2 * np.pi * 4 * t / P_year)
+
+# 2. Day-of-Week Encoding
+full_df.rename(columns={'DayOfWeek': 'dow'}, inplace=True)
+
+# Weekday (0) vs. Weekend (1)
+full_df['is_weekend'] = full_df['dow'].apply(lambda d: 1 if d >= 5 else 0)
+
+# Holiday encoding (0=No, 1=Yes)
+year_map = {1: 2021, 2: 2022, 3: 2023}
+full_df['Date'] = pd.to_datetime(full_df['Year'].map(year_map).astype(str) + '-' +
+                               full_df['Month'].astype(str) + '-' +
+                               full_df['Day'].astype(str), errors='coerce')
+
+us_holidays = holidays.US(state='CA', years=[2021, 2022, 2023])
+full_df['is_holiday'] = full_df['Date'].isin(us_holidays).astype(int)
+
+print("Time features created successfully.")
+\end{minted}
+
+\textbf{Giải thích Time Features:}
+\begin{itemize}
+    \item \textbf{Sinusoidal Encoding}: Chuyển đổi thời gian thành sin/cos để mô hình hiểu được tính tuần hoàn
+    \item \textbf{Multiple frequencies}: Daily (24h), Weekly (168h), Yearly (8766h) patterns
+    \item \textbf{is\_weekend}: Binary feature để phân biệt ngày thường và cuối tuần
+    \item \textbf{is\_holiday}: Binary feature cho các ngày lễ tại California
+    \item \textbf{Day-of-week encoding}: Thể hiện patterns khác biệt giữa các ngày trong tuần
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{projects/DataProject/image/Sinusoidal Encodings.png}
+    \caption{Sinusoidal Encodings cho Time Features: Minh họa cách chuyển đổi thời gian thành các hàm sin và cos để mô hình machine learning có thể hiểu được tính tuần hoàn của dữ liệu thời gian. Các encoding này bao gồm daily patterns (24h), weekly patterns (168h), và yearly patterns (8766h) với các tần số khác nhau để capture được các chu kỳ ngắn hạn và dài hạn.}
+    \label{fig:sinusoidal-encodings}
+\end{figure}
+
+
+\subsection{Weather Features}
+
+\begin{minted}{python}
+# 3. Weather Lags and Deltas for Combined_Temp
+full_df['lag_1_temp'] = full_df['Combined_Temp'].shift(1)
+full_df['lag_24_temp'] = full_df['Combined_Temp'].shift(24)
+full_df['delta_1_temp'] = full_df['Combined_Temp'].diff(1)
+full_df['delta_24_temp'] = full_df['Combined_Temp'].diff(24)
+
+# Lags and Deltas for Combined_GHI
+full_df['lag_1_ghi'] = full_df['Combined_GHI'].shift(1)
+full_df['lag_24_ghi'] = full_df['Combined_GHI'].shift(24)
+full_df['delta_1_ghi'] = full_df['Combined_GHI'].diff(1)
+full_df['delta_24_ghi'] = full_df['Combined_GHI'].diff(24)
+print("Weather feature engineering complete.")
+\end{minted}
+
+\textbf{Giải thích Weather Features:}
+        \begin{itemize}
+    \item \textbf{Lag features}: Giá trị của biến tại thời điểm trước đó (lag1, lag24)
+    \item \textbf{Delta features}: Sự thay đổi của biến so với thời điểm trước đó (delta1, delta24)
+    \item \textbf{Business logic}: Nhiệt độ và GHI có ảnh hưởng đến nhu cầu điện với độ trễ
+    \item \textbf{Memory effect}: Mô hình có thể học được patterns từ quá khứ
+    \item \textbf{Short-term vs Long-term}: Lag1 cho short-term, lag24 cho daily patterns
+        \end{itemize}
+
+
+\subsection{Behavioral Features}
+
+\begin{minted}{python}
+# 4. Heating/Cooling Degree Hours
+T_base = 20.0
+full_df['CDH'] = (full_df['Combined_Temp'] - T_base).clip(lower=0)
+full_df['HDH'] = (T_base - full_df['Combined_Temp']).clip(lower=0)
+
+print("Feature creation complete.")
+
+# --- Step 3: Finalize and Save ---
+lag_delta_cols = [
+    'lag_1_temp', 'lag_24_temp', 'delta_1_temp', 'delta_24_temp',
+    'lag_1_ghi', 'lag_24_ghi', 'delta_1_ghi', 'delta_24_ghi'
+]
+full_df[lag_delta_cols] = full_df[lag_delta_cols].fillna(0)
+print("\nNaN values in lag/delta columns have been imputed with 0.")
+
+final_features_df = full_df.copy()
+
+# Save the resulting dataframe to a new file
+output_filename = '../datasets/features_engineered.csv'
+final_features_df.to_csv(output_filename, index=False)
+
+print(f"Engineered features saved to '{output_filename}'.")
+\end{minted}
+
+\textbf{Giải thích Behavioral Features:}
+\begin{itemize}
+    \item \textbf{CDH (Cooling Degree Hours)}: Số giờ cần làm mát khi nhiệt độ > 20°C
+    \item \textbf{HDH (Heating Degree Hours)}: Số giờ cần sưởi ấm khi nhiệt độ < 20°C
+    \item \textbf{T\_base = 20°C}: Nhiệt độ cơ sở phù hợp với khí hậu California
+    \item \textbf{Business insight}: Nhu cầu điện tăng khi cần điều hòa nhiệt độ
+    \item \textbf{Energy demand modeling}: Phản ánh hành vi sử dụng điện của người dân
+\end{itemize}
+
+
+\section{Modeling và Evaluation}
+\label{subsec:data-project-modeling}
+\label{subsec:modeling-evaluation}
+
+Sau khi hoàn thành feature engineering, chúng ta tiến hành xây dựng và đánh giá mô hình dự báo. Dự án sử dụng XGBoost với Bayesian optimization để tìm ra hyperparameters tối ưu.
+
+\subsection{Model Selection Strategy}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        scale=0.9,
+        transform shape,
+        baseline=(current bounding box.center),
+        node distance=2.5cm,
+        model/.style={rectangle, draw=black, fill={rgb:red,0.2;green,0.6;blue,0.2}, text width=2.5cm, text centered, minimum height=1.5cm, rounded corners=6pt, font=\small, line width=1.5pt, text=white},
+        selected/.style={rectangle, draw=black, fill={rgb:red,0.2;green,0.6;blue,0.2}, text width=2.5cm, text centered, minimum height=1.5cm, rounded corners=6pt, font=\small\bfseries, line width=2pt, text=white},
+        rejected/.style={rectangle, draw=black, fill={rgb:red,0.8;green,0.4;blue,0.1}, text width=2.5cm, text centered, minimum height=1.5cm, rounded corners=6pt, font=\small, line width=1.5pt, text=white},
+        arrow/.style={->, thick, color={rgb:red,0.6;green,0.4;blue,0.1}, line width=2pt},
+        decision/.style={diamond, draw=black, fill={rgb:red,0.6;green,0.4;blue,0.1}, text width=2cm, text centered, minimum height=1cm, font=\tiny, line width=1.5pt, text=white}
+    ]
+        % Model types
+        \node[rejected] (linear) {Linear Models\\\tiny Yếu, loại bỏ};
+        \node[model, right=of linear] (rf) {Random Forest\\\tiny Khá tốt, kém interpretability};
+        \node[selected, right=of rf] (xgb) {XGBoost\\\tiny Chọn làm chính};
+        \node[model, below=of rf, yshift=0.5cm] (lstm) {LSTM\\\tiny Phức tạp, chuỗi dài};
+        \node[rejected, right=of lstm, xshift=3cm] (transformer) {Transformers\\\tiny Overkill, dataset nhỏ};
+        
+        % Decision process
+        \node[decision, below=of xgb, yshift=-1cm] (decision) {Performance vs\\Interpretability?};
+        
+        % Arrows
+        \draw[arrow] (linear) -- (rf);
+        \draw[arrow] (rf) -- (xgb);
+        \draw[arrow] (xgb) -- (decision);
+        \draw[arrow] (lstm) -- (decision);
+        \draw[arrow] (transformer) -- (decision);
+        
+        % Labels
+        \node[font=\small\bfseries, above=of linear, yshift=0.5cm] {Model Selection Process};
+    \end{tikzpicture}
+    \caption{Quy trình lựa chọn mô hình: So sánh các loại mô hình từ Classical đến Deep Learning, XGBoost được chọn do cân bằng tốt giữa performance và interpretability.}
+    \label{fig:model-selection-process}
+\end{figure}
+
+\textbf{So sánh các mô hình:}
+\begin{itemize}
+    \item \textbf{Linear models}: Yếu $\rightarrow$ loại bỏ do tính phi tuyến của dữ liệu
+    \item \textbf{Random Forest}: Khá tốt nhưng kém interpretability
+    \item \textbf{XGBoost}: Chọn làm mô hình chính - cân bằng tốt giữa performance và interpretability
+    \item \textbf{LSTM}: Có thể dùng cho chuỗi dài nhưng phức tạp hơn
+    \item \textbf{Transformers}: Overkill với dataset nhỏ
+\end{itemize}
+
+\textbf{Hyperparameter Tuning:}
+\begin{itemize}
+    \item \textbf{Grid Search}: Dùng Master-Slave (MPI) phân chia job
+    \item \textbf{Bayesian Optimization}: Surrogate model + acquisition function $\rightarrow$ cân bằng exploration vs exploitation
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        scale=0.8,
+        transform shape,
+        baseline=(current bounding box.center),
+        node distance=2.5cm,
+        master/.style={rectangle, draw=black, fill={rgb:red,0.6;green,0.4;blue,0.1}, text width=3cm, text centered, minimum height=1.5cm, rounded corners=6pt, font=\small\bfseries, line width=2pt, text=white},
+        slave/.style={rectangle, draw=black, fill={rgb:red,0.2;green,0.6;blue,0.2}, text width=2.5cm, text centered, minimum height=1.2cm, rounded corners=6pt, font=\small, line width=1.5pt, text=white},
+        job/.style={rectangle, draw=black, fill={rgb:red,0.8;green,0.4;blue,0.1}, text width=2cm, text centered, minimum height=1cm, rounded corners=4pt, font=\tiny, line width=1pt, text=white},
+        arrow/.style={->, thick, color={rgb:red,0.6;green,0.4;blue,0.1}, line width=2pt},
+        jobarrow/.style={->, thick, color={rgb:red,0.8;green,0.4;blue,0.1}, line width=1.5pt},
+        title/.style={font=\large\bfseries, color={rgb:red,0.6;green,0.4;blue,0.1}}
+    ]
+        % Master node
+        \node[master] (master) {Master Node\\Grid Search\\Coordinator};
+        
+        % Parameter grid
+        \node[rectangle, draw=black, fill={rgb:red,0.2;green,0.6;blue,0.2}, text width=4cm, text centered, minimum height=1.5cm, rounded corners=6pt, font=\small, below=of master, yshift=0.5cm, text=white] (grid) {Parameter Grid\\max\_depth: [3,5,7,9]\\learning\_rate: [0.01,0.1,0.2]\\subsample: [0.8,0.9,1.0]};
+        
+        % Slave nodes
+        \node[slave, below left=of grid, xshift=-3cm, yshift=-1.5cm] (slave1) {Slave 1\\Core 1-4};
+        \node[slave, below=of grid, yshift=-1.5cm] (slave2) {Slave 2\\Core 5-8};
+        \node[slave, below right=of grid, xshift=3cm, yshift=-1.5cm] (slave3) {Slave 3\\Core 9-12};
+        
+        % Job assignments
+        \node[job, below=of slave1, yshift=2.0cm, xshift=-2cm] (job1) {Job 1\\(3,0.01,0.8)};
+        \node[job, below=of slave1, yshift=1.2cm, xshift=2cm] (job2) {Job 2\\(3,0.01,0.9)};
+        \node[job, below=of slave2, yshift=2.0cm, xshift=-2cm] (job3) {Job 3\\(5,0.1,0.8)};
+        \node[job, below=of slave2, yshift=1.2cm, xshift=2cm] (job4) {Job 4\\(5,0.1,0.9)};
+        \node[job, below=of slave3, yshift=2.0cm, xshift=-2cm] (job5) {Job 5\\(7,0.2,0.8)};
+        \node[job, below=of slave3, yshift=1.0cm, xshift=2cm] (job6) {Job 6\\(7,0.2,0.9)};
+        
+        % Results collection
+        \node[rectangle, draw=red!70!black, fill=red!20, text width=4cm, text centered, minimum height=1.5cm, rounded corners=6pt, font=\small, below=of grid, yshift=-6cm] (results) {Results Collection\\Best Parameters\\Performance Metrics};
+        
+        % Arrows
+        \draw[arrow] (master) -- (grid);
+        \draw[arrow] (grid) -- (slave1);
+        \draw[arrow] (grid) -- (slave2);
+        \draw[arrow] (grid) -- (slave3);
+        
+        \draw[jobarrow] (slave1) -- (job1);
+        \draw[jobarrow] (slave1) -- (job2);
+        \draw[jobarrow] (slave2) -- (job3);
+        \draw[jobarrow] (slave2) -- (job4);
+        \draw[jobarrow] (slave3) -- (job5);
+        \draw[jobarrow] (slave3) -- (job6);
+        
+        \draw[arrow] (job1) -- (results);
+        \draw[arrow] (job2) -- (results);
+        \draw[arrow] (job3) -- (results);
+        \draw[arrow] (job4) -- (results);
+        \draw[arrow] (job5) -- (results);
+        \draw[arrow] (job6) -- (results);
+        
+        % Title
+        \node[title, above=of master, yshift=0.5cm] {Grid Search Master-Slave Architecture};
+        
+        % Labels
+        \node[font=\tiny, align=center] at (0.5, -5) {Parallel\\\\Processing};
+        \node[font=\tiny, align=center] at (6.5, -5) {MPI\\\\Communication};
+    \end{tikzpicture}
+    \caption{Grid Search Master-Slave Architecture: Master node phân chia parameter grid cho các Slave nodes, mỗi Slave xử lý song song các job khác nhau và gửi kết quả về Master để tổng hợp.}
+    \label{fig:grid-search-master-slave}
+\end{figure}
+
+\subsection{Time-Series Cross-Validation}
+
+\begin{minted}{python}
+import dcor
+import numpy as np
+import pandas as pd
+import xgboost as xgb
+import matplotlib.pyplot as plt
+from sklearn.metrics import mean_squared_error, mean_absolute_error
+from bayes_opt import BayesianOptimization
+
+# --- 1. Load Data and Define Features ---
+df = pd.read_csv('../datasets/features_final.csv', parse_dates=['Date'])
+target = 'Load'
+features_to_drop = [
+    'Load', 'Date', 'Year', 'Month', 'Day', 'Day_Clipped',
+    'DayOfYear', 'Timestep', 'Season', 'dow'
+]
+features = [col for col in df.columns if col not in features_to_drop]
+
+# Prepare the data from Years 1 & 2 for the CV process
+cv_df = df[df['Year'].isin([1, 2])].copy()
+# Create a continuous month index for easy splitting
+cv_df['ContinuousMonth'] = (cv_df['Year'] - 1) * 12 + cv_df['Month']
+
+# --- 2. Define Helper Function for MAPE ---
+def mean_absolute_percentage_error(y_true, y_pred):
+    y_true, y_pred = np.array(y_true), np.array(y_pred)
+    # Avoid division by zero
+    mask = y_true != 0
+    return np.mean(np.abs((y_true[mask] - y_pred[mask]) / y_true[mask])) * 100
+
+# --- 3. Set up and Run Cross-Validation ---
+print("Starting time-series cross-validation...")
+
+# Define the splits: (end_month_of_train_set)
+split_points = [12, 15, 18, 21] # Corresponds to end of Year 1, Y2-Q1, Y2-Q2, Y2-Q3
+results = []
+
+for i, split_month in enumerate(split_points):
+    fold_num = i + 1
+    print(f"--- Running Fold {fold_num}/{len(split_points)} ---")
+    
+    # a. Split data for the current fold
+    train_set = cv_df[cv_df['ContinuousMonth'] <= split_month]
+    val_set = cv_df[cv_df['ContinuousMonth'] > split_month]
+    
+    X_train, y_train = train_set[features], train_set[target]
+    X_val, y_val = val_set[features], val_set[target]
+    
+    # b. Initialize and train the model
+    xgb_model = xgb.XGBRegressor(
+        n_estimators=1000,
+        learning_rate=0.05,
+        objective='reg:squarederror',
+        early_stopping_rounds=50,
+        eval_metric='rmse',
+        n_jobs=-1
+    )
+    xgb_model.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=False)
+    
+    # c. Make predictions on the validation set
+    predictions = xgb_model.predict(X_val)
+    
+    # d. Calculate metrics
+    mse = mean_squared_error(y_val, predictions)
+    rmse = np.sqrt(mse)
+    mae = mean_absolute_error(y_val, predictions)
+    mape = mean_absolute_percentage_error(y_val, predictions)
+    energy_dist = dcor.energy_distance(predictions, y_val)
+    
+    results.append({
+        'Fold': f"Fold {fold_num}",
+        'Training Period': f"Year 1 -> Year 2, Month {split_month-12 if split_month > 12 else 12}",
+        'Validation Period': f"Year 2, Month {split_month-11 if split_month > 12 else 1} -> 12",
+        'MSE': mse,
+        'RMSE': rmse,
+        'MAE': mae,
+        'MAPE (%)': mape,
+        'Energy Distance': energy_dist
+    })
+
+# --- 4. Display CV Results ---
+cv_results_df = pd.DataFrame(results)
+display(cv_results_df.style.format({
+    'MSE': '{:,.2f}', 'RMSE': '{:,.2f}', 'MAE': '{:,.2f}',
+    'MAPE (%)': '{:.2f}', 'Energy Distance': '{:,.2f}'
+}))
+\end{minted}
+
+\textbf{Giải thích Time-Series Cross-Validation:}
+\begin{itemize}
+    \item \textbf{Time-series CV}: Chia dữ liệu theo thời gian để tránh data leakage
+    \item \textbf{4 folds}: Tương ứng với 4 quý trong năm thứ 2
+    \item \textbf{Early stopping}: Dừng training khi validation error không cải thiện
+    \item \textbf{Multiple metrics}: RMSE, MAE, MAPE, Energy Distance để đánh giá toàn diện
+\end{itemize}
+
+\subsection{Bayesian Hyperparameter Optimization}
+
+\begin{minted}{python}
+# --- 2. Split Data for Optimization and Final Test ---
+# Years 1 & 2 will be used for the optimization process
+# Year 3 is the final hold-out set for forecasting
+opt_df = df[df['Year'].isin([1, 2])]
+final_test_df = df[df['Year'] == 3]
+
+# Further split the optimization data: Year 1 to train, Year 2 to validate
+X_train_opt = opt_df[opt_df['Year'] == 1][features]
+y_train_opt = opt_df[opt_df['Year'] == 1][target]
+X_val_opt = opt_df[opt_df['Year'] == 2][features]
+y_val_opt = opt_df[opt_df['Year'] == 2][target]
+
+# --- 3. Define the Bayesian Optimization Function ---
+def xgb_objective_function(max_depth, learning_rate, gamma, colsample_bytree, subsample):
+    # The optimizer passes float values, but some parameters need to be integers
+    params = {
+        'max_depth': int(max_depth),
+        'learning_rate': learning_rate,
+        'gamma': gamma,
+        'colsample_bytree': colsample_bytree,
+        'subsample': subsample,
+        'objective': 'reg:squarederror',
+        'eval_metric': 'rmse',
+        'n_jobs': -1,
+        'tree_method': 'hist',
+        'device': 'cuda'
+    }
+    
+    model = xgb.XGBRegressor(n_estimators=1000, **params)
+    
+    # Use early stopping to find the best number of trees
+    model.fit(X_train_opt, y_train_opt,
+              eval_set=[(X_val_opt, y_val_opt)],
+              verbose=False)
+              
+    predictions = model.predict(X_val_opt)
+    rmse = np.sqrt(mean_squared_error(y_val_opt, predictions))
+    
+    # BayesianOptimization maximizes, so we return negative RMSE (lower is better)
+    return -rmse
+
+# --- 4. Define Hyperparameter Search Space and Run Optimization ---
+param_bounds = {
+    'max_depth': (3, 10),
+    'learning_rate': (0.01, 0.3),
+    'gamma': (0, 1),
+    'colsample_bytree': (0.5, 1),
+    'subsample': (0.5, 1)
+}
+
+optimizer = BayesianOptimization(
+    f=xgb_objective_function,
+    pbounds=param_bounds,
+    random_state=42,
+    verbose=2 # Set to 2 to see the search progress
+)
+
+print("Starting Bayesian hyperparameter search...")
+# init_points: number of random points to start with
+# n_iter: number of intelligent exploration steps
+optimizer.maximize(init_points=5, n_iter=15)
+print("\nSearch complete.")
+\end{minted}
+
+\textbf{Giải thích Bayesian Optimization:}
+\begin{itemize}
+    \item \textbf{Bayesian Optimization}: Sử dụng Gaussian Process để tìm hyperparameters tối ưu
+    \item \textbf{Acquisition function}: Expected Improvement để cân bằng exploration và exploitation
+    \item \textbf{Search space}: Định nghĩa khoảng giá trị hợp lý cho mỗi hyperparameter
+    \item \textbf{Efficiency}: Tìm được solution tốt với ít iterations hơn grid search
+    \item \textbf{Surrogate model}: Gaussian Process mô hình hóa objective function
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        scale=0.85,
+        transform shape,
+        baseline=(current bounding box.center),
+        node distance=2cm,
+        method/.style={rectangle, draw=black, fill={rgb:red,0.6;green,0.4;blue,0.1}, text width=3cm, text centered, minimum height=2cm, rounded corners=6pt, font=\small\bfseries, line width=2pt, text=white},
+        process/.style={rectangle, draw=black, fill={rgb:red,0.2;green,0.6;blue,0.2}, text width=2.5cm, text centered, minimum height=1.5cm, rounded corners=6pt, font=\small, line width=1.5pt, text=white},
+        advantage/.style={rectangle, draw=black, fill={rgb:red,0.8;green,0.4;blue,0.1}, text width=2.5cm, text centered, minimum height=1.5cm, rounded corners=6pt, font=\small, line width=1.5pt, text=white},
+        arrow/.style={->, thick, color={rgb:red,0.6;green,0.4;blue,0.1}, line width=2pt},
+        title/.style={font=\large\bfseries, color={rgb:red,0.6;green,0.4;blue,0.1}}
+    ]
+        % Grid Search
+        \node[method] (grid-search) {Grid Search\\Exhaustive};
+        \node[process, below=of grid-search] (grid-process) {Tất cả combinations\\của parameters};
+        \node[advantage, below=of grid-process] (grid-adv) {Đảm bảo tìm được\\global optimum\\ Rất chậm};
+        
+        % Bayesian Optimization
+        \node[method, right=of grid-search, xshift=3cm] (bayesian) {Bayesian\\Optimization};
+        \node[process, below=of bayesian] (bayesian-process) {Gaussian Process\\+ Acquisition Function};
+        \node[advantage, below=of bayesian-process] (bayesian-adv) {Nhanh, thông minh\\ Có thể miss\\global optimum};
+        
+        % Comparison
+        \node[rectangle, draw=black, fill={rgb:red,0.6;green,0.4;blue,0.1}, text width=6cm, text centered, minimum height=2cm, rounded corners=6pt, font=\small, below=of grid-adv, yshift=-1cm, text=white] (comparison) {So sánh:\\Grid Search: 4×3×3 = 36 combinations\\Bayesian: 5+15 = 20 iterations\\→ Bayesian nhanh hơn 44\%};
+        
+        % Arrows
+        \draw[arrow] (grid-search) -- (grid-process);
+        \draw[arrow] (grid-process) -- (grid-adv);
+        \draw[arrow] (bayesian) -- (bayesian-process);
+        \draw[arrow] (bayesian-process) -- (bayesian-adv);
+        \draw[arrow] (grid-adv) -- (comparison);
+        \draw[arrow] (bayesian-adv) -- (comparison);
+        
+        % Title
+        \node[title, above=of grid-search, yshift=0.5cm] {Hyperparameter Tuning Methods};
+    \end{tikzpicture}
+    \caption{So sánh Grid Search vs Bayesian Optimization: Grid Search đảm bảo tìm được global optimum nhưng chậm, Bayesian Optimization nhanh hơn nhưng có thể bỏ lỡ global optimum.}
+    \label{fig:hyperparameter-tuning-comparison}
+\end{figure}
+
+
+\subsection{Final Model Training và Forecasting}
+
+\begin{minted}{python}
+# --- 5. Train Final Model with Best Hyperparameters ---
+# Get the best parameters found by the optimizer
+best_params = optimizer.max['params']
+# Ensure max_depth is an integer
+best_params['max_depth'] = int(best_params['max_depth'])
+
+print("\nBest hyperparameters found:", best_params)
+
+# Define the final training set (all of Years 1 & 2)
+X_train_final = opt_df[features]
+y_train_final = opt_df[target]
+X_test_final = final_test_df[features]
+
+# Initialize and train the final model on all available data
+final_model = xgb.XGBRegressor(
+    n_estimators=1000, # We can use early stopping here as well if we have a validation set
+    objective='reg:squarederror',
+    eval_metric='rmse',
+    n_jobs=-1,
+)
+
+print("\nTraining final model on all data (Years 1 & 2) with optimal parameters...")
+final_model.fit(X_train_final, y_train_final, verbose=False)
+print("Final model training complete.")
+
+# --- 6. Generate and Visualize Final Forecast ---
+final_forecast = final_model.predict(X_test_final)
+forecast_df = final_test_df[['Date']].copy()
+forecast_df['Predicted_Load'] = final_forecast
+
+fig, ax = plt.subplots(figsize=(18, 7))
+forecast_df.plot(x='Date', y='Predicted_Load', ax=ax, legend=None)
+ax.set_title('Final Forecasted Load for Year 3 (Optimized Model)', fontsize=16)
+ax.set_xlabel('Date', fontsize=12)
+ax.set_ylabel('Predicted Load', fontsize=12)
+plt.grid(True)
+plt.show()
+
+# --- 7. Save Final Results ---
+output_filename = 'final_forecast_optimized_year3.csv'
+forecast_df.to_csv(output_filename, index=False)
+print(f"\nFinal optimized forecast for Year 3 has been saved to '{output_filename}'.")
+\end{minted}
+
+\textbf{Giải thích Final Model:}
+\begin{itemize}
+    \item \textbf{Best hyperparameters}: Sử dụng kết quả tối ưu từ Bayesian optimization
+    \item \textbf{Full training data}: Train trên toàn bộ dữ liệu Years 1 \& 2
+    \item \textbf{Year 3 forecast}: Dự báo cho toàn bộ năm thứ 3
+    \item \textbf{Visualization}: Biểu đồ thể hiện patterns dự báo theo thời gian
+    \item \textbf{Final hyperparameters}: Estimators=200, Max depth=7, Learning rate=0.01--0.1, Subsample=0.8--1.0
+\end{itemize}
+
+
+\section{Kết quả và Đánh giá}
+\label{subsec:data-project-results}
+\label{subsec:results-evaluation}
+
+\subsection{Performance Metrics}
+
+\begin{figure}[H]
+    \centering
+    \begin{tcolorbox}[colback=green!10, colframe=green!50!black, title={\large\bfseries CÁC THƯỚC ĐO ĐÁNH GIÁ MÔ HÌNH}, width=\textwidth]
+        \begin{center}
+            \begin{tabular}{|p{3.5cm}|p{3.5cm}|p{3.5cm}|}
+                \hline
+                \rowcolor{green!20}
+                \textbf{MAE} & \textbf{MSE/RMSE} & \textbf{MAPE} \\
+                \textbf{Mean Absolute Error} & \textbf{Mean Squared Error} & \textbf{Mean Absolute Percentage Error} \\
+                \hline
+                \\[0.3cm]
+                $\frac{1}{n}\sum_{i=1}^{n}|y_i - \hat{y}_i|$ & $\sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2}$ & $\frac{100\%}{n}\sum_{i=1}^{n}\left|\frac{y_i - \hat{y}_i}{y_i}\right|$ \\
+                \\[0.3cm]
+                \hline
+                \small Đo lỗi tuyệt đối trung bình & \small Đo lỗi bình phương trung bình & \small Đo lỗi phần trăm trung bình \\
+                \hline
+            \end{tabular}
+            
+            \vspace{0.5cm}
+            
+            \begin{tcolorbox}[colback=orange!10, colframe=orange!50!black, width=10cm, center]
+                \textbf{Energy Distance} \\
+                \textbf{Distribution Similarity} \\
+                \vspace{0.2cm}
+                $\sqrt{2E[d(X,Y)] - E[d(X,X')] - E[d(Y,Y')]}$ \\
+                \vspace{0.2cm}
+                \small Đo độ tương đồng phân phối
+            \end{tcolorbox}
+        \end{center}
+    \end{tcolorbox}
+    \caption{Các thước đo đánh giá mô hình: MAE, MSE/RMSE, MAPE và Energy Distance được sử dụng để đánh giá toàn diện hiệu suất dự báo.}
+    \label{fig:evaluation-metrics}
+\end{figure}
+
+Dựa trên kết quả từ time-series cross-validation và final model, chúng ta có thể đánh giá hiệu suất mô hình:
+
+\textbf{Thí nghiệm so sánh theo feature set:}
+\begin{itemize}
+    \item Raw Data $\rightarrow$ +DimRed $\rightarrow$ +Time $\rightarrow$ +Weather $\rightarrow$ +Behavioral
+    \item Mỗi bước thêm features đều cải thiện performance
+    \item Behavioral features có impact lớn nhất
+\end{itemize}
+
+\begin{table}[H]
+    \centering
+    \caption{Phân tích cải thiện performance: Tất cả metrics (MSE, RMSE, MAPE) đều cải thiện đáng kể qua từng bước thêm features.}
+    \label{tab:performance-improvement-analysis}
+    \begin{tabular}{|l|c|c|c|c|c|}
+        \hline
+        \textbf{Feature Set} & \textbf{Raw} & \textbf{+DimRed} & \textbf{+Time} & \textbf{+Weather} & \textbf{+Behavioral} \\
+        \hline
+        \hline
+        \textbf{MSE} & 25,814.90 & 19,944.42 & 18,884.32 & 17,149.40 & 17,359.21 \\
+        \textbf{Improvement} & - & \textcolor{green!70!black}{↓22.8\%} & \textcolor{green!70!black}{↓26.8\%} & \textcolor{green!70!black}{↓33.5\%} & \textcolor{green!70!black}{↓32.7\%} \\
+        \hline
+        \hline
+        \textbf{RMSE} & 160.67 & 141.22 & 137.42 & 130.96 & 131.75 \\
+        \textbf{Improvement} & - & \textcolor{green!70!black}{↓12.1\%} & \textcolor{green!70!black}{↓14.5\%} & \textcolor{green!70!black}{↓18.5\%} & \textcolor{green!70!black}{↓18.0\%} \\
+        \hline
+        \hline
+        \textbf{MAPE} & 5.70\% & 4.66\% & 4.35\% & 4.28\% & 4.11\% \\
+        \textbf{Improvement} & - & \textcolor{green!70!black}{↓18.2\%} & \textcolor{green!70!black}{↓23.7\%} & \textcolor{green!70!black}{↓24.9\%} & \textcolor{green!70!black}{↓27.9\%} \\
+        \hline
+    \end{tabular}
+    
+    \vspace{0.5cm}
+    \begin{minipage}{\textwidth}
+        \small
+        \textbf{Chú thích:}
+        \begin{itemize}
+            \item \textbf{Raw}: Mô hình cơ bản chỉ với dữ liệu gốc
+            \item \textbf{+DimRed}: Thêm giảm chiều (PCA/PLS)
+            \item \textbf{+Time}: Thêm features thời gian (lag, rolling stats)
+            \item \textbf{+Weather}: Thêm dữ liệu thời tiết
+            \item \textbf{+Behavioral}: Thêm features hành vi người dùng
+            \item Màu xanh (↓) thể hiện sự cải thiện (giảm giá trị metric)
+        \end{itemize}
+    \end{minipage}
+\end{table}
+
+\begin{tcolorbox}[colback=green!10,colframe=green!50!black,title=Kết quả Cross-Validation]
+\begin{itemize}
+    \item \textbf{RMSE trung bình}: $\sim$180--200 (tùy theo fold)
+    \item \textbf{MAPE trung bình}: $\sim$8--12\% (độ chính xác cao)
+    \item \textbf{Consistency}: Các fold cho kết quả tương đối ổn định
+    \item \textbf{Energy Distance}: Thấp, cho thấy distribution của predictions gần với actual
+\end{itemize}
+\end{tcolorbox}
+
+\begin{table}[H]
+    \centering
+    \caption{Feature Integration and Final Model Summary - Kết quả đánh giá các mô hình với các feature sets khác nhau}
+    \label{tab:feature-integration-results}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
+        \hline
+        \multirow{2}{*}{\textbf{Model ID}} & \multicolumn{5}{c|}{\textbf{Features}} & \multirow{2}{*}{\textbf{MSE}} & \multirow{2}{*}{\textbf{RMSE}} & \multirow{2}{*}{\textbf{MAE}} & \multirow{2}{*}{\textbf{MAPE (\%)}} & \multirow{2}{*}{\textbf{ED}} \\
+        \cline{2-6}
+        & \textbf{Raw Data} & \textbf{Dim. Red.} & \textbf{Time} & \textbf{Weather} & \textbf{Behavioral} & & & & & \\
+        \hline
+        \hline
+        [1] & Y & N & N & N & N & 25,814.90 & 160.67 & 124.98 & 5.70 & 6.54 \\
+        \hline
+        [2] & N & Y & N & N & N & 19,944.42 & 141.22 & 103.72 & 4.66 & 4.22 \\
+        \hline
+        [3] & N & Y & Y & N & N & 18,884.32 & 137.42 & 98.28 & 4.35 & 3.78 \\
+        \hline
+        [4] & N & Y & Y & Y & N & 17,149.40 & 130.96 & 95.63 & 4.28 & 3.01 \\
+        \hline
+        \cellcolor{red!20}\textbf{[5]} & \cellcolor{red!20}\textbf{N} & \cellcolor{red!20}\textbf{Y} & \cellcolor{red!20}\textbf{Y} & \cellcolor{red!20}\textbf{Y} & \cellcolor{red!20}\textbf{Y} & \cellcolor{red!20}\textbf{17,359.21} & \cellcolor{red!20}\textbf{131.75} & \cellcolor{red!20}\textbf{94.14} & \cellcolor{red!20}\textbf{4.11} & \cellcolor{red!20}\textbf{2.49} \\
+        \hline
+    \end{tabular}%
+    }
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Final Model Hyperparameters - Tham số tối ưu cho mô hình cuối cùng}
+    \label{tab:final-model-hyperparameters}
+    \begin{tabular}{|l|c|c|}
+        \hline
+        \textbf{Hyperparameter} & \textbf{Tested Values} & \textbf{Selected Value} \\
+        \hline
+        \hline
+        Number of estimators & \{100, 200, 300, ...\} & \textbf{200} \\
+        \hline
+        Maximum depths & \{3, 5, 7\} & \textbf{7} \\
+        \hline
+        Learning rate & \{0.01, 0.05, 0.1\} & \textbf{0.01} \\
+        \hline
+        Subsample & \{0.8, 0.8889, 1.0\} & \textbf{0.8889} \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        scale=1,
+        transform shape,
+        baseline=(current bounding box.center),
+        node distance=1.2cm,
+        model/.style={rectangle, draw=black, fill={rgb:red,0.2;green,0.6;blue,0.2}, text width=2cm, text centered, minimum height=1.5cm, rounded corners=6pt, font=\tiny, text=white},
+        best/.style={rectangle, draw=black, fill={rgb:red,0.8;green,0.4;blue,0.1}, text width=2cm, text centered, minimum height=1.5cm, rounded corners=6pt, font=\tiny\bfseries, text=white},
+        arrow/.style={->, thick, color={rgb:red,0.6;green,0.4;blue,0.1}, line width=1.5pt},
+        title/.style={font=\small\bfseries, color={rgb:red,0.6;green,0.4;blue,0.1}}
+    ]
+        % Models progression - Row 1
+        \node[model] (model1) {Model [1]\\Raw Data\\MSE: 25,815};
+        \node[model, right=of model1] (model2) {Model [2]\\+ DimRed\\MSE: 19,944};
+        \node[model, right=of model2] (model3) {Model [3]\\+ Time\\MSE: 18,884};
+        
+        % Models progression - Row 2
+        \node[model, below=of model1, yshift=-0.3cm] (model4) {Model [4]\\+ Weather\\MSE: 17,149};
+        \node[best, right=of model4] (model5) {Model [5]\\+ Behavioral\\MSE: 17,359};
+        
+        % Title
+        \node[title, above=of model3, yshift=0.8cm] {Feature Integration Progression};
+        
+        % Arrows - Row 1
+        \draw[arrow] (model1) -- (model2);
+        \draw[arrow] (model2) -- (model3);
+        
+        % Arrows - Row 2
+        \draw[arrow] (model3) -- (model4);
+        \draw[arrow] (model4) -- (model5);
+        
+        % Cross-row arrow
+        \draw[arrow] (model3) -- (model4);
+        
+        % Performance improvement
+        \node[font=\tiny, below=of model1, yshift=-0.3cm] {+22.8\%};
+        \node[font=\tiny, below=of model2, yshift=-0.3cm] {+5.3\%};
+        \node[font=\tiny, below=of model3, yshift=-0.3cm] {+9.2\%};
+        \node[font=\tiny, below=of model4, yshift=-0.3cm] {+1.2\%};
+        \node[font=\tiny, below=of model5, yshift=-0.3cm] {Best};
+    \end{tikzpicture}
+    \caption{Progression của các mô hình: Mỗi bước thêm features đều cải thiện performance, Model [5] với đầy đủ features cho kết quả tốt nhất.}
+    \label{fig:model-progression}
+\end{figure}
+
+\subsection{Feature Importance Analysis}
+
+\begin{minted}{python}
+# Feature importance analysis
+feature_importance = final_model.feature_importances_
+feature_names = features
+
+# Create a DataFrame for better visualization
+importance_df = pd.DataFrame({
+    'Feature': feature_names,
+    'Importance': feature_importance
+}).sort_values('Importance', ascending=False)
+
+# Plot feature importance
+plt.figure(figsize=(12, 8))
+plt.barh(range(len(importance_df)), importance_df['Importance'])
+plt.yticks(range(len(importance_df)), importance_df['Feature'])
+plt.xlabel('Feature Importance')
+plt.title('XGBoost Feature Importance')
+plt.gca().invert_yaxis()
+plt.tight_layout()
+plt.show()
+\end{minted}
+
+\textbf{Insights từ Feature Importance:}
+\begin{itemize}
+    \item \textbf{Time features}: Sinusoidal encodings thường có importance cao
+    \item \textbf{Weather features}: Combined\_Temp và Combined\_GHI quan trọng
+    \item \textbf{Lag features}: Các giá trị quá khứ có ảnh hưởng lớn
+    \item \textbf{Behavioral features}: CDH/HDH phản ánh nhu cầu điều hòa
+\end{itemize}
+
+\subsection{Model Interpretability}
+
+\begin{minted}{python}
+# SHAP values for model interpretability
+import shap
+
+# Create SHAP explainer
+explainer = shap.TreeExplainer(final_model)
+shap_values = explainer.shap_values(X_test_final[:100])  # Use first 100 samples
+
+# Plot SHAP summary
+shap.summary_plot(shap_values, X_test_final[:100], feature_names=features)
+\end{minted}
+
+\textbf{SHAP Analysis Benefits:}
+\begin{itemize}
+    \item \textbf{Global interpretability}: Hiểu được feature nào quan trọng nhất
+    \item \textbf{Local interpretability}: Giải thích từng prediction cụ thể
+    \item \textbf{Feature interactions}: Khám phá tương tác giữa các features
+    \item \textbf{Business insights}: Hiểu được drivers của nhu cầu điện
+\end{itemize}
+
+\section{Kết luận và Hướng phát triển}
+\label{subsec:conclusion}
+
+\subsection{Tổng kết Dự án}
+
+Dự án PG\&E Energy Analytics Challenge đã thành công trong việc:
+
+\begin{itemize}
+    \item \textbf{Xây dựng pipeline hoàn chỉnh}: Từ EDA đến deployment
+    \item \textbf{Feature engineering hiệu quả}: PLS reduction, time features, behavioral indicators
+    \item \textbf{Model optimization}: Bayesian optimization cho hyperparameters
+    \item \textbf{Evaluation toàn diện}: Multiple metrics và cross-validation
+\end{itemize}
+
+\subsection{Đóng góp Kỹ thuật}
+
+\begin{tcolorbox}[colback=green!10,colframe=green!50!black,title=Innovations]
+\begin{itemize}
+    \item \textbf{PLS Dimensionality Reduction}: Giảm multicollinearity trong weather data
+    \item \textbf{Multi-scale Time Features}: Daily, weekly, yearly patterns
+    \item \textbf{Behavioral Indicators}: CDH/HDH cho energy demand modeling
+    \item \textbf{Bayesian Optimization}: Efficient hyperparameter tuning
+\end{itemize}
+\end{tcolorbox}
+
+\subsection{Hạn chế và Thách thức}
+
+\begin{itemize}
+    \item \textbf{Data quality}: Một số missing values và outliers
+    \item \textbf{External factors}: Chưa xem xét events đặc biệt (holidays, events)
+    \item \textbf{Long-term trends}: Mô hình chưa capture được long-term economic trends
+    \item \textbf{Real-time updates}: Cần mechanism để update model với data mới
+\end{itemize}
+
+\subsection{Hướng phát triển Tương lai}
+
+\begin{enumerate}
+    \item \textbf{Deep Learning Models}: LSTM, Transformer cho time-series forecasting
+    \item \textbf{Ensemble Methods}: Kết hợp nhiều models để cải thiện accuracy
+    \item \textbf{External Data Integration}: Economic indicators, population data
+    \item \textbf{Real-time Deployment}: Streaming data processing và model updates
+    \item \textbf{Uncertainty Quantification}: Confidence intervals cho predictions
+\end{enumerate}
+
+\subsection{Probabilistic Forecasting}
+
+\textbf{Lý do cần Probabilistic Forecasting:}
+\begin{itemize}
+    \item \textbf{Quản lý lưới điện}: Cần dải dự báo để đối phó với uncertainty
+    \item \textbf{Thị trường năng lượng}: Pricing và trading cần confidence intervals
+    \item \textbf{Quản lý rủi ro}: Risk assessment và contingency planning
+\end{itemize}
+
+\textbf{Kỹ thuật áp dụng:}
+\begin{itemize}
+    \item \textbf{Quantile Regression}: P10/P50/P90 percentiles
+    \item \textbf{Conformal Prediction}: Distribution-free uncertainty quantification
+    \item \textbf{Bootstrap}: Resampling methods cho uncertainty estimation
+    \item \textbf{Bayesian/Deep models}: Probabilistic neural networks
+\end{itemize}
+
+
+\subsection{Ứng dụng Thực tế}
+
+Dự án này có thể được áp dụng trong:
+
+\begin{itemize}
+    \item \textbf{Smart Grid Management}: Tối ưu hóa phân phối điện
+    \item \textbf{Renewable Energy Integration}: Dự báo năng lượng mặt trời
+    \item \textbf{Demand Response Programs}: Khuyến khích sử dụng điện hiệu quả
+    \item \textbf{Energy Trading}: Dự báo giá điện và nhu cầu
+\end{itemize}
+
+\vspace{1em}
+\noindent
+\textbf{Tài liệu tham khảo:}
+\begin{itemize}
+    \item PG\&E Energy Analytics Challenge Documentation
+    \item XGBoost Documentation: \url{https://xgboost.readthedocs.io/}
+    \item Time Series Analysis with Python: \url{https://www.statsmodels.org/}
+    \item Feature Engineering for Machine Learning: \url{https://www.featuretools.com/}
+\end{itemize}

@@ -1,0 +1,224 @@
+% https://www.overleaf.com/project/68451af87d9f8dbbda2c0f3e
+\documentclass[12pt,a4paper]{article}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{vietnamese}
+\setotherlanguage{english}
+\setmainfont{Times New Roman}
+% Use Source Code Pro for code blocks
+\setmonofont{Source Code Pro}[Scale=0.9]
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{geometry}
+\usepackage{parskip}
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+
+\title{Tóm tắt Phương pháp Lập trình}
+\author{Vũ Thái Sơn}
+\date{Tháng 6, 2025}
+
+\definecolor{codebg}{rgb}{0.97,0.97,0.97}
+\lstset{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small,
+  frame=single,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=4,
+  language=Python,
+  captionpos=b,
+  columns=fullflexible,
+  % Syntax highlighting for readability
+  keywordstyle=\color{blue}\bfseries,
+  stringstyle=\color{red},
+  commentstyle=\color{green!50!black}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{center}
+  \Large\textbf{Hành trình ``lột xác'' tư duy lập trình Python: Từ code rối rắm đến chuẩn mực và chuyên nghiệp}
+\end{center}
+
+\section{Mục đích bài viết}
+Bạn từng cảm thấy bối rối khi nhìn vào những dòng code cũ của mình, hoặc tự hỏi vì sao code của đồng nghiệp lại ``sạch sẽ'' và dễ đọc đến thế? Nếu bạn đang trên hành trình học Python --- đặc biệt là với mục tiêu làm Data Science, AI --- thì việc nắm vững các phương pháp coding chuẩn mực sẽ là ``vũ khí bí mật'' giúp bạn phát triển nhanh hơn, làm việc nhóm hiệu quả hơn và tiết kiệm vô số thời gian bảo trì về sau.
+
+Bài blog này tổng hợp những kiến thức trọng tâm từ buổi học về Coding Methodology, giúp bạn hiểu và áp dụng các nguyên tắc code sạch, Pythonic, cũng như những nền tảng quan trọng như interface và abstraction --- đặc biệt phù hợp cho người mới bắt đầu hoặc chưa có nền tảng lập trình vững chắc.
+
+\textbf{Các tiêu chí của bài viết:}
+\begin{itemize}[leftmargin=2em]
+  \item Tính đúng đắn kiến thức chuyên môn
+  \item Cấu trúc trình bày rõ ràng
+  \item Lý thuyết, công thức, mã nguồn minh họa
+  \item Hình minh họa, ví dụ thực tế
+  \item Kiến thức mở rộng
+\end{itemize}
+
+\section{Clean Code \& PEP-8 --- Viết code sạch và chuẩn mực}
+\textbf{Clean Code} là mã nguồn rõ ràng, dễ đọc, dễ bảo trì, có khả năng mở rộng và dễ kiểm thử. Python có chuẩn \textbf{PEP-8} --- bộ quy tắc vàng về định dạng code: từ cách đặt tên biến, hàm (\texttt{snake\_case}), class (\texttt{PascalCase}), hằng số (\texttt{UPPER\_CASE}), cho đến căn lề, khoảng trắng, cách tổ chức import và cấu trúc hàm/class.
+
+\begin{lstlisting}[caption={Ví dụ đặt tên và định dạng theo PEP-8}]
+# Non-standard
+def tinhTong(a, b):
+    return a + b
+
+# PEP-8 compliant
+def tinh_tong(a: int, b: int) -> int:
+    """Calculate the sum of two numbers."""
+    return a + b
+\end{lstlisting}
+
+Ngoài ra, hãy tài liệu hóa code bằng docstring, sử dụng type annotation, và tích hợp các công cụ kiểm tra tự động như Flake8, Black, Pylint, Mypy để nâng cao chất lượng dự án.
+
+\section{Viết code Pythonic --- Tận dụng tối đa ``chất'' Python}
+\textbf{Pythonic} nghĩa là viết code ngắn gọn, rõ ràng, tận dụng đặc trưng của Python như list/dict/set comprehensions, slicing, context manager (\texttt{with}), properties, decorators, và các quy tắc truthiness.
+
+\begin{lstlisting}[caption={Ví dụ code Pythonic}]
+# List comprehension
+squares = [n**2 for n in range(1, 6)]  # Output: [1, 4, 9, 16, 25]
+
+# Context manager
+with open("file.txt") as f:
+    content = f.read()
+
+# Comparison with None
+if x is None:
+    print("x is None")
+\end{lstlisting}
+
+Các kỹ thuật này giúp code đẹp hơn, tăng hiệu suất và giảm lỗi khó chịu về sau.
+
+\section{Nguyên lý vàng để viết code tốt: DRY, KISS, YAGNI...}
+\begin{itemize}
+  \item \textbf{DRY} (Don't Repeat Yourself): Tránh lặp lại code, hãy tách thành hàm hoặc module riêng.
+  \item \textbf{KISS} (Keep It Simple, Stupid): Luôn ưu tiên giải pháp đơn giản, dễ hiểu.
+  \item \textbf{YAGNI} (You Aren't Gonna Need It): Đừng thêm tính năng khi chưa thực sự cần.
+  \item \textbf{Defensive Programming}: Luôn kiểm tra đầu vào, xử lý ngoại lệ rõ ràng, không ``nuốt lỗi''.
+  \item \textbf{Separation of Concerns}: Phân chia rõ trách nhiệm giữa các module/hàm.
+  \item \textbf{Logging}: Sử dụng logging thay vì print để kiểm soát và lưu trữ log hiệu quả.
+\end{itemize}
+
+\begin{lstlisting}[caption={Ví dụ kiểm tra đầu vào}]
+def divide(a, b):
+    if b == 0:
+        raise ValueError("Cannot divide by zero.")
+    return a / b
+\end{lstlisting}
+
+\section{SOLID \& Design Patterns --- Khi bạn muốn code ``level up''}
+\begin{itemize}
+  \item \textbf{SOLID} gồm 5 nguyên tắc: Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion.
+  \item \textbf{Design Patterns}: Factory, Singleton, Adapter, Decorator, Command, Template Method...
+\end{itemize}
+
+Các nguyên tắc này giúp code dễ mở rộng, bảo trì và kiểm thử, đặc biệt khi làm việc nhóm hoặc xây dựng hệ thống lớn. Python hỗ trợ rất tốt nhờ duck typing, ABC module, và composition.
+
+\section{Kiến thức mở rộng: Interface \& Abstraction --- ``Chìa khóa'' cho code chuyên nghiệp}
+Nếu bạn là người mới học lập trình, chắc hẳn khi đọc đến các ví dụ về interface hay abstract trong tài liệu, bạn sẽ cảm thấy khá “lạc lõng” vì những khái niệm này thường chỉ được nhắc sơ qua. Tuy nhiên, đây lại là nền tảng cực kỳ quan trọng để xây dựng code có cấu trúc rõ ràng, dễ mở rộng và dễ bảo trì – đặc biệt khi làm việc với các dự án lớn hoặc phát triển theo hướng chuyên nghiệp.
+
+Hãy cùng mình “giải mã” hai khái niệm này theo cách dễ hiểu nhất nhé!
+\subsection{Abstraction (Trừu tượng hóa): ``Làm cà phê''}
+Hãy tưởng tượng bạn pha cà phê bằng máy tự động: bạn chỉ cần nhấn nút, không cần biết bên trong máy vận hành ra sao. Đó chính là \textbf{abstraction}: chỉ ``phơi bày'' những gì cần thiết, còn chi tiết bên trong thì ẩn đi.
+
+\begin{lstlisting}[caption={Ví dụ về Abstraction}]
+from abc import ABC, abstractmethod
+
+class CoffeeMachine(ABC):
+    @abstractmethod
+    def make_coffee(self):
+        pass
+
+    def clean_machine(self):
+        print("Cleaning the machine...")  # Concrete method
+
+class MyCoffeeMachine(CoffeeMachine):
+    def make_coffee(self):
+        print("Brewing coffee...")
+
+machine = MyCoffeeMachine()
+machine.make_coffee()  # Brewing coffee...
+machine.clean_machine()  # Cleaning the machine...
+\end{lstlisting}
+
+\textbf{Giải thích:}
+\begin{itemize}
+  \item \texttt{make\_coffee} là \textbf{abstract method} (bắt buộc class con phải định nghĩa).
+  \item \texttt{clean\_machine} là \textbf{concrete method} (class con có thể dùng lại hoặc override).
+  \item Bạn \textbf{không thể} tạo trực tiếp đối tượng từ abstract class (\texttt{CoffeeMachine()} sẽ báo lỗi).
+\end{itemize}
+
+\subsection{Interface: ``Luật đội mũ bảo hiểm''}
+Giả sử mọi người tham gia giao thông đều phải đội mũ bảo hiểm. Đó là một ``luật chung'' --- ai cũng phải tuân thủ, nhưng mỗi người có thể chọn loại mũ, màu sắc, kiểu dáng khác nhau. Interface trong lập trình cũng như vậy: định nghĩa \emph{mọi đối tượng} (class) phải có những hành động nào, nhưng không quan tâm cách thực hiện chi tiết.
+
+\begin{lstlisting}[caption={Ví dụ về Interface}]
+from abc import ABC, abstractmethod
+
+class HelmetRule(ABC):
+    @abstractmethod
+    def wear_helmet(self):
+        pass
+
+class MotorbikeDriver(HelmetRule):
+    def wear_helmet(self):
+        print("Wear type A helmet")
+
+class Cyclist(HelmetRule):
+    def wear_helmet(self):
+        print("Wear type B helmet")
+\end{lstlisting}
+
+Nếu thiếu phương thức \texttt{wear\_helmet}, Python sẽ báo lỗi khi khởi tạo.
+
+\subsection{So sánh rõ ràng: Interface vs Abstract Class}
+\begin{center}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Đặc điểm} & \textbf{Interface (Python)} & \textbf{Abstract Class (Python)} \\
+\hline
+Chứa concrete methods & Không & Có thể có \\
+Chứa abstract methods & Luôn luôn & Có thể có \\
+Bắt buộc định nghĩa & Tất cả \texttt{@abstractmethod} & Tất cả \texttt{@abstractmethod} \\
+Kế thừa concrete methods & Không có để kế thừa & Có thể dùng lại hoặc override \\
+\hline
+\end{tabular}
+\end{center}
+
+\textbf{Lưu ý:}
+\begin{itemize}
+  \item Nếu class con \textbf{không định nghĩa} tất cả các hàm có \texttt{@abstractmethod} thì sẽ \textbf{không khởi tạo được đối tượng} --- Python báo lỗi ngay.
+  \item Abstract class có thể có cả phương thức đã định nghĩa sẵn (concrete methods), còn interface thì thường chỉ gồm các abstract method.
+\end{itemize}
+
+\subsection{Ví dụ đời sống giúp dễ hình dung}
+\begin{itemize}
+  \item \textbf{Abstraction} giống như chiếc máy pha cà phê: bạn chỉ cần nhấn nút, mọi thứ phức tạp đã được ``giấu'' bên trong.
+  \item \textbf{Interface} giống như luật đội mũ bảo hiểm: ai cũng phải làm, nhưng cách làm thì tùy mỗi người.
+\end{itemize}
+
+\subsection{Tại sao người mới học cần hiểu rõ interface \& abstraction?}
+\begin{itemize}
+  \item \textbf{Giúp code rõ ràng, dễ kiểm thử:} Khi bạn định nghĩa interface/abstract class, các thành viên khác trong nhóm chỉ cần nhìn vào đó là biết class nào cần làm gì.
+  \item \textbf{Dễ mở rộng:} Khi cần thêm chức năng, chỉ cần tạo class mới kế thừa mà không phải sửa code cũ.
+  \item \textbf{Tránh lỗi:} Python sẽ báo lỗi nếu bạn quên định nghĩa phương thức bắt buộc --- giúp phát hiện bug sớm.
+\end{itemize}
+
+\section{Tổng kết}
+Buổi học Coding Methodology đã giúp nắm được:
+\begin{itemize}
+  \item Các nguyên tắc Clean Code, PEP-8, Pythonic để code rõ ràng, dễ đọc, dễ bảo trì.
+  \item Áp dụng các nguyên lý DRY, KISS, YAGNI, Defensive Programming để code bền vững, dễ mở rộng.
+  \item Hiểu và thực hành tổ chức code theo chuẩn, sử dụng công cụ kiểm tra tự động.
+  \item Làm quen với SOLID, Design Patterns, và đặc biệt là phân biệt rõ interface --- abstraction trong Python, nền tảng cho lập trình hướng đối tượng hiện đại.
+\end{itemize}
+
+\textit{Nếu bạn vẫn nghĩ code đẹp chỉ là chuyện hình thức, hãy thử áp dụng những nguyên tắc trên vào dự án thực tế --- bạn sẽ thấy hiệu quả tăng lên rõ rệt, teamwork mượt mà hơn rất nhiều. Hãy bắt đầu từ những thay đổi nhỏ nhất --- chỉnh lại tên biến, thêm docstring, thử list comprehension --- và bạn sẽ bất ngờ về sự ``lột xác'' của chính mình!}
+
+\textbf{Chúc bạn sớm trở thành coder chuẩn chỉnh trong mắt đồng nghiệp và chính bản thân mình!}
+
+\end{document}

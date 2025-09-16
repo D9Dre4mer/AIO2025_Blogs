@@ -1,0 +1,459 @@
+\documentclass[a4paper,12pt]{article}
+
+\input{preamble.tex} % Gọi preamble từ file riêng
+
+\renewcommand{\abstractname}{}
+\begin{document}
+
+\begin{center}
+    \Large\textbf{Time-Series Data: Fundamentals and Concepts}
+\end{center}
+
+\begin{center}
+    \Large\textit{Võ Hoàng}
+\end{center}
+
+
+\begin{quote}
+Dữ liệu chuỗi thời gian (time-series) không chỉ đơn thuần là những con số nối tiếp nhau theo trục thời gian, mà còn là nền tảng để con người hiểu về thế giới, dự báo tương lai và đưa ra quyết định. Bài toán đặt ra ở đây mang những đặc trưng riêng, khi yếu tố thời gian trở thành điểm đặc biệt: \textbf{liệu quá khứ có thực sự phản ánh hiện tại và tương lai?} Câu trả lời lại không hề rõ ràng, mà phụ thuộc vào hoàn cảnh và cách nhìn nhận của mỗi người.
+\end{quote}
+
+\section{Vì sao Time-Series quan trọng?}
+
+Câu chuyện về \textbf{Tycho Brahe}, nhà thiên văn sống ở thế kỷ 16, là một minh chứng rõ ràng cho sức mạnh của dữ liệu chuỗi thời gian. Trong giai đoạn \textbf{1582 đến 1600}, ông ghi chép tỉ mỉ vị trí các hành tinh qua từng đêm. Dù nhiều dữ liệu còn thiếu, độ chính xác trong ghi chép của Brahe khiến các phép tính hiện đại cũng phải ngạc nhiên. Chính những chuỗi số liệu ấy đã góp phần lật đổ quan niệm \textbf{“Trái đất là trung tâm vũ trụ”} và mở ra chân lý: \textbf{Mặt trời mới là trung tâm, còn các hành tinh chuyển động theo quỹ đạo elip}. Chỉ với những bản ghi đơn giản qua thời gian, loài người đã thay đổi cách nhìn về vũ trụ.
+
+Từ câu chuyện của Brahe, ta thấy sức mạnh của dữ liệu chuỗi thời gian không chỉ nằm ở con số, mà ở \textbf{khả năng thay đổi nhận thức nhân loại}. 
+Bước sang những thế kỷ tiếp theo, nhiều cột mốc quan trọng đã đánh dấu sự trưởng thành của lĩnh vực này:
+
+\begin{itemize}
+    \item \textbf{1927}: \textbf{Mô hình ARIMA} của Box \& Jenkins ra đời, trở thành chuẩn mực cho dự báo kinh tế và công nghiệp trong suốt nhiều thập kỷ.
+    \item \textbf{1970s}: \textbf{Phương pháp Holt--Winters} giúp doanh nghiệp dự báo xu hướng kinh doanh mùa vụ hiệu quả hơn.
+    \item \textbf{1990s}: \textbf{Dữ liệu vệ tinh} theo thời gian thực cho phép NASA và các trung tâm khí tượng dự báo bão với độ chính xác vượt trội.
+    \item \textbf{2000s}: Sự bùng nổ của \textbf{cảm biến IoT} và giao dịch điện tử mở ra kỷ nguyên Big Data, nơi lượng dữ liệu chuỗi thời gian tăng theo cấp số nhân.
+    \item \textbf{2010s}: \textbf{Deep learning} -- đặc biệt là LSTM -- chứng minh sức mạnh trong \textbf{dự báo tài chính và y tế}.
+    \item \textbf{2020s}: Với \textbf{Transformer} và hệ thống xử lý dòng dữ liệu (streaming), con người có thể dự báo và phản ứng ngay tức thì.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{image/ARIMA.png}
+    \caption{ARIMA Description}
+    \label{fig:dt-structure}
+\end{figure}
+
+Không chỉ trong nghiên cứu, time-series đã tạo nên những thành tựu kỷ lục: 
+\textbf{dự báo bão siêu mạnh trước tới 7 ngày}, smartwatch gửi hàng trăm nghìn cảnh báo sớm cứu sống người dùng, 
+hay \textbf{lưới điện thông minh ở châu Âu} vận hành ổn định dù tích hợp hơn 40\% năng lượng tái tạo. 
+Trong tài chính, các \textbf{sàn giao dịch} xử lý tới hàng triệu giao dịch mỗi giây nhờ hệ thống giám sát chuỗi thời gian.
+
+Từ bầu trời đầy sao mà Brahe kiên nhẫn quan sát đến mạng lưới dữ liệu khổng lồ ngày nay, 
+\textbf{câu chuyện về chuỗi thời gian chính là câu chuyện về cách loài người tiến dần tới khả năng hiểu, dự báo và điều khiển thế giới.}
+
+\section{Time-Series: In a nutshell}
+
+Trong time series data, có thể phân loại theo nhiều góc nhìn khác nhau. \textbf{Sequential data} và \textbf{Semantics invariant} là hai hướng tiếp cận để hiểu bản chất của dữ liệu theo thứ tự.
+
+\subsection{Sequential data}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{image/TS-example1.png}
+    \caption{Ví dụ của Sequential data}
+    \label{fig:dt-structure}
+\end{figure}
+
+\textbf{Sequential data} nhấn mạnh \textbf{thứ tự} và \textbf{mối quan hệ theo chuỗi} (time, position, logic). 
+Trong dữ liệu thường có dấu hiệu của \textit{``time-step''}. 
+Các tác vụ thường gặp bao gồm:
+
+\begin{itemize}
+    \item \textbf{Sequence Modeling / Forecasting} -- Dự báo bước tiếp theo (ví dụ: next word prediction, next frame trong video, dự báo tín hiệu cảm biến).
+    \item \textbf{Sequence Classification} -- Phân loại toàn bộ chuỗi (ví dụ: phân loại hành động trong video, phân loại giọng nói, phân loại DNA sequence).
+    \item \textbf{Sequence Labeling} -- Gán nhãn từng phần tử trong chuỗi (ví dụ: POS tagging trong NLP, phân đoạn video theo hành động).
+    \item \textbf{Sequence Generation} -- Sinh ra chuỗi mới có cấu trúc tương tự (ví dụ: machine translation, music generation, text generation).
+    \item \textbf{Alignment \& Matching} -- So khớp hai chuỗi (ví dụ: speech-to-text alignment, DNA sequence alignment).
+\end{itemize}
+
+\subsection{Semantics invariant}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{image/TS-example2.png}
+    \caption{Ví dụ của Semantics invariant}
+    \label{fig:dt-structure}
+\end{figure}
+
+\textbf{Semantics invariant} nhấn mạnh rằng \textbf{ngữ nghĩa vẫn giữ nguyên} ngay cả khi 
+thứ tự thay đổi. Các tác vụ gắn với khái niệm này thường hướng tới việc \textit{hiểu nghĩa} 
+hơn là chú trọng vào trật tự:
+
+\begin{itemize}
+    \item \textbf{Semantic Similarity / Paraphrase Detection} -- Xác định hai câu có cùng ý nghĩa dù khác thứ tự từ.
+    \item \textbf{Information Retrieval / Search} -- Tìm kiếm văn bản hoặc dữ liệu có cùng nội dung, bất chấp cách sắp xếp.
+    \item \textbf{Sentiment Analysis} -- Phân tích cảm xúc, nơi ý nghĩa tình cảm không thay đổi ngay cả khi câu đảo vị trí từ hoặc cụm từ.
+    \item \textbf{Machine Translation} -- Dịch ngôn ngữ, tập trung vào ngữ nghĩa hơn là vị trí từ vựng.
+    \item \textbf{Robust Representation Learning} -- Học embedding hoặc representation không bị ảnh hưởng bởi biến đổi cú pháp (\textit{word order invariance}).
+\end{itemize}
+
+\subsection{Too Long Too Read (TLTR)}
+Chúng ta có thể nhìn nhận \textbf{Time-Series task} như sau:
+\begin{itemize}
+    \item \textbf{Sequential data}: thứ tự và cấu trúc chuỗi.
+    \item \textbf{Semantics invariant}: ngữ nghĩa bất biến, không phụ thuộc vào trật tự.
+\end{itemize}
+
+Cách phân loại này \textbf{không phải là một chuẩn mực}, có những bài toán là sự kết hợp của 2 loại, giống như \textbf{Machine Translation}, \textbf{Speech Recognition} hay \textbf{Text Summarization}. 
+
+Ngoài ra, còn có \textbf{những cách phân biệt} khá thú vị khác:
+\begin{itemize}
+    \item \textbf{Univariate vs. Multivariate Time Series}
+    \begin{itemize}
+        \item \textbf{Univariate}: Chỉ một biến theo thời gian (ví dụ: nhiệt độ hằng ngày).
+        \item \textbf{Multivariate}: Nhiều biến đồng thời (ví dụ: nhiệt độ, độ ẩm, áp suất cùng lúc).
+    \end{itemize}
+
+    \item \textbf{Regular vs. Irregular Time Series}
+    \begin{itemize}
+        \item \textbf{Regular}: Dữ liệu thu thập theo khoảng cách thời gian cố định (mỗi giờ, mỗi ngày).
+        \item \textbf{Irregular}: Dữ liệu đến ngẫu nhiên (ví dụ: log sự kiện, dữ liệu giao dịch).
+    \end{itemize}
+
+    \item \textbf{Stationary vs. Non-stationary Time Series}
+    \begin{itemize}
+        \item \textbf{Stationary}: Các thống kê (mean, variance) không đổi theo thời gian.
+        \item \textbf{Non-stationary}: Có xu hướng, mùa vụ (ví dụ: doanh thu bán lẻ theo tháng).
+    \end{itemize}
+\end{itemize}
+
+Trong thực tế, có những bài toán rất khó để phân biệt rõ ràng những khía cạnh trên. Do đó, để hiểu rõ hơn vấn đề, phần tiếp theo sẽ trực tiếp đi vào tăng cường và hiểu rõ dữ liệu.
+
+\section{Data Generation và Data Valuation trong Time-Series: Hai thành phần cốt lõi của hệ sinh thái dữ liệu}
+
+Trong thế giới dữ liệu chuỗi thời gian (time-series), mô hình học máy chỉ thực sự mạnh mẽ khi được nuôi dưỡng bằng dữ liệu chất lượng. 
+Nhưng để có dữ liệu tốt, chúng ta phải giải quyết hai bài toán: 
+làm thế nào để tạo ra thêm dữ liệu (\textbf{Data Generation}) và 
+làm thế nào để hiểu, đánh giá giá trị của dữ liệu (\textbf{Data Valuation}). 
+Đây là hai mảnh ghép gắn liền với nhau, vừa bổ sung, vừa kiểm chứng lẫn nhau.
+
+\subsection{Data Generation -- Khi dữ liệu không đủ}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{image/Data-Generation-example.png}
+    \caption{Sentence Augmentation}
+    \label{fig:dt-structure}
+\end{figure}
+
+Trong thực tế, dữ liệu chuỗi thời gian thường thiếu hụt, không cân bằng hoặc chứa nhiều nhiễu. 
+Đây là lúc Data Generation lên tiếng:
+
+\begin{itemize}
+    \item \textbf{Data Augmentation}: Biến đổi chuỗi có sẵn để tạo mẫu mới, ví dụ dịch chuyển, thêm nhiễu, hoặc biến đổi tần suất. Cách này giúp tăng độ đa dạng, giảm nguy cơ overfitting.
+    \item \textbf{Decomposition}: Tách chuỗi thành thành phần xu hướng (trend), mùa vụ (seasonality) và nhiễu (residual), sau đó biến đổi từng phần để tạo dữ liệu mới (STL, MSTL).
+    \item \textbf{Data Condensation}: Thu gọn tập dữ liệu lớn thành một tập tổng hợp nhỏ hơn nhưng vẫn giữ được thông tin cốt lõi. Điều này vừa tiết kiệm chi phí huấn luyện, vừa có ích khi cần chia sẻ dữ liệu mà vẫn bảo mật.
+\end{itemize}
+
+Data Generation giống như việc mở rộng cánh đồng, 
+cho phép chúng ta gieo trồng nhiều hạt giống hơn để mô hình học được nhiều tình huống đa dạng.
+
+\subsection{Data Valuation -- Hiểu giá trị thực sự của dữ liệu}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{image/Data-Valuation-example.jpg}
+    \caption{Data Insight}
+    \label{fig:dt-structure}
+\end{figure}
+
+Tạo dữ liệu nhiều thôi chưa đủ, quan trọng hơn là hiểu dữ liệu có giá trị gì, phản ánh điều gì. 
+Data Valuation chính là công việc định giá và phân tích dữ liệu chuỗi thời gian:
+
+\begin{itemize}
+    \item \textbf{Statistical Properties}: Phân tích min, max, mean, median, skewness, kurtosis… để hiểu phân phối dữ liệu. Điều này giúp phát hiện bất thường và lựa chọn cách chuẩn hóa.
+    \item \textbf{Time-Series Characteristics}: Xem xét các yếu tố động theo thời gian như trend (xu hướng dài hạn), seasonality (chu kỳ lặp lại), và transitions (sự thay đổi chế độ). Đây là bước quan trọng để chọn mô hình dự báo phù hợp.
+    \item \textbf{Variance Decomposition}: Đo lường độ mạnh yếu của xu hướng và mùa vụ trong dữ liệu, từ đó biết mô hình hiện tại có bỏ sót thông tin quan trọng hay không.
+\end{itemize}
+
+\section{Model Selection}
+
+\subsection{Input--Output (IO Shape)}
+
+\textbf{Dự báo ngắn hạn (Short-term forecasting)}
+\begin{itemize}
+    \item \textbf{Định nghĩa}: Sử dụng một cửa sổ lịch sử nhỏ (ít bước thời gian trong quá khứ) để dự đoán tương lai gần.
+    \item \textbf{Ví dụ}: Dự đoán nhu cầu điện trong giờ tới dựa trên dữ liệu của 24 giờ trước đó.
+    \item \textbf{Đặc trưng}:
+    \begin{itemize}
+        \item Output horizon $\leq$ input horizon.
+        \item Phổ biến trong ứng dụng có tần suất cao (tài chính, thị trường năng lượng).
+        \item Dễ triển khai nhưng nhạy cảm với biến động ngắn hạn.
+    \end{itemize}
+\end{itemize}
+
+\textbf{Long-term forecasting}
+\begin{itemize}
+    \item \textbf{Định nghĩa}: Sử dụng bối cảnh lịch sử dài để dự đoán tương lai xa.
+    \item \textbf{Ví dụ}: Dự báo xu hướng khí hậu năm tới dựa trên dữ liệu hàng thập kỷ.
+    \item \textbf{Đặc trưng}:
+    \begin{itemize}
+        \item Input horizon $\leq$ output horizon.
+        \item Độ bất định tăng dần theo độ dài dự báo.
+        \item Cần mô hình mạnh để nắm bắt tính mùa vụ, xu hướng, và cấu trúc đa tầng.
+    \end{itemize}
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{image/Model-Selection-example2.jpg}
+    \caption{Dự đoán thời tiết - bãobão}
+    \label{fig:dt-structure}
+\end{figure}
+
+\subsection{Output Type}
+
+\textbf{Dự báo tất định (Deterministic / Point Forecasting)}
+\begin{itemize}
+    \item \textbf{Đầu ra}: Một con số duy nhất cho mỗi bước thời gian tương lai.
+    \item \textbf{Ví dụ}: Giá điện ngày mai $= €120/\text{MWh}$.
+    \item \textbf{Ứng dụng}: Lập lịch ngắn hạn, logistics, các trường hợp chỉ cần dự báo điểm.
+    \item \textbf{Hạn chế}: Không thể phản ánh bất định $\rightarrow$ rủi ro khi thị trường biến động.
+\end{itemize}
+
+\textbf{Dự báo xác suất (Probabilistic Forecasting)}
+\begin{itemize}
+    \item \textbf{Đầu ra}: Một phân phối (confidence interval hoặc quantile) cho giá trị tương lai.
+    \item \textbf{Ví dụ}: Giá điện ngày mai $= €120/\text{MWh}$, nhưng với khoảng tin cậy 90\% từ €110–140.
+    \item \textbf{Ứng dụng}: Các lĩnh vực cần đo lường bất định như năng lượng, tài chính, y tế.
+    \item \textbf{Phương pháp}:
+    \begin{itemize}
+        \item Quantile regression (dự báo nhiều phân vị: 10\%, 50\%, 90\%).
+        \item Bayesian (deep ensembles, variational inference).
+        \item Generative models (diffusion, GANs) mô phỏng các kịch bản tương lai.
+    \end{itemize}
+\end{itemize}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{image/Model-Selection-example1.png}
+    \caption{Dự đoán nhịp tim (Deterministic/Point Forecasting)}
+    \label{fig:dt-structure}
+\end{figure}
+
+\subsection{Recursive Forecasting}
+
+\begin{itemize}
+    \item \textbf{Đầu ra}: Chuỗi dự báo nhiều bước trong tương lai được tạo ra tuần tự, mỗi bước phụ thuộc vào kết quả của bước trước đó.
+    \item \textbf{Ví dụ}: Mô hình dự báo nhu cầu điện cho giờ kế tiếp, sau đó lặp lại liên tục để có dự báo cho 24 giờ tiếp theo.
+    \item \textbf{Ứng dụng}: Phù hợp cho các bài toán ngắn hạn, nơi sai số tích lũy chưa ảnh hưởng nhiều, chẳng hạn trong điều khiển thời gian thực hoặc dự báo ngắn hạn trong thị trường năng lượng.
+    \item \textbf{Phương pháp}:
+    \begin{itemize}
+        \item Huấn luyện mô hình dự báo một bước ($t \rightarrow t+1$).
+        \item Lấy đầu ra dự báo ở $t+1$ làm đầu vào để tiếp tục dự báo $t+2$, rồi $t+3$, \dots
+        \item Lặp lại đến khi đạt horizon mong muốn.
+    \end{itemize}
+\end{itemize}
+
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.7\textwidth]{image/Re-Forecasting.gif}
+%     \caption{Ví dụ của Recursize Forecasting}
+%     \label{fig:dt-structure}
+% \end{figure}
+
+\subsection{Direct Forecasting}
+
+\begin{itemize}
+    \item \textbf{Đầu ra}: Chuỗi dự báo nhiều bước được ước lượng trực tiếp từ dữ liệu gốc, không phụ thuộc vào kết quả trung gian.
+    \item \textbf{Ví dụ}: Một mô hình được thiết kế đặc biệt để dự báo nhu cầu điện trong 24 giờ tới chỉ với một lần chạy.
+    \item \textbf{Ứng dụng}: Thích hợp cho các bài toán dài hạn, lập kế hoạch tải lưới điện, quản lý tồn kho hoặc dự báo chuỗi tài chính nhiều ngày.
+    \item \textbf{Phương pháp}:
+    \begin{itemize}
+        \item Huấn luyện một mô hình riêng cho từng bước dự báo ($t+1, t+2, \dots$).
+        \item Hoặc sử dụng mô hình đa đầu ra (multi-output) để dự báo toàn bộ tương lai cùng lúc.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Quá trình phát triển của các mô hình dự báo chuỗi thời gian}
+
+\subsubsection{Mô hình tuyến tính \& MLP}
+
+\textbf{Ý tưởng cốt lõi}: Xem dự báo như một bài toán hồi quy, dùng các giá trị trễ (lags) trong quá khứ làm đầu vào.
+
+\textbf{Biến thể}:
+\begin{itemize}
+    \item Linear / NLinear / DLinear --- baseline với chuẩn hóa hoặc phân rã tín hiệu.
+    \item N-BEATS --- xếp chồng MLP để nắm bắt xu hướng và mùa vụ, hiệu quả bất ngờ.
+    \item TimeMixer / TSMixer --- trộn thông tin đa tầng, cải thiện khả năng tổng hợp.
+\end{itemize}
+
+\textbf{Ưu điểm}: Nhanh, dễ huấn luyện, thường được chọn làm baseline.  
+\textbf{Nhược điểm}: Không có trí nhớ theo trình tự.  
+
+\textbf{Thực tế}: Dù đơn giản, đôi khi các mô hình này lại vượt trội trước cả deep learning (N-BEATS là ví dụ điển hình).
+
+\subsection{RNN's Family (từ 1990s, đỉnh cao $\sim$2015)}
+
+\textbf{Ý tưởng cốt lõi}: Xử lý dữ liệu tuần tự, từng bước với bộ nhớ ẩn.
+
+\textbf{Biến thể nổi bật}:
+\begin{itemize}
+    \item LSTM / GRU --- cơ chế gating giúp ghi nhớ phụ thuộc dài.
+    \item LSTNet --- kết hợp CNN cho mẫu cục bộ + RNN cho dài hạn.
+    \item DA-RNN --- thêm attention để chọn biến quan trọng.
+    \item SegRNN --- xử lý theo từng đoạn, cải thiện hiệu suất.
+    \item xLSTM --- phiên bản mới, linh hoạt và mở rộng hơn.
+\end{itemize}
+
+\textbf{Ưu điểm}: Phù hợp tự nhiên với chuỗi, xử lý độ dài thay đổi.  
+\textbf{Nhược điểm}: Huấn luyện chậm, gradient biến mất, khó cho phụ thuộc cực dài.  
+
+\textbf{Thực tế}: Vẫn dùng trong tài chính, giọng nói --- nơi chuỗi dài vừa phải.
+
+\subsubsection{CNN cho chuỗi thời gian (bùng nổ giữa 2010s)}
+
+\begin{itemize}
+    \item \textbf{1D CNN}: Nhận diện motif cục bộ, biến động ngắn hạn.
+    \item \textbf{2D CNN}: Khai thác chu kỳ nội bộ (inner-period) và chu kỳ giữa các giai đoạn (inter-period).
+\end{itemize}
+
+\textbf{Ưu điểm}: Song song tốt, huấn luyện nhanh, mạnh với tín hiệu lặp.  
+\textbf{Nhược điểm}: Cửa sổ bối cảnh hạn chế (trừ khi dùng dilation).  
+
+\textbf{Thực tế}: Vẫn hữu ích trong ECG, âm thanh, dữ liệu cảm biến.
+
+\subsubsection{TCN (Temporal Convolutional Networks, $\sim$2018+)}
+
+\textbf{Đặc trưng chính}:
+\begin{itemize}
+    \item Causality: Không rò rỉ thông tin tương lai.
+    \item Dilations: Mở rộng trường quan sát theo hàm mũ.
+    \item Residual connections: Ổn định huấn luyện.
+\end{itemize}
+
+\textbf{Ưu điểm}: Hiệu quả với chuỗi dài, song song hóa dễ.  
+\textbf{Nhược điểm}: Mô hình có thể phình to, ít linh hoạt với chuỗi không đều.  
+
+\textbf{Thực tế}: Lựa chọn thay thế RNN mạnh mẽ trong nhiều bài toán dự báo.
+
+\subsubsection{Transformer --- bước ngoặt từ 2017 đến nay}
+
+\textbf{Ý tưởng cốt lõi}: Cơ chế attention cho phép mỗi bước thời gian ``nhìn'' toàn bộ chuỗi.
+
+\textbf{Kiến trúc tiêu biểu trong time series}:
+\begin{itemize}
+    \item Autoformer, Informer --- tối ưu attention để giảm độ phức tạp.
+    \item PatchTST, NSTransformer --- gom chuỗi thành patch, xử lý hiệu quả hơn.
+    \item Crossformer, iTransformer --- tập trung vào chuỗi đa biến, khai thác quan hệ giữa biến.
+\end{itemize}
+
+\textbf{Ưu điểm}: Nắm bắt phụ thuộc dài, dễ mở rộng, hiện là chuẩn mực.  
+\textbf{Nhược điểm}: Tốn tính toán, dễ overfit, cần nhiều dữ liệu.  
+
+\textbf{Thực tế}: Thống trị nghiên cứu \& ứng dụng, đặc biệt cho dự báo đa bước, dài hạn và đa biến.
+
+\subsubsection{Xu hướng \& Tương lai}
+
+\textbf{Dòng chảy lịch sử}: Linear/MLP $\rightarrow$ RNN $\rightarrow$ CNN/TCN $\rightarrow$ Transformer.  
+
+\textbf{Điểm thú vị}: Baseline tuyến tính (DLinear, N-BEATS) gần đây ``gây bất ngờ'', cho thấy sự đơn giản đôi khi vẫn chiến thắng.  
+
+\textbf{Foundation Models (2023--2024)}: Các mô hình kiểu \textit{TimeGPT, Chronos, Moirai} huấn luyện trên tập dữ liệu chuỗi thời gian khổng lồ, rồi fine-tune cho từng ứng dụng, tương tự cách GPT làm với ngôn ngữ.
+
+\section{Evaluation}
+
+\subsection{Thước đo phổ biến}
+
+Để so sánh mô hình, thường dùng các chỉ số đo sai số giữa giá trị dự báo và thực tế:
+
+\begin{itemize}
+    \item \textbf{MAE (Mean Absolute Error)}: Trung bình độ lệch tuyệt đối. Dễ hiểu, nhưng không phân biệt lớn nhỏ của sai số.
+    \item \textbf{RMSE (Root Mean Squared Error)}: Nhấn mạnh sai số lớn (outlier). Phù hợp khi rủi ro cao từ dự báo sai lớn.
+    \item \textbf{MAPE (Mean Absolute Percentage Error)}: Sai số theo tỉ lệ \%. Thường dùng trong kinh doanh, nhưng dễ méo mó khi giá trị thực gần 0.
+    \item \textbf{sMAPE (Symmetric MAPE)}: Phiên bản cân bằng của MAPE.
+    \item \textbf{CRPS (Continuous Ranked Probability Score)}: Dùng cho probabilistic forecasting, đánh giá cả phân phối dự báo, không chỉ điểm trung bình.
+    \item \textbf{Pinball Loss}: Đánh giá chất lượng các quantile forecasts (10\%, 50\%, 90\%).
+\end{itemize}
+
+\subsection{Đánh giá theo chiều dài dự báo (Horizon)}
+
+\textbf{Ngắn hạn (short horizon)}:
+\begin{itemize}
+    \item Recursive, Linear, RNN thường có điểm số tốt vì ít bị tích lũy lỗi.
+    \item Thước đo hay dùng: MAE, RMSE.
+\end{itemize}
+
+\textbf{Dài hạn (long horizon)}:
+\begin{itemize}
+    \item Direct, TCN, Transformer thường vượt trội vì hạn chế lỗi tích lũy.
+    \item Ngoài sai số, còn phải xem xu hướng (trend) và chu kỳ (seasonality) có được nắm bắt hay không.
+    \item Đánh giá thêm qua decomposition metrics (trend-correlation, seasonality-correlation).
+\end{itemize}
+
+\subsection{Đánh giá theo loại dự báo}
+
+\textbf{Deterministic models} (Linear, MLP, RNN, CNN, TCN, Transformer):
+\begin{itemize}
+    \item Chủ yếu dùng MAE, RMSE, MAPE.
+\end{itemize}
+
+\textbf{Probabilistic models} (Bayesian, Generative, Transformer with uncertainty):
+\begin{itemize}
+    \item Dùng CRPS, Pinball Loss, calibration curves (đo độ khớp giữa phân phối dự báo và thực tế).
+\end{itemize}
+
+\subsection{Yêu cầu thực tế trong đánh giá}
+
+\begin{itemize}
+    \item \textbf{Hiệu quả tính toán (Efficiency)}: Linear/MLP nhanh $\rightarrow$ tốt cho benchmark; Transformer/TCN nặng $\rightarrow$ cần cân nhắc trade-off giữa accuracy và latency.
+    \item \textbf{Tổng quát hóa (Generalization)}: Mô hình phải hoạt động tốt trên nhiều domain (tài chính, y tế, khí hậu). Foundation Models (TimeGPT, Chronos) đang được đánh giá theo tiêu chí này.
+    \item \textbf{Khả năng giải thích (Interpretability)}: Linear dễ giải thích, Transformer khó hơn nhưng có attention map. Trong lĩnh vực nhạy cảm (y tế, năng lượng) đây là tiêu chí quan trọng.
+\end{itemize}
+
+\subsection{Xu hướng đánh giá hiện đại}
+
+\begin{itemize}
+    \item \textbf{Benchmarks chuẩn hóa}: M4, M5 competitions (chuỗi kinh tế, bán lẻ); ETT, Electricity, Traffic datasets (đa biến, dài hạn).
+    \item \textbf{Multi-metric evaluation}: Không chỉ dùng một metric mà kết hợp (MAE + CRPS + Efficiency).
+    \item \textbf{Out-of-domain robustness}: Kiểm tra xem model có hoạt động được khi dữ liệu thay đổi cấu trúc (ví dụ COVID-19 gây đột biến nhu cầu điện) hay không.
+\end{itemize}
+
+\section{Conclusion}
+
+Dự báo chuỗi thời gian đã đi một chặng đường dài --- từ những mô hình tuyến tính đơn giản, 
+đến RNN, CNN/TCN, và giờ đây là Transformer cùng các Foundation Models. 
+Mỗi thế hệ mô hình đều phản ánh một bước tiến trong khả năng nắm bắt xu hướng, 
+mùa vụ, và mối quan hệ phức tạp giữa các biến số.
+
+Tuy nhiên, không có một mô hình ``vạn năng''. Trong thực tế:
+
+\begin{itemize}
+    \item \textbf{Linear/MLP}: Giữ vai trò baseline nhanh, dễ triển khai.
+    \item \textbf{RNN/CNN/TCN}: Phù hợp khi chuỗi có cấu trúc rõ ràng và chiều dài vừa phải.
+    \item \textbf{Transformer \& Foundation Models}: Mở ra kỷ nguyên mới, với khả năng xử lý đa bước, dài hạn và đa miền dữ liệu.
+\end{itemize}
+
+Đánh giá mô hình không chỉ dừng lại ở sai số dự báo, mà còn phải cân nhắc:
+\begin{itemize}
+    \item \textbf{Sự bất định (Uncertainty)}.
+    \item \textbf{Khả năng mở rộng (Scalability)}.
+    \item \textbf{Tính giải thích được (Interpretability)}.
+\end{itemize}
+
+Các ngành như năng lượng, tài chính, y tế đòi hỏi dự báo không chỉ ``đúng'' 
+mà còn phải ``tin cậy'' và ``hữu dụng'' cho quyết định.
+
+\noindent \textit{Xu hướng sắp tới}: Các mô hình ``TimeGPT'' sẽ trở thành nền tảng, 
+huấn luyện trên tập dữ liệu khổng lồ và tinh chỉnh cho từng lĩnh vực --- 
+giống như cách GPT đã thay đổi NLP. 
+Sự kết hợp giữa \textbf{đơn giản} (linear baselines) và \textbf{sức mạnh} của foundation models 
+có thể là chìa khóa để cân bằng giữa hiệu quả và độ chính xác.
+
+\bigskip
+\noindent\textbf{Bài học lớn nhất}: 
+Dự báo chuỗi thời gian không chỉ là một cuộc đua mô hình, 
+mà là nghệ thuật cân bằng giữa khoa học dữ liệu, 
+hiểu biết miền ứng dụng, và nhu cầu thực tế của con người.
+
+
+\end{document}

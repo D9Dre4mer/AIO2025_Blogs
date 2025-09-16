@@ -1,0 +1,120 @@
+\documentclass[12pt]{article}
+\input{setup}
+
+\begin{document}
+\begin{center}
+    \LARGE{List}
+\end{center}
+\begin{center}
+    \large{\textit{Dao Lam Hoang}}
+\end{center}
+
+% \vspace{0.1cm}
+\section{List là gì}
+- \textbf{List} là một tập hợp chứa các phần tử, có thể trùng nhau và kiểu dữ liệu khác nhau.
+\begin{lstlisting}[language=python]
+# danh sách trống
+empty_list = []
+
+# danh sách số tự nhiên nhỏ hơn 10
+my_list = list(range(10))
+
+# danh sách kết hợp nhiều kiểu dữ liệu
+mixed_list = [True, 5, 'some string', 123.45]
+n_list = ["Happy", [2, 0, 1, 5]]
+
+# danh sách các loại hoa quả (đồng nhất tiếng Việt)
+shopping_list = ['táo', 'chuối', 'anh đào', 'dâu', 'mận']
+    
+\end{lstlisting}
+
+\section{Các lệnh của List}
+\subsection{Slicing}
+- list[start:end:step]
+\begin{lstlisting}[language = python]
+data = [4, 5, 6, 7, 8, 9]
+print(data[:3])  # Lấy từ đầu đến phần tử thứ 3 
+print(data[2:4]) # Lấy từ phần tử thứ 2 đến trước phần tử thứ 4
+print(data[3:])  # Lấy từ phần tử thứ 3 đến hết
+\end{lstlisting}
+\subsection{Các syntax}
+\begin{lstlisting}[language = python]
+data = [6, 5, 7, 1, 9, 2]
+
+# Thêm phần tử
+data.append(4)             # Thêm 4 vào cuối: [6, 5, 7, 1, 9, 2, 4]
+data.insert(0, 4)          # Thêm 4 vào vị trí index = 0
+data.extend([9, 2])        # Thêm nhiều phần tử vào cuối: [9, 2]
+
+# Thay đổi phần tử
+data[1] = 4                # Thay phần tử ở index = 1 bằng 4
+
+# Xóa phần tử
+data.pop(2)               # Xóa phần tử tại index = 2
+data.remove(5)            # Xóa phần tử đầu tiên có giá trị là 5
+del data[1:3]             # Xóa phần tử tại index 1 và 2
+data.clear()              # Xóa toàn bộ danh sách
+
+# Thao tác khác
+data = [6, 5, 7, 1, 9, 2] # Reset lại dữ liệu để tiếp tục thao tác
+data.reverse()            # Đảo ngược danh sách
+count_7 = data.count(7)   # Đếm số lần xuất hiện của giá trị 7
+
+data_copy = data.copy()   # Sao chép danh sách
+data.sort()               # Sắp xếp tăng dần
+data.sort(reverse=True)   # Sắp xếp giảm dần
+
+# Nối và nhân danh sách
+data1 = [1, 2]
+data2 = [3, 4]
+data = data1 + data2      # Nối 2 danh sách: [1, 2, 3, 4]
+
+data_m = data * 3        
+# Nhân danh sách với số nguyên: [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4]
+
+\end{lstlisting}
+
+\subsection{Các hàm có sẵn cho List}
+\begin{lstlisting}[language = python]
+data = [6, 5, 7, 1, 9, 2]
+
+print(len(data))         # Độ dài danh sách → 6
+print(min(data))         # Giá trị nhỏ nhất → 1
+print(max(data))         # Giá trị lớn nhất → 9
+print(sum(data))         # Tổng các phần tử → 30
+
+# zip với ví dụ cụ thể
+a = [1, 2, 3]
+b = ['a', 'b', 'c']
+print(list(zip(a, b)))  
+# Ghép cặp phần tử tương ứng → [(1, 'a'), (2, 'b'), (3, 'c')]
+
+# reversed
+print(list(reversed(data)))  
+# Đảo ngược danh sách → [2, 9, 1, 7, 5, 6]
+
+# sorted
+print(sorted(data))      
+# Sắp xếp tăng dần → [1, 2, 5, 6, 7, 9]
+
+# enumerate
+for i, value in enumerate(data):
+    print(i, value)      # In chỉ số và giá trị từng phần tử
+
+
+\end{lstlisting}
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
+

@@ -1,0 +1,323 @@
+\begin{center}
+    \Large\textbf{Random Forest: Từ đánh solo đến đánh hội đồng}
+\end{center}
+
+\begin{center}
+    \Large\textit{Trịnh Nguyễn Huy Hoàng}
+\end{center}
+
+\begin{center}
+    \large\textit{Hành trình rủ thêm đồng bọn của Decision Tree để tạo ra "hội đồng" mạnh hơn, hiệu quả hơn trong các bài toán phân loại và hồi quy.}
+\end{center}
+
+\label{sec:rf-basic}
+
+% \begin{abstract}
+% Trong kỷ nguyên dữ liệu, việc quản lý và khai thác thông tin hiệu quả đóng vai trò then chốt trong thành công của doanh nghiệp. 
+% Bài viết này cung cấp một cái nhìn toàn diện về \textbf{Data Engineering} và \textbf{Cloud Data Management}, từ các khái niệm nền tảng như kiểu dữ liệu, Data Warehouse, Data Lake, đến sự khác biệt giữa ETL và ELT. 
+% Ngoài ra, bài viết còn giới thiệu các dịch vụ đám mây quan trọng của AWS bao gồm IAM, S3, Glue, Athena và CloudWatch. 
+% Thông qua nội dung này, người đọc không chỉ nắm được kiến thức cơ bản mà còn hiểu rõ cách áp dụng vào thực tiễn để xây dựng hệ thống dữ liệu hiện đại, linh hoạt và có khả năng mở rộng.
+% \end{abstract}
+
+\section{Ôn tập cơ bản về Decision Tree}
+\label{subsec:rf-basic-intro}
+
+\subsection{Decision Tree là gì?}
+
+Cây quyết định (Decision Tree) là một thuật toán học máy giám sát dùng cho cả phân loại và hồi quy. Mô hình này có cấu trúc cây phân cấp gồm nút gốc (root), các nút nội bộ, các nhánh (branch) và nút lá (leaf). Mỗi nút nội bộ đại diện cho một phép kiểm tra thuộc tính, nhánh tương ứng với giá trị của thuộc tính đó, và nút lá là quyết định phân lớp hoặc giá trị dự đoán cuối cùng.
+
+Decision Tree hoạt động theo nguyên tắc "chia để trị" (divide and conquer), sử dụng chiến lược tìm kiếm tham lam (greedy algorithm) để xác định các điểm phân chia tối ưu trong cây. Quá trình phân chia này được lặp lại liên tục theo cách top-down cho đến khi tất cả hoặc phần lớn các bản ghi được phân loại dưới các nhãn (class) cụ thể.
+
+\subsection{Các thuật ngữ cơ bản trong Decision Tree}
+
+Các thành phần chính của Decision Tree bao gồm:
+\begin{itemize}[nolistsep]
+\item \textit{Root Node (Nút gốc)}: Điểm bắt đầu của cây, không có nhánh đầu vào.
+\item \textit{Internal Nodes (Nút nội bộ)}: Còn gọi là decision nodes, thực hiện các phép đánh giá dựa trên features.
+\item \textit{Branches (Nhánh)}: Kết nối các nodes và biểu diễn các giá trị thuộc tính.
+\item \textit{Leaf Nodes (Nút lá)}: Còn gọi là terminal nodes, chứa quyết định cuối cùng hoặc dự đoán.
+\end{itemize}
+
+Các thành phần trên được minh hoạ trực quan như \ref{fig:dt_1}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{projects/RF-basic/image/DecisionTree_1.png}
+    \caption{Minh hoạ cấu trúc và các thành phần chính trong một Decision Tree}
+    \label{fig:dt_1}
+\end{figure}
+
+\subsection{Cách xây dựng Decision Tree}
+
+Mô hình thường được xây dựng theo cách đệ quy. Ở mỗi nút ta chọn một thuộc tính để phân tách dữ liệu sao cho độ tạp (impurity) của các tập con con giảm tối đa. Các thuật toán phổ biến là ID3 (dùng lợi ích thông tin – information gain) và CART (dùng chỉ số Gini hoặc sai số bình phương trung bình – mean square error). Các bước chung như sau:
+
+\begin{enumerate}[nolistsep]
+\item Chọn thuộc tính tốt nhất để phân tách bằng cách tính toán Information Gain hoặc Gini Impurity trên các thuộc tính. Thuộc tính có Information Gain cao nhất hoặc Gini Impurity thấp nhất được chọn làm điểm phân tách.
+\item Tách tập dữ liệu hiện tại thành các nhánh dựa trên giá trị thuộc tính đã chọn.
+\item Lặp lại quá trình với mỗi nhánh: tạo nút con tương ứng. Nếu tập con gồm các mẫu đều thuộc cùng lớp (hoặc không còn thuộc tính nào để phân tách), thì dừng và coi đó là nút lá với nhãn lớp tương ứng.
+\item Quá trình kết thúc khi tất cả mẫu đều được phân loại thuần nhất hoặc không còn thuộc tính nào để xét.
+\end{enumerate}
+
+Phương pháp này tạo ra một cây quyết định dễ hiểu và không yêu cầu quá nhiều bước tiền xử lý dữ liệu. Tuy nhiên, cây quyết định đơn lẻ có xu hướng overfitting nếu cây quá sâu. Khi đó, việc kết hợp nhiều cây (ensemble) sẽ giúp cải thiện hiệu năng và giảm phương sai của mô hình.
+
+\section{Random Forest}
+\label{subsec:rf-basic-how}
+
+\subsection{Giới thiệu về Random Forest}
+
+Random Forest là một thuật toán ensemble learning mạnh mẽ được phát triển bởi Leo Breiman. Thuật toán này kết hợp nhiều cây quyết định để nâng cao độ chính xác và ổn định. Mỗi cây trong rừng được huấn luyện trên một mẫu dữ liệu ngẫu nhiên và chỉ xét một tập con ngẫu nhiên các thuộc tính khi phân tách, do đó các cây có tính đa dạng cao. Nhờ đó, Random Forest hạn chế tình trạng overfitting và cho kết quả dự đoán tin cậy hơn.
+
+% Nguyên lý cốt lõi của Random Forest là: \textit{nhiều mô hình không tương quan với nhau sẽ hoạt động tốt hơn khi làm việc nhóm so với hoạt động riêng lẻ}. Khi sử dụng Random Forest cho bài toán phân loại (classification), mỗi cây đưa ra một "vote" và rừng chọn nhãn có số vote nhiều nhất. Với bài toán hồi quy (regression), rừng chọn giá trị trung bình của outputs từ tất cả các cây.
+
+\subsection{Bootstrapping \& Aggregating (Bagging)}
+
+Random Forest sử dụng kỹ thuật Bootstrap Aggregation (Bagging):
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{projects/RF-basic/image/RandomForest_1.png}
+    \caption{Minh hoạ Bootstrap Sampling}
+    \label{fig:rf_1}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{Bootstrap Sampling:} Cho tập dữ liệu $D$ có kích thước $n$, ta tiến hành tạo $m$ tập dữ liệu mới $D_i$ (mỗi tập có cùng kích thước $n'$) bằng cách lấy mẫu có hoàn lại từ $D$ một cách đồng đều.
+    \item \textbf{Aggregation}: Khi sử dụng Random Forest cho bài toán phân loại (classification), mỗi cây đưa ra một "vote" và rừng chọn nhãn có số vote nhiều nhất. Với bài toán hồi quy (regression), rừng chọn giá trị trung bình của outputs từ tất cả các cây.
+    
+\end{itemize}
+
+\subsection{Cách thức hoạt động}
+
+Cách thức hoạt động của Random Forest như sau:
+\begin{enumerate}
+\item \textbf{Tạo nhiều cây quyết định:} Trên mỗi cây, thuật toán lấy mẫu bootstrap (lấy mẫu có hoàn lại) từ tập dữ liệu huấn luyện. Điều này đảm bảo mỗi cây được huấn luyện trên dữ liệu khác nhau.
+\item \textbf{Chọn thuộc tính ngẫu nhiên:} Khi xây dựng mỗi cây, không xét tất cả các thuộc tính cùng lúc mà chỉ chọn một số thuộc tính ngẫu nhiên để phân tách. Việc “chọn ngẫu nhiên tính năng” (feature bagging) giúp giảm tương quan giữa các cây.
+\item \textbf{Huấn luyện từng cây độc lập:} Mỗi cây quyết định học và đưa ra dự đoán của riêng nó dựa trên mẫu dữ liệu của nó.
+\item \textbf{Kết hợp dự đoán:} Đối với bài toán phân loại, thuật toán lấy bỏ phiếu đa số (majority voting) từ các cây để chọn nhãn cuối cùng. Đối với bài toán hồi quy, kết quả cuối cùng là giá trị trung bình (average) của các dự đoán từ tất cả các cây.
+\end{enumerate}
+
+Kết quả là một “rừng” gồm các cây ít có tương quan lẫn nhau, mỗi cây thể hiện một quan điểm khác biệt về bài toán. Nhờ tính ngẫu nhiên trong cả dữ liệu và thuộc tính, mô hình chung có phương sai thấp hơn và ít bị overfitting hơn một cây quyết định đơn lẻ. Ngoài ra, tính phi tuyến và khả năng kết hợp nhiều cây cho phép mô hình nắm bắt được các quan hệ phức tạp giữa thuộc tính với mục tiêu.
+
+\section{Áp dụng Random Forest để xử lý vấn đề tài chính}
+\label{subsec:rf-basic-applications}
+
+Trong phần này, chúng ta sử dụng Random Forest để xây dựng một hệ thống dự đoán khả năng vỡ nợ tín dụng của khách hàng ngân hàng.
+
+\subsection{Mô tả bài toán}
+
+Ngân hàng cần dự đoán khả năng vỡ nợ tín dụng của ngân hàng dựa trên: giới hạn tín dụng (\verb|LIMIT_BAL|), tuổi (\verb|AGE|), trình độ học vấn (\verb|EDUCATION|), và khả năng vỡ nợ (\verb|DEFAULT|). Trong bộ dữ liệu, các đặc trưng được chuyển thành số với các ý nghĩa như sau:
+\begin{itemize}[noitemsep]
+    \item $\verb|EDUCATION|=\begin{cases}
+        1 & \text{nếu đã tốt nghiệp đại học} \\
+        2 & \text{nếu đang là sinh viên đại học} \\
+        3 & \text{nếu là học sinh trung học}
+    \end{cases}$
+    \item $\verb|DEFAULT|=\begin{cases}
+        1 & \text{nếu có khả năng vỡ nợ} \\
+        0 & \text{ngược lại}
+    \end{cases}$
+\end{itemize}
+
+Giả sử chúng ta có bộ dữ liệu dự đoán vỡ nợ tín dụng như sau:
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|}
+    \hline
+    \textbf{ID} & \textbf{LIMIT\_BAL} & \textbf{AGE} & \textbf{EDUCATION} & \textbf{DEFAULT} \\
+    \hline
+    1 & 20000  & 24 & 2 & 1 \\
+    2 & 120000 & 26 & 2 & 1 \\
+    3 & 90000  & 34 & 2 & 0 \\
+    4 & 50000  & 37 & 2 & 0 \\
+    5 & 50000  & 57 & 2 & 0 \\
+    6 & 220000 & 39 & 3 & 0 \\
+    7 & 30000  & 37 & 2 & 1 \\
+    8 & 80000  & 41 & 3 & 1 \\
+    9 & 30000 & 21 & 2 & ? \\
+    \hline
+    \end{tabular}
+    \caption{Dataset sử dụng trong bài toán}
+    \label{tab:rf_1}
+\end{table}
+
+\subsection{Áp dụng Random Forest để xử lý bài toán}
+Hình dưới minh hoạ quy trình áp dụng Random Forest để xử lý bài toán.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{projects/RF-basic/image/randomforest_2.png}
+  \caption{Minh hoạ quy trình áp dụng Random Forest}
+  \label{fig:rf_2}
+\end{figure}
+
+\subsubsection{Xây dựng các cây Decision Tree nhỏ}
+Ở phần này, tác giả chỉ trình bày chi tiết cách xây dựng cây quyết định đầu tiên. Các Decision Tree sau tác giả xin phép trình bày vắn tắt.
+
+\begin{enumerate}
+\item \textbf{Lấy mẫu bootstrapping:}
+Thực hiện lấy mẫu từ dataset trên, chúng ta có thể nhận được một tập dữ liệu mới như sau: $\text{ID}=[3, 8, 2, 3, 7, 5, 6, 8]$.
+
+\item \textbf{Tìm điểm phân tách tốt nhất:}
+Để tìm điểm phân tách tốt nhất, chúng ta sử dụng Gini Impurity, một thước đo sự "thuần khiết" của một tập hợp các mẫu. Gini Impurity được tính theo công thức:
+$\displaystyle \text{Gini}=1-\sum_{i=1}^C p_i^2$; trong đó, $p_i$ là tỷ lệ của các mẫu thuộc lớp $i$ trong tập dữ liệu.
+
+\begin{itemize}
+    \item \textbf{Tính Gini Impurity cho nút gốc:} \\ Từ tập dữ liệu bootstrap, có 8 bản ghi với 4 bản ghi thuộc lớp 0 (Không vỡ nợ) và 4 bản ghi thuộc lớp 1 (Vỡ nợ), suy ra $p_0=p_1=\dfrac{4}{8}=0.5$, vậy
+    $$\text{Gini}_{\text{gốc}}=1-\left[(0.5)^2+(0.5)^2 \right]=0.5$$
+
+    \item \textbf{Tìm điểm phân tách tối ưu:} \\
+    Giả sử chúng ta chọn ngẫu nhiên hai đặc trưng là \verb|LIMIT_BAL| và \verb|AGE|. Bây giờ, chúng ta sẽ tìm điểm phân tách tốt nhất cho từng đặc trưng:
+    \begin{itemize}[noitemsep]
+        \item \textbf{Phân tách theo \texttt{LIMIT\_BAL}:} Nếu tách theo ngưỡng \verb|LIMIT_BAL <= 85000|, ta có được cây quyết định như hình dưới:
+        \begin{figure}[H]
+          \centering
+          \includegraphics[width=0.8\linewidth]{projects/RF-basic/image/randomforest_3.png}
+        \end{figure}
+        Vậy chỉ số Gini sau phân tách là:
+        $$\text{Gini}_{\text{sau phân tách}}=\dfrac{4}{8} \times 0.5 + \dfrac{4}{8} \times 0.5 = 0.5$$
+        \item \textbf{Phân tách theo AGE:} Làm tương tự như trên, ta thu được chỉ số Gini là $0.465$.
+    \end{itemize}
+    Vì phân tách theo \verb|AGE| có Gini sau phân tách thấp hơn ($0.465 < 0.5$), đây là điểm phân tách tốt nhất cho nút gốc của Cây 1. Quá trình này được lặp lại cho từng nút con cho đến khi đạt được các điều kiện dừng (ví dụ: nút trở nên thuần khiết hoặc đạt độ sâu tối đa).
+\end{itemize}
+\item \textbf{Hoàn thiện Cây Quyết định và Đưa ra Dự đoán:} Sau khi tìm được các điểm phân tách tốt nhất, chúng ta có thể hình dung Cây 1 như một sơ đồ cây với các nhánh và nút lá. Một cây hoàn chỉnh sẽ có khả năng đưa ra dự đoán cho một bản ghi mới.
+
+\end{enumerate}
+
+Các Decision Tree sau cũng được tạo tương tự. Nhấn mạnh rằng mỗi cây được xây dựng độc lập và có thể có cấu trúc hoàn toàn khác nhau.
+
+\subsubsection{Tổng hợp (Voting) để đưa ra Dự đoán Cuối cùng}
+
+Khi có một bản ghi dữ liệu mới cần dự đoán (ví dụ: một khách hàng mới), chúng ta sẽ cho bản ghi đó đi qua từng cây trong rừng. Mỗi cây sẽ đưa ra một dự đoán độc lập (lớp 0 hoặc 1). Sau đó, Random Forest sẽ tổng hợp các dự đoán này bằng cách sử dụng nguyên tắc bỏ phiếu theo đa số (majority voting). Dự đoán cuối cùng của mô hình là lớp được bỏ phiếu nhiều nhất.
+
+Dưới đây là đoạn code Python sử dụng thư viện \verb|scikit-learn| cho tập dữ liệu \ref{tab:rf_1}.
+
+\begin{minted}[numberblanklines=false]{python}
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+
+data = [
+    [1, 20000, 24, 2, 1],
+    [2, 120000, 26, 2, 1],
+    [3, 90000, 34, 2, 0],
+    [4, 50000, 37, 2, 0],
+    [5, 50000, 57, 2, 0],
+    [6, 220000, 39, 3, 0],
+    [7, 30000, 37, 2, 1],
+    [8, 80000, 41, 3, 1],
+    [9, 30000, 21, 2, None]
+]
+
+columns = ["ID", "LIMIT_BAL", "AGE", "EDUCATION", "DEFAULT"]
+
+df = pd.DataFrame(data, columns=columns)
+
+X = df_train.drop(['ID', 'DEFAULT'], axis=1)
+y = df_train['DEFAULT']
+
+model = RandomForestClassifier(n_estimators=3, max_depth=2, random_state=42)
+model.fit(X, y)
+
+X_predict = df_predict.drop(['ID', 'DEFAULT'], axis=1)
+predicted_default = model.predict(X_predict)
+print(f"The predicted 'DEFAULT' value is: {predicted_default[0]}")
+\end{minted}
+
+Ở đây, ta thiết lập các tham số \verb|n_estimators=3| và \verb|max_depth=2| để việc thực hiện thuật toán Random Forest trở nên dễ dàng hơn. Ngoài ra, việc sử dụng tham số \verb|random_state| là một thực hành tốt nhất trong khoa học dữ liệu. Tham số này kiểm soát tất cả các khía cạnh ngẫu nhiên của thuật toán, bao gồm cả việc chia dữ liệu và quá trình xây dựng từng cây. Nếu không có \verb|random_state|, mỗi lần chạy lại mô hình sẽ cho kết quả hơi khác nhau do tính chất ngẫu nhiên, điều này có thể gây khó khăn trong việc kiểm tra và so sánh các kết quả thí nghiệm.
+
+Để biểu thị cách hoạt động của một cây quyết định trong rừng, ta sử dụng đoạn code sau:
+
+\begin{minted}[numberblanklines=false]{python}
+from sklearn.tree import export_graphviz
+import graphviz
+
+# Select one tree from the forest
+tree = model.estimators_[0]
+
+# Export the tree to a dot file
+dot_data = export_graphviz(tree, out_file=None,
+                           feature_names=X.columns,
+                           filled=True, rounded=True,
+                           special_characters=True)
+
+# Create a graph from the dot data
+graph = graphviz.Source(dot_data)
+
+# Display the graph
+display(graph)
+\end{minted}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{projects/RF-basic/image/randomforest_4.png}
+  \caption{Một cây quyết định trong rừng}
+  \label{fig:rf_4}
+\end{figure}
+
+\subsection{Áp dụng cây quyết định trên tập dữ liệu lớn}
+
+Ở phần này, ta sử dụng tập dữ liệu \emph{"Default of Credit Card Clients"} từ UCI Machine Learning Repository. Đây là một trong những tập dữ liệu tài chính công khai được biết đến rộng rãi nhất, rất phù hợp cho việc học và nghiên cứu. Tập dữ liệu này chứa 30.000 bản ghi, mỗi bản ghi đại diện cho một khách hàng, với 24 đặc trưng (ngoại trừ cột ID) mô tả thông tin cá nhân và lịch sử tín dụng của họ. Các đặc trưng bao gồm giới hạn tín dụng (\verb|LIMIT_BAL|), giới tính (\verb|SEX|), trình độ học vấn (\verb|EDUCATION|), tuổi (\verb|AGE|), và lịch sử trả nợ sáu tháng gần nhất (\verb|PAY_0| đến \verb|PAY_6|).
+
+\begin{minted}[numberblanklines=false]{python}
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import classification_report, accuracy_score
+from ucimlrepo import fetch_ucirepo
+
+default_of_credit_card_clients = fetch_ucirepo(id=350)
+X = default_of_credit_card_clients.data.features
+y = default_of_credit_card_clients.data.targets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
+
+# Decision Tree
+dt_classifier = DecisionTreeClassifier(random_state=42)
+dt_classifier.fit(X_train, y_train)
+dt_predictions = dt_classifier.predict(X_test)
+
+# Random Forest
+rf_classifier = RandomForestClassifier(n_estimators=100, random_state=42)
+rf_classifier.fit(X_train, y_train)
+rf_predictions = rf_classifier.predict(X_test)
+
+# Result comparison
+print("Decision Tree Accuracy:", accuracy_score(y_test, dt_predictions))
+print('Classification Report:')
+print(classification_report(y_test, dt_predictions))
+print('\n')
+print("Random Forest Accuracy:", accuracy_score(y_test, rf_predictions))
+print('Classification Report:')
+print(classification_report(y_test, rf_predictions))
+\end{minted}
+
+\begin{minted}[linenos=false]{text}
+Decision Tree Accuracy: 0.7324
+Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.84      0.82      0.83      5873
+           1       0.39      0.43      0.41      1627
+
+    accuracy                           0.73      7500
+   macro avg       0.61      0.62      0.62      7500
+weighted avg       0.74      0.73      0.74      7500
+
+Random Forest Accuracy: 0.816
+Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.84      0.94      0.89      5873
+           1       0.63      0.36      0.46      1627
+
+    accuracy                           0.82      7500
+   macro avg       0.74      0.65      0.67      7500
+weighted avg       0.80      0.82      0.80      7500
+\end{minted}
+
+Dễ dàng thấy rằng, thuật toán Random Forest cho độ chính xác cao hơn nhiều so với Decision Tree. Quan trọng hơn, khi đi sâu vào báo cáo phân loại, F1-Score của Decision Tree cho lớp "vỡ nợ" chỉ là 0.41, cho thấy khả năng dự đoán lớp thiểu số khá kém. Ngược lại, Random Forest thường cải thiện đáng kể chỉ số này, thể hiện khả năng nhận diện các trường hợp rủi ro tốt hơn.
+
+\section{Tối ưu hoá các siêu tham số (hyperparameter tuning)}
+\label{subsec:rf-basic-code}
+
+Một khía cạnh quan trọng của quy trình xây dựng mô hình chuyên nghiệp là tối ưu hóa siêu tham số (hyperparameter tuning). Hiệu suất của mô hình sử dụng Random Forest có thể được cải thiện đáng kể bằng cách tìm kiếm các giá trị tối ưu cho các tham số như \verb|max_depth| (độ sâu tối đa của cây), \verb|min_samples_leaf| (số mẫu tối thiểu ở một nút lá), \verb|n_estimators| (số lượng cây) hoặc \verb|max_features| (số đặc trưng ngẫu nhiên). Các phương pháp như \verb|GridSearchCV| hoặc \verb|RandomizedSearchCV| được khuyến nghị để tự động hóa quá trình này, đảm bảo mô hình đạt được hiệu suất tốt nhất trên dữ liệu.
+
+\section{Tổng kết}
+Random Forest là một công cụ linh hoạt và hiệu quả cho cả bài toán phân loại lẫn hồi quy, đặc biệt hữu ích trong các lĩnh vực như tài chính – nơi dữ liệu thường đa dạng và có nhiều biến phức tạp. Bằng cách kết hợp nhiều cây quyết định khác nhau, mô hình giảm thiểu overfitting và cải thiện độ chính xác dự đoán so với một cây đơn lẻ.

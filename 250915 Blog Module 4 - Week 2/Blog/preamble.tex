@@ -1,0 +1,100 @@
+% Encoding và font cho tiếng Việt
+\usepackage{polyglossia}
+\setmainlanguage{vietnamese}
+\setotherlanguage{english}
+
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\setsansfont{Times New Roman}
+\setmonofont{Times New Roman}[Scale=MatchLowercase]
+
+% Toán học và ký hiệu
+\usepackage{amsmath, amssymb, amsfonts}
+
+% Cấu hình trang
+\usepackage{geometry}
+\geometry{left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm}
+
+% Header/Footer
+\usepackage{fancyhdr}
+\setlength{\headheight}{40 pt}
+\pagestyle{fancy}
+\fancyhead[LO,L]{GRID034 (AIO)}
+\fancyhead[CO,C]{}
+\fancyhead[RO,R]{\today}
+\fancyfoot[CO,C]{\thepage}
+
+% Hình ảnh
+\usepackage{graphicx}
+\usepackage{subcaption}
+
+% Minted - mã lệnh có hỗ trợ tiếng Việt tốt hơn
+\usepackage{minted}
+\usepackage{float}
+
+% Màu sắc cho minted
+\usepackage{xcolor}
+\definecolor{codebg}{rgb}{0.97,0.97,0.97}
+
+% Cấu hình minted
+\setminted{
+    fontsize=\footnotesize,
+    breaklines=true,
+    breakanywhere=true,
+    linenos=true,
+    frame=lines,
+    framesep=2mm,
+    bgcolor=codebg
+}
+
+% Hyperref setup
+\usepackage[hidelinks]{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan
+}
+
+% Các package bổ sung
+\usepackage{parskip}
+\usepackage{enumitem}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{makecell}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{cancel}
+\usepackage{titlesec}
+\usepackage{blindtext}
+\usepackage{datetime}
+\usepackage{placeins}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage[table]{xcolor}
+\usepackage[bottom]{footmisc}
+\usepackage{tcolorbox}  % For the tcolorbox environment
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, shapes.geometric}
+
+% Unicode special characters
+\usepackage{newunicodechar}
+
+% Custom command
+\newcommand{\code}[1]{\texttt{#1}}
+
+% Date format
+\newdateformat{mydate}{\THEDAY/\THEMONTH/\THEYEAR}
+
+% Section formatting
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.5em}{}
+
+% Unicode characters
+\newunicodechar{✔}{\checkmark}
+\newunicodechar{❌}{\texttimes} % approximate
+\newunicodechar{⇒}{\ensuremath{\Rightarrow}}
+
+% Thông tin tài liệu
+\author{}
+\date{\mydate\today}

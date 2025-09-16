@@ -1,0 +1,249 @@
+\begin{center}
+    \Large\textbf{Khám phá AdaBoost: Sức mạnh từ việc học trên sai lầm}
+\end{center}
+
+\begin{center}
+    \Large\textit{Vũ Thái Sơn}
+\end{center}
+
+\begin{center}
+    \large "Góp gió thành bão": Hướng dẫn chi tiết từ lý thuyết đến thực hành AdaBoost
+\end{center}
+
+\label{sec:adaboost}
+
+\section{Giới thiệu: Sức mạnh của việc học từ sai lầm}
+\label{subsec:adaboost-intro}
+Bạn đã bao giờ chuẩn bị cho một kỳ thi bằng cách tập trung vào những câu hỏi khó mình đã làm sai ở lần trước chưa? Nếu có, bạn đã vô tình áp dụng triết lý cốt lõi của \textbf{AdaBoost (Adaptive Boosting)} -- một trong những thuật toán nền tảng và có ảnh hưởng nhất trong lĩnh vực học máy.
+
+Trong thế giới của các mô hình dự đoán, hiếm khi có một mô hình đơn lẻ nào có thể giải quyết hoàn hảo mọi vấn đề. Thay vào đó, các phương pháp \textbf{Học tập Tập thể (Ensemble Learning)} ra đời với ý tưởng kết hợp sức mạnh của nhiều mô hình đơn giản để tạo thành một "đội chuyên gia" hùng mạnh. AdaBoost chính là một ngôi sao sáng trong đội ngũ đó, một "gia sư" kiên nhẫn, biết cách xác định điểm yếu của học sinh (các mẫu dữ liệu khó) và tập trung cải thiện chúng qua từng vòng lặp~\cite{freund1997decision}.
+
+Trong bài viết này, chúng ta sẽ cùng nhau thực hiện một hành trình chi tiết, từ việc "giải phẫu" lý thuyết và công thức toán học đằng sau AdaBoost, đến việc áp dụng nó vào một ví dụ thực tế với các bước tính toán cụ thể, và cuối cùng là hiện thực hóa bằng mã nguồn Python. Hãy sẵn sàng để khám phá cách "góp gió thành bão" có thể tạo ra những mô hình dự đoán với độ chính xác đáng kinh ngạc.
+
+\subsection{Quy trình thuật toán: Một vòng lặp thông minh}
+Quá trình hoạt động của AdaBoost có thể được tóm tắt qua các bước sau:
+\begin{enumerate}
+    \item \textbf{Khởi tạo:} Gán trọng số bằng nhau cho tất cả N mẫu dữ liệu.
+    \[ w_i = \frac{1}{N}, \quad i=1, 2, ..., N \]
+    
+    \item \textbf{Lặp (với m từ 1 đến M weak learners):}
+    \begin{enumerate}
+        \item Tìm weak learner $G_m(x)$ tốt nhất bằng cách tối ưu hóa một tiêu chí (ví dụ: Gini Index có trọng số) trên dữ liệu.
+        
+        \item Tính tổng lỗi có trọng số (Total Error) $err_m$ của weak learner vừa tìm được. Đây là tổng trọng số của các mẫu bị phân loại sai.
+        \[ err_m = \sum_{i=1}^{N} w_i \cdot I(y_i \neq G_m(x_i)) \]
+        (Trong đó $I$ là hàm chỉ thị, trả về 1 nếu điều kiện đúng, 0 nếu sai).
+        
+        \item Tính "Amount of Say" ($\alpha_m$) cho weak learner này. Lỗi càng thấp, $\alpha_m$ càng cao.
+        \[ \alpha_m = \frac{1}{2} \log\left(\frac{1 - err_m}{err_m}\right) \]
+        
+        \item Cập nhật trọng số của các mẫu cho vòng lặp tiếp theo, sau đó chuẩn hóa để tổng các trọng số mới bằng 1.
+        \[ w_i \leftarrow w_i \cdot \exp\left[\alpha_m \cdot I(y_i \neq G_m(x_i))\right] \]
+    \end{enumerate}
+    
+    \item \textbf{Dự đoán cuối cùng:} Tổng hợp kết quả từ tất cả M weak learners thông qua một cuộc bỏ phiếu có trọng số, sử dụng $\alpha_m$ làm trọng số phiếu.
+    \[ G(x) = \text{sign}\left(\sum_{m=1}^{M} \alpha_m G_m(x)\right) \]
+\end{enumerate}
+
+\section{Diễn giải chi tiết: AdaBoost hoạt động trên dữ liệu thực tế}
+\label{subsec:adaboost-algorithm}
+Hãy cùng áp dụng quy trình trên vào bộ dữ liệu "Play Tennis" (10 mẫu) để thấy rõ các phép tính.
+
+\textbf{Bước 1: Khởi tạo Trọng số} \\
+Với 10 mẫu, mỗi mẫu có trọng số ban đầu là $1/10 = 0.1$.
+
+\textbf{Bước 2: Tìm Stump đầu tiên (dùng Gini Index)} \\
+Sau khi duyệt qua tất cả các cách chia, thuật toán xác định rằng việc chia theo $\textbf{Humidity} \leq 82.5$ cho \textbf{Gini Index thấp nhất} là 0.15. Đây là stump đầu tiên. Nó dự đoán 'Yes' khi điều kiện đúng và 'No' khi sai.
+
+\textbf{Bước 3: Tính "Amount of Say" ($\alpha$)} \\
+Stump này chỉ mắc 1 lỗi trên 10 mẫu. Vậy tổng lỗi (Total Error) = 0.1.
+\[
+\alpha_1 = \frac{1}{2} \log\left(\frac{1 - \text{Total Error}}{\text{Total Error}}\right) = \frac{1}{2} \log\left(\frac{1 - 0.1}{0.1}\right) = \frac{1}{2} \log(9) \approx 1.0986
+\]
+Stump này rất đáng tin cậy và có "tiếng nói" lớn.
+
+\textbf{Bước 4: Cập nhật Trọng số - Cốt lõi của "Adaptive"} \\
+Đây là lúc phép màu xảy ra. Chúng ta tăng tầm quan trọng của mẫu bị sai:
+\begin{itemize}
+    \item \textbf{Với 1 mẫu bị sai:} $\text{New Weight} = 0.1 \times e^{\alpha_1} \approx 0.1 \times 3 = 0.3$.
+    \item \textbf{Với 9 mẫu đúng:} $\text{New Weight} = 0.1 \times e^{-\alpha_1} \approx 0.1 \times 0.333 = 0.0333$.
+\end{itemize}
+Sau khi chuẩn hóa, mẫu bị sai giờ đây chiếm một phần trọng số rất lớn, buộc stump tiếp theo phải tập trung vào nó. 
+
+\textbf{Bước 5: Xây dựng Stump tiếp theo - Hai cách tiếp cận} \\
+Đây là một bước quan trọng và có hai phương pháp để thực hiện, mỗi phương pháp có ưu và nhược điểm riêng.
+
+\textit{Phương pháp 1: Tạo Dataset mới bằng Resampling (Theo slide bài giảng)} \\
+Phương pháp truyền thống, như được đề cập trong slide bài giảng, là tạo ra một bộ dữ liệu hoàn toàn mới cho vòng lặp tiếp theo. Quá trình này được gọi là \textbf{lấy mẫu có thay thế (sampling with replacement)} dựa trên các trọng số đã được cập nhật.
+\begin{itemize}
+    \item \textbf{Cách hoạt động:} Hãy tưởng tượng một "Vòng quay may mắn", trong đó mỗi mẫu dữ liệu chiếm một phần của vòng quay, và diện tích của phần đó tỷ lệ thuận với trọng số của mẫu. Mẫu bị sai ở vòng trước (với trọng số $\approx 0.3$) sẽ chiếm một phần lớn hơn nhiều so với các mẫu đúng (trọng số $\approx 0.0333$). Chúng ta sẽ "quay" vòng quay này N lần (với N là kích thước dataset gốc) để chọn ra N mẫu cho bộ dữ liệu mới.
+    \item \textbf{Ưu điểm:} Rất trực quan và dễ hiểu.
+    \item \textbf{Nhược điểm:} Mang tính ngẫu nhiên. Dù xác suất thấp, vẫn có khả năng các mẫu bị sai (dù có trọng số cao) không được chọn vào bộ dữ liệu mới. Điều này có thể làm giảm tính ổn định của mô hình.
+\end{itemize}
+
+\textit{Phương pháp 2: Giữ nguyên Dataset và dùng Weighted Gini Index (Tối ưu hơn)} \\
+Một cách tiếp cận hiện đại và hiệu quả hơn là \textbf{không tạo ra dataset mới}. Thay vào đó, chúng ta giữ nguyên bộ dữ liệu gốc và chỉ truyền bộ trọng số đã được cập nhật vào cho thuật toán weak learner.
+\begin{itemize}
+    \item \textbf{Cách hoạt động:} "Luật chơi" của việc tìm stump tốt nhất đã thay đổi. Thay vì tính Gini Index thông thường dựa trên việc "đếm số lượng mẫu", thuật toán sẽ tính \textbf{Gini Index có trọng số (Weighted Gini Index)}. Khi tính toán độ thuần khiết, thay vì mỗi mẫu được tính là "1", nó sẽ được tính bằng chính trọng số của nó.
+    \item \textbf{Ví dụ:} Một lỗi phân loại trên mẫu có trọng số 0.3 sẽ bị "phạt" nặng hơn 10 lần so với lỗi trên mẫu có trọng số 0.03. Điều này buộc thuật toán phải tìm ra một cách chia ưu tiên việc phân loại đúng các mẫu có trọng số cao.
+    \item \textbf{Ưu điểm:} Ổn định hơn (không có yếu tố ngẫu nhiên), hiệu quả về mặt tính toán và thường cho kết quả tốt hơn. Đây là cách mà các thư viện hiện đại như `scikit-learn` triển khai.
+\end{itemize}
+
+\section{Thực hành với Python trên bộ dữ liệu lớn hơn}
+\label{subsec:adaboost-how}
+Chúng ta sẽ sử dụng bộ dữ liệu 28 mẫu để huấn luyện và trực quan hóa. Mã nguồn dưới đây sử dụng phương pháp thứ hai (Weighted Gini Index) vì đây là mặc định của `scikit-learn`.
+
+\begin{minted}{python}
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import LabelEncoder
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.metrics import accuracy_score
+
+# 1. Data Preparation from the dictionary
+dataset_dict = {
+    'Outlook': ['sunny', 'sunny', 'overcast', 'rainy', 'rainy', 'rainy', 'overcast', 'sunny', 'sunny', 'rainy', 'sunny', 'overcast', 'overcast', 'rainy', 'sunny', 'overcast', 'rainy', 'sunny', 'sunny', 'rainy', 'overcast', 'rainy', 'sunny', 'overcast', 'sunny', 'overcast', 'rainy', 'overcast'],
+    'Temperature': [85.0, 80.0, 83.0, 70.0, 68.0, 65.0, 64.0, 72.0, 69.0, 75.0, 75.0, 72.0, 81.0, 71.0, 81.0, 74.0, 76.0, 78.0, 82.0, 67.0, 85.0, 73.0, 88.0, 77.0, 79.0, 80.0, 66.0, 84.0],
+    'Humidity': [85.0, 90.0, 78.0, 96.0, 80.0, 70.0, 65.0, 95.0, 70.0, 80.0, 70.0, 90.0, 75.0, 80.0, 88.0, 92.0, 85.0, 75.0, 92.0, 90.0, 85.0, 88.0, 65.0, 70.0, 60.0, 95.0, 70.0, 78.0],
+    'Wind': [False, True, False, False, False, True, True, False, False, False, True, True, False, True, True, False, False, True, False, True, True, False, True, False, False, True, False, False],
+    'Play': ['No', 'No', 'Yes', 'Yes', 'Yes', 'No', 'Yes', 'No', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes', 'No', 'No', 'Yes', 'Yes', 'No', 'No', 'No', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes', 'No', 'Yes']
+}
+df = pd.DataFrame(dataset_dict)
+df_original = df.copy() # Keep original for visualization
+
+# 2. Preprocessing: Convert categorical data to numeric
+# Use One-Hot Encoding for 'Outlook' as it has no ordinal relationship
+df_processed = pd.get_dummies(df, columns=['Outlook'], drop_first=True)
+
+# Use Label Encoding for binary features 'Wind' and target 'Play'
+le = LabelEncoder()
+df_processed['Wind'] = le.fit_transform(df_processed['Wind'])
+y_encoder = LabelEncoder()
+df_processed['Play'] = y_encoder.fit_transform(df_processed['Play'])
+
+# Separate features (X) and target (y)
+X = df_processed.drop('Play', axis=1)
+y = df_processed['Play']
+feature_names = X.columns.tolist()
+class_names = y_encoder.classes_.tolist()
+
+# 3. Build and Train the full AdaBoost Model
+# The base estimator is a Decision Stump (a decision tree with max_depth=1)
+stump = DecisionTreeClassifier(max_depth=1, random_state=42)
+
+# Initialize the AdaBoost classifier
+adaboost_model = AdaBoostClassifier(
+    estimator=stump,
+    n_estimators=50,
+    random_state=42,
+    algorithm='SAMME'
+)
+
+# Train the model on the full dataset
+adaboost_model.fit(X, y)
+y_pred = adaboost_model.predict(X)
+accuracy = accuracy_score(y, y_pred)
+print(f"Accuracy of the full AdaBoost model: {accuracy:.4f}\n")
+
+# 4. Visualize individual stumps
+print("Visualizing representative stumps (1, 2, and 50)...")
+fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(20, 6))
+trees_to_plot_indices = [0, 1, 49]
+for i, tree_index in enumerate(trees_to_plot_indices):
+    ax = axes[i]
+    plot_tree(adaboost_model.estimators_[tree_index],
+              feature_names=feature_names,
+              class_names=class_names,
+              filled=True, rounded=True, ax=ax, fontsize=10)
+    ax.set_title(f'Tree {tree_index + 1}')
+plt.tight_layout()
+plt.show()
+
+# 5. Visualize the final decision boundary (using a simplified 2D model)
+print("\nVisualizing the final decision boundary...")
+X_vis = df_original[['Temperature', 'Humidity']].values
+y_vis = y_encoder.transform(df_original['Play'])
+
+# Train a simplified model just for visualization purposes
+adaboost_vis_model = AdaBoostClassifier(estimator=stump, n_estimators=50, random_state=42, algorithm='SAMME')
+adaboost_vis_model.fit(X_vis, y_vis)
+
+# Create a mesh grid to plot the decision boundary
+x_min, x_max = X_vis[:, 0].min() - 5, X_vis[:, 0].max() + 5
+y_min, y_max = X_vis[:, 1].min() - 5, X_vis[:, 1].max() + 5
+xx, yy = np.meshgrid(np.arange(x_min, x_max, 1),
+                     np.arange(y_min, y_max, 1))
+
+# Predict on the mesh grid
+Z = adaboost_vis_model.predict(np.c_[xx.ravel(), yy.ravel()])
+Z = Z.reshape(xx.shape)
+
+# Plot the results
+plt.figure(figsize=(12, 8))
+plt.contourf(xx, yy, Z, alpha=0.3, cmap=plt.cm.coolwarm)
+scatter = plt.scatter(X_vis[:, 0], X_vis[:, 1], c=y_vis, cmap=plt.cm.coolwarm, s=60, edgecolor='k')
+plt.title('AdaBoost Decision Boundary (Simplified 2D Model)', fontsize=16)
+plt.xlabel('Temperature', fontsize=12)
+plt.ylabel('Humidity', fontsize=12)
+plt.legend(handles=scatter.legend_elements()[0], labels=class_names)
+plt.grid(True, linestyle='--', alpha=0.6)
+plt.show()
+\end{minted}
+
+\subsection{Giải mã các mô hình yếu (Stumps)}
+Bằng cách trực quan hóa, chúng ta có thể thấy rõ quá trình học của AdaBoost.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{projects/ADA-Boost/stumps.png.png}
+    \caption{Trực quan hóa Stumps 1, 2 và 50. Mỗi stump tập trung vào một thuộc tính khác nhau, cho thấy sự thích ứng của thuật toán qua từng vòng lặp để sửa lỗi của các stump trước đó.}
+    \label{fig:stumps}
+\end{figure}
+
+\subsection{Sức mạnh tổng hợp: Đường biên quyết định cuối cùng}
+Sau khi kết hợp 50 stumps, chúng ta có được một bộ phân loại mạnh mẽ với đường biên phức tạp.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{projects/ADA-Boost/decision_boundary.png}
+    \caption{
+    Trực quan hóa đường biên quyết định của một mô hình AdaBoost \textbf{đơn giản hóa}, chỉ được huấn luyện trên hai thuộc tính `Temperature` và `Humidity` để có thể vẽ trên không gian 2D. Lưu ý rằng đây là một phiên bản chiếu của mô hình đầy đủ; nó không phản ánh hiệu suất 100\% của mô hình gốc vốn sử dụng tất cả các thuộc tính. Tuy nhiên, nó cho thấy rõ cách AdaBoost kết hợp nhiều ranh giới đơn giản để tạo ra một vùng phân loại phức tạp và phi tuyến tính.
+    }
+    \label{fig:boundary}
+\end{figure}
+
+Một điểm cần lưu ý: đôi khi độ chính xác của mô hình đầy đủ (sử dụng tất cả các thuộc tính) có thể đạt 100\%, nhưng biểu đồ trực quan 2D (chỉ dùng 2 thuộc tính) vẫn cho thấy lỗi. Điều này là do mô hình đầy đủ có nhiều thông tin hơn để đưa ra quyết định chính xác, trong khi mô hình 2D bị giới hạn thông tin.
+
+\section{Thảo luận chuyên sâu}
+\label{subsec:adaboost-classification}
+\begin{itemize}
+    \item \textbf{Khi lỗi > 0.5 thì sao?} Khi một weak learner tệ hơn cả đoán ngẫu nhiên, giá trị $\alpha$ của nó sẽ là số âm. Về mặt lý thuyết, điều này có nghĩa là dự đoán của nó sẽ bị "đảo ngược" trong quá trình bỏ phiếu cuối cùng.
+    \item \textbf{Làm sao để chọn số Stumps tối ưu?} Đây là một siêu tham số quan trọng. Các phương pháp như \textbf{Cross-Validation} hoặc \textbf{Early Stopping} được sử dụng để tìm ra số lượng stumps (`n\_estimators`) phù hợp nhất, giúp cân bằng giữa underfitting và overfitting.
+\end{itemize}
+
+\section{So sánh AdaBoost và Random Forest}
+\label{subsec:adaboost-comparison}
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|p{5cm}|p{5cm}|}
+\hline
+\textbf{Tiêu chí} & \textbf{AdaBoost} & \textbf{Random Forest}~\cite{breiman2001random} \\
+\hline
+\textbf{Thứ tự xây dựng} & Tuần tự: Cây sau học từ lỗi của cây trước. & Song song: Các cây độc lập. \\
+\hline
+\textbf{Cơ chế bỏ phiếu} & Có trọng số ($\alpha$). & Đa số (công bằng). \\
+\hline
+\textbf{Mục tiêu chính} & Giảm sai số thiên vị (bias). & Giảm sai số phương sai (variance). \\
+\hline
+\end{tabular}
+\caption{So sánh các đặc điểm chính giữa AdaBoost và Random Forest.}
+\label{tab:comparison}
+\end{table}
+
+\section{Tổng kết}
+AdaBoost không chỉ là một thuật toán; nó là minh chứng cho một triết lý mạnh mẽ trong học máy: sự hợp lực có thể biến những điểm yếu thành sức mạnh phi thường. Bằng cách hiểu rõ cơ chế học tập thích ứng của AdaBoost, chúng ta không chỉ nắm vững một công cụ mạnh mẽ mà còn có một nền tảng vững chắc để tiếp cận các thuật toán boosting hiện đại hơn như Gradient Boosting hay XGBoost~\cite{chen2016xgboost}, những "gã khổng lồ" đang thống trị nhiều cuộc thi về khoa học dữ liệu hiện nay.
+
+\bibliographystyle{plain}
+\bibliography{projects/ADA-Boost/references}

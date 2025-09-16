@@ -1,0 +1,149 @@
+\documentclass[a4paper,12pt]{article}
+
+\input{preamble.tex} % Gọi preamble từ file riêng
+
+\begin{document}
+\fancyhead[L]{%
+    \includegraphics[height=1.2cm]{Logo/Logo.png}%
+}
+\newpage
+
+\begin{center}
+    \vspace*{2em}
+    {\LARGE\bfseries Blog Tuần 1 – Module 4 \par}
+    \vspace{0.5em}
+    {\Huge\bfseries Random Forest, AdaBoost, Time Series và Gradio \par}
+    \vspace{1em}
+    {\Large\itshape Từ ensemble methods đến time series analysis và ML model deployment \par}
+    \vspace{2em}
+    {\large\textbf{Tác giả:} Team GRID034} \\
+    \vspace{2em}
+    \hrule
+    \vspace{1.5em}
+\end{center}
+
+
+\noindent
+Tuần đầu tiên của Module 4 tập trung vào các \textbf{thuật toán ensemble} mạnh mẽ và \textbf{phân tích chuỗi thời gian}, cùng với việc triển khai các mô hình ML thông qua \textbf{Gradio}. Module này giúp người học nắm vững các kỹ thuật học máy nâng cao và cách triển khai chúng trong thực tế.
+
+\vspace{1em}
+\noindent
+Cụ thể, blog tuần này sẽ bao gồm các chủ đề:
+
+\vspace{1em}
+\begin{enumerate}
+    \item \textbf{Random Forest Basic – Cơ bản về Random Forest}  
+    Giới thiệu về Random Forest, cách hoạt động, ưu điểm và ứng dụng trong thực tế.
+
+    \item \textbf{Random Forest – Nâng cao}  
+    Các kỹ thuật tối ưu hóa Random Forest, so sánh với Decision Tree và các thuật toán khác.
+
+    \item \textbf{AdaBoost – Adaptive Boosting}  
+    Thuật toán boosting, cách hoạt động của AdaBoost, và ứng dụng trong classification.
+
+    \item \textbf{Time Series Analysis – Phân tích chuỗi thời gian}  
+    Các phương pháp phân tích dữ liệu thời gian, ARIMA, và dự báo.
+
+    \item \textbf{Gradio cho ML Model Demos}  
+    Tạo giao diện web tương tác cho các mô hình ML, từ prototype đến deployment.
+\end{enumerate}
+
+\vspace{1em}
+\noindent\textbf{ Giá trị nhận được sau khi đọc Blog}
+\begin{itemize}
+    \item Hiểu và triển khai được Random Forest từ cơ bản đến nâng cao.  
+    \item Nắm vững thuật toán AdaBoost và ứng dụng trong thực tế.  
+    \item Biết cách phân tích và dự báo dữ liệu chuỗi thời gian.  
+    \item Tạo giao diện web tương tác cho mô hình ML với Gradio.  
+    \item Triển khai ứng dụng ML lên production một cách chuyên nghiệp.  
+\end{itemize}
+
+\vspace{1em}
+\newpage
+
+\vspace{2em}
+\noindent
+{\Large\bfseries Mục lục}
+\vspace{1em}
+
+\noindent
+\textbf{Random Forest Basic – Cơ bản về Random Forest} \dotfill \pageref{sec:rf-basic}
+\begin{itemize}
+    \item Ôn tập cơ bản về Decision Tree \dotfill \pageref{subsec:rf-basic-intro}
+    \item Random Forest \dotfill \pageref{subsec:rf-basic-how}
+    \item Áp dụng Random Forest để xử lý vấn đề tài chính \dotfill \pageref{subsec:rf-basic-applications}
+    \item Tối ưu hoá các siêu tham số (hyperparameter tuning) \dotfill \pageref{subsec:rf-basic-code}
+\end{itemize}
+
+\vspace{0.5em}
+\noindent
+\textbf{Random Forest – Nâng cao} \dotfill \pageref{sec:rf-advanced}
+\begin{itemize}
+    \item "Nếu một cái cây có thể đưa ra quyết định, thì một khu rừng sẽ làm được gì?" \dotfill \pageref{subsec:rf-advanced-optimization}
+    \item Khởi nguồn: Decision Tree \dotfill \pageref{subsec:rf-advanced-comparison}
+    \item Random Forest -- Sức mạnh từ sự kết hợp \dotfill \pageref{subsec:rf-advanced-tuning}
+    \item Ứng dụng của Random Forest trong dự báo chuỗi thời gian \dotfill \pageref{subsec:rf-advanced-features}
+    \item Tổng kết và Khuyến nghị \dotfill \pageref{subsec:rf-advanced-evaluation}
+\end{itemize}
+
+\vspace{0.5em}
+\noindent
+\textbf{AdaBoost – Adaptive Boosting} \dotfill \pageref{sec:adaboost}
+\begin{itemize}
+    \item Giới thiệu: Sức mạnh của việc học từ sai lầm \dotfill \pageref{subsec:adaboost-intro}
+    \item Diễn giải chi tiết: AdaBoost hoạt động trên dữ liệu thực tế \dotfill \pageref{subsec:adaboost-algorithm}
+    \item Thực hành với Python trên bộ dữ liệu lớn hơn \dotfill \pageref{subsec:adaboost-how}
+    \item Thảo luận chuyên sâu \dotfill \pageref{subsec:adaboost-classification}
+    \item So sánh AdaBoost và Random Forest \dotfill \pageref{subsec:adaboost-comparison}
+\end{itemize}
+
+\vspace{0.5em}
+\noindent
+\textbf{Time Series Analysis – Phân tích chuỗi thời gian} \dotfill \pageref{sec:time-series}
+\begin{itemize}
+    \item Vì sao Time-Series quan trọng? \dotfill \pageref{subsec:time-series-intro}
+    \item Time-Series: In a nutshell \dotfill \pageref{subsec:time-series-components}
+    \item Data Generation và Data Valuation trong Time-Series \dotfill \pageref{subsec:time-series-arima}
+    \item Model Selection \dotfill \pageref{subsec:time-series-forecasting}
+    \item Evaluation \dotfill \pageref{subsec:time-series-examples}
+\end{itemize}
+
+\vspace{0.5em}
+\noindent
+\textbf{Gradio cho ML Model Demos} \dotfill \pageref{sec:gradio}
+\begin{itemize}
+    \item Giới thiệu Gradio \dotfill \pageref{subsec:gradio-intro}
+    \item gr.Interface - Giao diện đơn giản \dotfill \pageref{subsec:gradio-architecture}
+    \item gr.Blocks - Giao diện phức tạp \dotfill \pageref{subsec:gradio-interface-blocks}
+    \item Layout Components \dotfill \pageref{subsec:gradio-layout}
+    \item Các Components cơ bản \dotfill \pageref{subsec:gradio-components}
+    \item Event Handling \dotfill \pageref{subsec:gradio-events}
+    \item Theming và Customization \dotfill \pageref{subsec:gradio-theming}
+    \item Deployment với Docker \dotfill \pageref{subsec:gradio-docker}
+    \item Cloud Deployment với AWS \dotfill \pageref{subsec:gradio-aws}
+\end{itemize}
+
+\vspace{1em}
+\newpage
+
+\input{projects/RF-basic/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\input{projects/RF/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\input{projects/ADA-Boost/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\input{projects/Time_series/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\input{projects/Gradio Blog/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\end{document}

@@ -1,0 +1,25 @@
+% setup.tex
+\usepackage{polyglossia}
+\setdefaultlanguage{vietnamese}
+
+\usepackage{fontspec}
+\setmainfont{Libertinus Serif}
+\setsansfont{DejaVu Sans}
+\setmonofont{DejaVu Sans Mono}[Scale=MatchLowercase]
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[hidelinks]{hyperref}
+\usepackage{amsmath, amssymb}
+\usepackage{xcolor}
+\usepackage{float}
+
+\usepackage{minted}
+\setminted{fontsize=\small,breaklines=true,linenos=true,frame=lines,framesep=2mm}
+
+\usepackage{newunicodechar}
+\newunicodechar{✔}{\checkmark}
+\newunicodechar{❌}{\texttimes} % approximate
+\newunicodechar{⇒}{\ensuremath{\Rightarrow}}
+
+\newcommand{\code}[1]{\texttt{#1}}
