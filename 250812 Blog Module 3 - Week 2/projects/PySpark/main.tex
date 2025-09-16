@@ -1,0 +1,265 @@
+\begin{center}
+    \Large\textbf{PySpark: Công Cụ Xử Lý Dữ Liệu Lớn Toàn Năng}
+\end{center}
+
+\begin{center}
+    \Large\textit{Bùi Đức Xuân}
+\end{center}
+
+\begin{abstract}
+Trong thế giới số ngày nay, dữ liệu đang bùng nổ với tốc độ chóng mặt. Từ sự phát triển của ổ cứng, mạng di động (từ 1G đến 5G), cho đến sự gia tăng hàng tỷ người dùng Internet và mạng xã hội, chúng ta đang sống trong kỷ nguyên của \textbf{Dữ Liệu Lớn (Big Data)}. Việc thu thập và truyền tải dữ liệu trở nên dễ dàng, nhưng xử lý và lưu trữ những bộ dữ liệu khổng lồ này lại là một thách thức lớn.
+
+Đây là lúc PySpark tỏa sáng. Hãy cùng nhau khám phá PySpark là gì và tại sao nó lại là một công cụ mạnh mẽ và cần thiết cho bất kỳ ai làm việc với dữ liệu.   
+\end{abstract}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{projects/PySpark/Image/big_data.jpeg}
+    \caption{Big Data}
+    \label{fig:big_data}
+\end{figure}
+
+\section{Big Data và những thách thức}
+
+Big Data không chỉ đơn thuần là dữ liệu có kích thước lớn. Nó được định nghĩa bởi "5 V's", những đặc tính tạo nên sự phức tạp của nó:
+
+\begin{itemize}
+    \item \textbf{Volume (Khối lượng):} Lượng dữ liệu cực lớn, có thể lên đến Terabytes hoặc Petabytes. Ví dụ, Facebook từng xử lý 25 Terabytes dữ liệu log mỗi ngày.
+    \item \textbf{Velocity (Tốc độ):} Dữ liệu được tạo ra và cần được xử lý với tốc độ rất cao, gần như theo thời gian thực. Hãy nghĩ đến hàng triệu lượt tweet, tìm kiếm trên Google, hay giao dịch diễn ra mỗi phút.
+    \item \textbf{Variety (Sự đa dạng):} Dữ liệu đến từ nhiều nguồn và có nhiều định dạng khác nhau: có cấu trúc (structured), bán cấu trúc (semi-structured), và phi cấu trúc (unstructured).
+    \item \textbf{Veracity (Tính xác thực):} Chất lượng và độ tin cậy của dữ liệu. Dữ liệu không chính xác có thể dẫn đến những phân tích sai lệch và quyết định kinh doanh không hiệu quả.
+    \item \textbf{Value (Giá trị):} Khả năng khai thác thông tin hữu ích từ dữ liệu để tạo ra giá trị, như cải thiện trải nghiệm khách hàng, tối ưu hóa chi phí, hay phát hiện gian lận.
+\end{itemize}
+
+Để giải quyết những thách thức này, các nền tảng (framework) xử lý dữ liệu lớn đã ra đời.
+
+\section{Giới thiệu Apache Spark}
+
+Trong số các framework về Big Data, \textbf{Apache Spark} nổi lên như một giải pháp hàng đầu, vượt trội hơn so với người tiền nhiệm là Hadoop ở nhiều khía cạnh.
+
+\subsection{Apache Hadoop là gì?}
+Hadoop là một nền tảng mã nguồn mở dùng để lưu trữ và xử lý dữ liệu lớn. Hai thành phần chính của nó là:
+\begin{itemize}
+    \item \textbf{HDFS (Hadoop Distributed File System):} Một hệ thống tệp phân tán để lưu trữ dữ liệu trên nhiều máy tính.
+    \item \textbf{MapReduce:} Một mô hình lập trình để xử lý song song các bộ dữ liệu lớn. MapReduce chia tác vụ lớn thành các nhiệm vụ nhỏ hơn (Map), sau đó tổng hợp kết quả (Reduce).
+\end{itemize}
+
+\subsection{Apache Spark: Nhanh hơn và linh hoạt hơn}
+Spark là một công cụ xử lý dữ liệu nhanh và linh hoạt hơn Hadoop. Điểm khác biệt lớn nhất của Spark là khả năng \textbf{xử lý dữ liệu trong bộ nhớ (in-memory processing)}, giúp tăng tốc độ tính toán lên đáng kể so với cơ chế đọc/ghi trên đĩa của Hadoop MapReduce.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{projects/PySpark/Image/spark.png} 
+    \caption{Apache Spark Logo}
+    \label{fig:spark_logo}
+\end{figure}
+
+\subsubsection{Spark RDD (Resilient Distributed Dataset)}
+Cốt lõi của Spark là \textbf{RDD (Resilient Distributed Dataset)}. Đây là một cấu trúc dữ liệu cơ bản của Spark, đại diện cho một tập hợp các phần tử không thể thay đổi, được phân tán trên các node của một cụm máy tính.
+
+\begin{itemize}
+    \item \textbf{Resilient (Bền bỉ):} Có khả năng tự phục hồi khi có lỗi xảy ra.
+    \item \textbf{Distributed (Phân tán):} Dữ liệu được chia thành các phân vùng (partitions) và lưu trữ trên nhiều máy trong cụm.
+    \item \textbf{Dataset (Tập dữ liệu):} Là một bộ sưu tập dữ liệu (ví dụ: mảng, bảng).
+\end{itemize}
+
+Các hoạt động trên RDD được chia làm hai loại:
+\begin{enumerate}
+    \item \textbf{Transformations (Phép biến đổi):} Tạo ra một RDD mới từ RDD hiện có (ví dụ: \texttt{map()}, \texttt{filter()}). Các phép biến đổi này có tính "lười biếng" (lazy), tức là chúng không thực thi ngay lập tức.
+    \item \textbf{Actions (Hành động):} Thực hiện tính toán trên RDD và trả về một kết quả cho driver hoặc ghi ra bộ nhớ ngoài (ví dụ: \texttt{collect()}, \texttt{count()}).
+\end{enumerate}
+
+\subsection{So sánh Spark và Hadoop}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Tham số} & \textbf{Hadoop} & \textbf{Spark} \\ \hline
+\textbf{Mục đích} & Xử lý dữ liệu & Phân tích dữ liệu \\ \hline
+\textbf{Quy trình} & Phân tích các lô dữ liệu lớn & Phân tích dữ liệu thời gian thực \\ \hline
+\textbf{Kiểu xử lý} & Theo lô (Batch) & Thời gian thực (Real-time) \\ \hline
+\textbf{Độ trễ} & Cao & Thấp \\ \hline
+\textbf{Chi phí} & Ít tốn kém hơn & Tốn kém hơn (do trong bộ nhớ) \\ \hline
+\textbf{Dễ sử dụng} & Phức tạp & Dễ sử dụng hơn \\ \hline
+\textbf{Ngôn ngữ} & Java & Scala \\ \hline
+\end{tabular}
+\caption{Bảng so sánh giữa Spark và Hadoop.}
+\end{table}
+
+\subsection{Hệ sinh thái Apache Spark}
+Spark không chỉ là một công cụ, mà là cả một hệ sinh thái mạnh mẽ bao gồm:
+\begin{itemize}
+    \item \textbf{Spark SQL:} Dành cho việc truy vấn dữ liệu có cấu trúc bằng SQL.
+    \item \textbf{Spark Streaming:} Xử lý các luồng dữ liệu theo thời gian thực.
+    \item \textbf{MLlib (Machine Learning Library):} Cung cấp các thuật toán và công cụ học máy.
+    \item \textbf{GraphX:} Dành cho việc xử lý và phân tích đồ thị.
+    \item \textbf{Spark Connect:} Một giao thức mới cho phép các ứng dụng client giao tiếp với máy chủ Spark.
+\end{itemize}
+
+\section{Bắt đầu với PySpark}
+
+\textbf{PySpark} chính là Python API cho Apache Spark. Nó cho phép chúng ta tận dụng sự đơn giản của Python và sức mạnh của Apache Spark để xử lý dữ liệu lớn.
+
+\subsection{Thao tác với RDD trong PySpark}
+\subsubsection{Khởi tạo SparkSession}
+Mọi thứ bắt đầu với \texttt{SparkSession}, điểm khởi đầu để lập trình với Spark.
+\begin{lstlisting}[language=Python, caption={Initialize SparkSession}]
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder \
+    .appName("PySparkExample.com") \
+    .getOrCreate()
+\end{lstlisting}
+
+\subsubsection{Tạo RDD và thực hiện Actions}
+\begin{lstlisting}[language=Python, caption={Perform Actions on an RDD}]
+# Numeric data
+num_data = [1, 2, 3, 4, 5]
+num_rdd = spark.sparkContext.parallelize(num_data)
+
+# Actions
+print(num_rdd.collect())
+# Output: [1, 2, 3, 4, 5]
+
+print(num_rdd.take(3))
+# Output: [1, 2, 3]
+
+print(num_rdd.first())
+# Output: 1
+
+print(num_rdd.count())
+# Output: 5
+\end{lstlisting}
+
+\subsubsection{Transformations: \texttt{map()}, \texttt{flatMap()}, \texttt{filter()}}
+\begin{lstlisting}[language=Python, caption={Perform Transformations on an RDD}]
+text_data = [
+    "Hello this is an example of Spark WordCount Example",
+    "we are using PySpark",
+    "PySpark is a great tool for Big Data Analysis"
+]
+text_rdd = spark.sparkContext.parallelize(text_data)
+
+# Use flatMap to split into words
+words_rdd = text_rdd.flatMap(lambda line: line.split(" "))
+print(words_rdd.collect())
+# Output: ['Hello', 'this', 'is', 'an', 'example', 'of', 'Spark', ...]
+
+# Use filter to get even numbers
+num_rdd_filter = num_rdd.filter(lambda x: x % 2 == 0)
+print(num_rdd_filter.collect()) 
+# Output: [2, 4]
+\end{lstlisting}
+
+\subsection{Làm việc với DataFrame}
+DataFrame là một cấu trúc dữ liệu phân tán được tổ chức thành các cột có tên.
+
+\subsubsection{Đọc dữ liệu (ví dụ: file CSV)}
+\begin{lstlisting}[language=Python, caption={Read a CSV file into a DataFrame}]
+# Read a CSV file into a DataFrame
+# Assuming the file is named large_dataset.csv in the ./data directory
+df = spark.read.csv("./data/large_dataset.csv", header=True, inferSchema=True)
+
+# Show the first 20 rows
+df.show()
+\end{lstlisting}
+
+\subsubsection{Khám phá DataFrame}
+\begin{lstlisting}[language=Python, caption={Get summary statistics of the DataFrame}]
+# Describe the DataFrame
+df.describe().show()
+\end{lstlisting}
+
+\subsubsection{Chọn và Lọc dữ liệu}
+\begin{lstlisting}[language=Python, caption={Select and Filter a DataFrame}]
+from pyspark.sql.functions import col
+
+# Select specific columns
+df.select("name", "age").show()
+
+# Filter rows based on a condition (e.g., age > 30)
+df.filter(col("age") > 30).show()
+\end{lstlisting}
+
+\subsubsection{Thêm cột mới và nhóm dữ liệu}
+\begin{lstlisting}[language=Python, caption={Add a new column and group the DataFrame}]
+from pyspark.sql.functions import avg
+
+# Add a new column based on a calculation
+df_with_tax = df.withColumn("salary_plus_tax", col("salary") * 1.1)
+df_with_tax.show()
+
+# Group by a column and calculate an aggregate function
+df.groupBy("occupation").agg(avg("salary")).show()
+\end{lstlisting}
+
+\subsubsection{Sử dụng UDF (User-Defined Function)}
+\begin{lstlisting}[language=Python, caption={Using a UDF to categorize age}]
+from pyspark.sql.functions import udf
+from pyspark.sql.types import StringType
+
+# Define a UDF to categorize age
+def categorize_age(age):
+    if age < 20:
+        return "teenager"
+    elif 20 <= age < 60:
+        return "adult"
+    else:
+        return "senior"
+
+# Register the UDF
+categorize_age_udf = udf(categorize_age, StringType())
+
+# Apply the UDF to create a new column
+df.withColumn("age_category", categorize_age_udf(col("age"))) \
+  .select("age", "age_category") \
+  .show()
+\end{lstlisting}
+
+\section{Sức mạnh của Spark SQL}
+Spark SQL cho phép bạn chạy các truy vấn SQL trực tiếp trên DataFrame. Đầu tiên, hãy tạo một "temporary view" từ DataFrame.
+\begin{lstlisting}[language=Python, caption={Create a Temporary View}]
+df.createOrReplaceTempView("people")
+\end{lstlisting}
+Bây giờ bạn có thể dùng \texttt{spark.sql()} để truy vấn.
+
+\begin{lstlisting}[language=SQL, caption={Basic SQL Query}]
+-- Equivalent to df.select("*")
+SELECT * FROM people
+\end{lstlisting}
+
+\begin{lstlisting}[language=SQL, caption={Filter with WHERE clause}]
+-- Equivalent to df.filter(col("age") > 30)
+SELECT * FROM people WHERE age > 30
+\end{lstlisting}
+
+\begin{lstlisting}[language=SQL, caption={Group with GROUP BY}]
+-- Equivalent to df.groupBy("occupation").agg(avg("salary"))
+SELECT occupation, AVG(salary) as avg_salary 
+FROM people 
+GROUP BY occupation
+\end{lstlisting}
+
+
+\section{Giới thiệu PySpark MLlib}
+\textbf{PySpark MLlib} là thư viện học máy của Spark, được thiết kế để chạy trên các bộ dữ liệu lớn một cách phân tán.
+
+\subsection{So sánh MLlib và Scikit-learn}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Tác vụ} & \textbf{Scikit-learn} & \textbf{PySpark MLlib} \\ \hline
+\textbf{Chia Train/Test} & \texttt{train\_test\_split} & \texttt{<DataFrame>.randomSplit} \\ \hline
+\textbf{Mã hóa} & \texttt{LabelEncoder} & \texttt{StringIndexer} \\ \hline
+\textbf{Chuẩn hóa} & \texttt{StandardScaler} & \texttt{StandardScaler} \\ \hline
+\textbf{Mô hình hóa} & \texttt{LinearRegression} & \texttt{LinearRegressionWithSGD} \\ \hline
+\textbf{Đánh giá} & \texttt{accuracy\_score} & \texttt{MulticlassMetrics} \\ \hline
+\end{tabular}
+\caption{So sánh quy trình làm việc giữa MLlib và Scikit-learn.}
+\end{table}
+
+Dòng chảy công việc trong MLlib thường bao gồm việc xây dựng một \texttt{Pipeline}, kết hợp các bước xử lý đặc trưng (feature engineering) và huấn luyện mô hình thành một quy trình duy nhất.
+
+\section{Kết luận}
+PySpark là một cầu nối mạnh mẽ, kết hợp sự linh hoạt của Python với khả năng xử lý phân tán hiệu năng cao của Apache Spark. Cho dù bạn đang xử lý các lô dữ liệu khổng lồ, phân tích luồng dữ liệu thời gian thực, hay xây dựng các mô hình học máy phức tạp, PySpark đều cung cấp một bộ công cụ toàn diện và mạnh mẽ. Việc nắm vững PySpark sẽ mở ra cho bạn cánh cửa để giải quyết những bài toán dữ liệu lớn nhất và khai thác những giá trị tiềm ẩn bên trong chúng.

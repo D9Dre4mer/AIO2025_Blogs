@@ -1,0 +1,269 @@
+
+\begin{center}
+    \Large\textbf{Firebase Toàn Tập: Từ NoSQL Realtime đến Machine Learning với Iris Dataset}
+\end{center}
+
+\begin{center}
+    \Large\textit{Đàm Nguyên Khánh}
+\end{center}
+
+\section{Firebase là gì?}
+
+\textbf{Firebase} là một nền tảng \textbf{Backend-as-a-Service (BaaS)} do Google phát triển. Nói đơn giản, nó cung cấp cho bạn một \textbf{“hạ tầng phía sau”} gồm cơ sở dữ liệu, xác thực người dùng, lưu trữ file và các công cụ vận hành khác để bạn chỉ cần tập trung viết ứng dụng (frontend) mà không phải cài đặt server hay cấu hình phức tạp.
+
+\vspace{0.5em}
+\begin{tcolorbox}[colback=yellow!5!white, colframe=green!40!black, title=Giải thích thuật ngữ]
+\textbf{Backend-as-a-Service (BaaS):} là dịch vụ cung cấp sẵn các chức năng backend như cơ sở dữ liệu, xác thực, lưu trữ file, API... mà không cần bạn tự triển khai hoặc bảo trì server.
+\end{tcolorbox}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{projects/NoSQL3/Image/Firebase-2-1.png}
+    \caption{
+    So sánh giữa kiến trúc truyền thống (Traditional) và kiến trúc sử dụng Firebase.}
+    \label{fig:firebase-vs-traditional}
+\end{figure}
+
+\section{Hai lựa chọn NoSQL trong Firebase: Realtime Database và Firestore}
+
+Firebase cung cấp 2 hệ quản trị cơ sở dữ liệu dạng \textbf{NoSQL}:
+
+\begin{itemize}
+    \item \textbf{Realtime Database}: Dữ liệu được lưu dưới dạng \texttt{JSON tree}, phù hợp các ứng dụng realtime nhẹ.
+    \item \textbf{Cloud Firestore}: Cấu trúc dạng \textbf{document} (tài liệu) – \textbf{collection} (bộ sưu tập), tương tự MongoDB, mạnh mẽ hơn trong truy vấn và mở rộng.
+\end{itemize}
+
+\begin{tcolorbox}[colback=yellow!5!white, colframe=green!40!black, title=Giải thích thuật ngữ]
+\textbf{Realtime:} dữ liệu thay đổi sẽ được đồng bộ ngay lập tức tới người dùng mà không cần reload.
+\end{tcolorbox}
+
+\vspace{1em}
+
+\section{Hướng dẫn thiết lập Firebase Project}
+
+\subsection*{Bước 1: Tạo Project}
+
+Truy cập \url{https://console.firebase.google.com}, chọn \texttt{Add project}, đặt tên và khởi tạo.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{projects/NoSQL3/Image/Step 1.jpg}
+    \caption{
+    Giao diện khởi tạo dự án Firebase lần đầu tiên. Người dùng cần bấm vào ô “\textbf{Get started with a Firebase project}” để bắt đầu quy trình tạo mới một project trên Firebase Console.
+    Việc tạo project này là bước khởi đầu để có thể sử dụng các dịch vụ như Firestore, Realtime Database, Authentication, Functions,... từ Firebase.
+    }
+    \label{fig:get-started-firebase}
+\end{figure}
+
+\subsection*{Bước 2: Tạo Service Account}
+
+Vào \texttt{Project Settings} \textrightarrow\ \texttt{Service Accounts} \textrightarrow\ \texttt{Generate new private key}. Lưu file JSON – bạn sẽ dùng file này để xác thực khi kết nối Python tới Firebase.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{projects/NoSQL3/Image/Step 2.jpg}
+    \caption{
+    Giao diện tạo \textbf{Service Account} trong mục \texttt{Project Settings} \textrightarrow\ \texttt{Service accounts} của Firebase Console.
+    Người dùng cần bấm vào nút \texttt{Generate new private key} để tải về một file \texttt{.json} chứa thông tin xác thực. File này sẽ được dùng trong mã Python (hoặc Node.js, Java, Go) để kết nối tới Firebase thông qua SDK.
+    }
+    \label{fig:firebase-service-account}
+\end{figure}
+
+\subsection*{Bước 3: Bật Realtime Database}
+
+Chọn chế độ \texttt{Test Mode} để cho phép đọc/ghi tự do trong quá trình thử nghiệm.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.35\textwidth]{projects/NoSQL3/Image/Step 3.jpg}
+    \caption{
+    Biểu tượng và tùy chọn kích hoạt \textbf{Realtime Database} trong Firebase.
+    Đây là một hệ quản trị cơ sở dữ liệu NoSQL dạng cây JSON, cho phép đồng bộ dữ liệu theo thời gian thực giữa nhiều client.
+    Khi bật tính năng này lần đầu, Firebase sẽ yêu cầu chọn khu vực (region) và chính sách bảo mật (Security Rules). Trong giai đoạn thử nghiệm, bạn có thể chọn \texttt{test mode} để dễ dàng đọc/ghi mà không bị giới hạn quyền.
+    \textit{Lưu ý:} test mode chỉ nên dùng cho mục đích phát triển, không nên dùng trong môi trường thật.
+    }
+    \label{fig:firebase-realtime-activate}
+\end{figure}
+
+\subsection*{Bước 4: Bật Cloud Firestore}
+
+Chọn vùng (region) phù hợp, nên trùng với Realtime DB để giảm độ trễ và chi phí.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.35\textwidth]{projects/NoSQL3/Image/Step 4.jpg}
+    \caption{
+    Biểu tượng và tùy chọn kích hoạt \textbf{Cloud Firestore} trong Firebase.
+    Firestore sử dụng mô hình \texttt{Document – Collection} rất giống MongoDB, phù hợp cho các ứng dụng web, mobile và cả backend AI.
+    }
+    \label{fig:firebase-firestore-activate}
+\end{figure}
+
+Firestore là hệ cơ sở dữ liệu NoSQL hiện đại của Google, hỗ trợ:
+\begin{itemize}
+    \item \textbf{Realtime updates}: dữ liệu cập nhật theo thời gian thực.
+    \item \textbf{Powerful queries}: hỗ trợ truy vấn theo điều kiện, sắp xếp, phân trang.
+    \item \textbf{Automatic scaling}: tự mở rộng để phục vụ lượng người dùng lớn.
+\end{itemize}
+
+\section{Kết nối Firestore từ Python}
+
+\subsection*{Khởi tạo kết nối}
+
+\begin{minted}[fontsize=\small]{python}
+import firebase_admin
+from firebase_admin import credentials, firestore
+
+cred = credentials.Certificate("serviceAccountKey.json")
+firebase_admin.initialize_app(cred)
+db = firestore.client()
+\end{minted}
+
+\subsection*{Các thao tác CRUD cơ bản}
+
+\textbf{CRUD} viết tắt của:
+
+\begin{itemize}
+    \item \textbf{Create}: thêm dữ liệu
+    \item \textbf{Read}: đọc dữ liệu
+    \item \textbf{Update}: cập nhật dữ liệu
+    \item \textbf{Delete}: xoá dữ liệu
+\end{itemize}
+
+Các ví dụ:
+
+\begin{itemize}
+    \item Thêm document: \mintinline{python}{db.collection("users").add({...})}
+    \item Truy vấn: \mintinline{python}{.where("age", ">", 18)}
+    \item Cập nhật: \mintinline{python}{doc_ref.update({...})}
+    \item Xoá: \mintinline{python}{doc_ref.delete()}
+\end{itemize}
+
+\vspace{0.5em}
+
+\section{Bộ Dữ liệu Iris và Cách Lưu vào Firestore}
+
+\subsection*{Giới thiệu về bộ dữ liệu Iris}
+
+Bộ dữ liệu \textbf{Iris} là một trong những dataset kinh điển trong Machine Learning. Mỗi mẫu là thông tin của một bông hoa thuộc 1 trong 3 loài:
+
+\begin{itemize}
+    \item \texttt{Iris Setosa}
+    \item \texttt{Iris Versicolor}
+    \item \texttt{Iris Virginica}
+\end{itemize}
+
+Các đặc trưng gồm:
+
+\begin{itemize}
+    \item Sepal length (chiều dài đài hoa)
+    \item Sepal width (chiều rộng đài hoa)
+    \item Petal length (chiều dài cánh hoa)
+    \item Petal width (chiều rộng cánh hoa)
+\end{itemize}
+
+\subsection*{Lưu dữ liệu vào Firestore}
+
+Mỗi mẫu sẽ là một \textbf{document} trong \textbf{collection} tên \texttt{iris\_samples}. Tạo script Python để duyệt từng dòng của \texttt{pandas.DataFrame} và thêm vào Firestore bằng \texttt{.add()} hoặc \texttt{.set()}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{projects/NoSQL3/Image/Fire Base.jpg}
+    \caption{
+    Giao diện quản lý dữ liệu của \textbf{Cloud Firestore} trong Firebase.}
+\end{figure}
+
+Hình ảnh hiển thị:
+\begin{itemize}
+    \item Một \textbf{collection} có tên là \texttt{iris\_dataset}, chứa các \textbf{documents} dạng \texttt{sample\_0}, \texttt{sample\_1}, \dots
+    \item Mỗi document đại diện cho một mẫu hoa trong bộ dữ liệu Iris.
+    \item Bên phải, các trường dữ liệu (fields) bao gồm:
+    \begin{itemize}
+        \item \texttt{petal\_length}, \texttt{petal\_width}, \texttt{sepal\_length}, \texttt{sepal\_width}: các đặc trưng đo lường của hoa.
+        \item \texttt{species}: tên loài hoa, ví dụ \texttt{"setosa"}.
+    \end{itemize}
+\end{itemize}
+
+Đây là cách dữ liệu dạng document được tổ chức trong Firestore: không cần bảng, mỗi document là một bản ghi độc lập, các fields linh hoạt về kiểu và số lượng.
+\label{fig:firestore-iris}
+
+
+\section{Machine Learning với Iris trên Firebase}
+
+\subsection*{Tải dữ liệu về để huấn luyện}
+
+Sử dụng Firestore API để đọc toàn bộ dữ liệu, convert sang \texttt{pandas.DataFrame} để huấn luyện mô hình.
+
+\subsection*{Huấn luyện mô hình}
+
+Các mô hình bạn có thể thử:
+
+\begin{itemize}
+    \item \texttt{DecisionTreeClassifier}
+    \item \texttt{RandomForestClassifier}
+    \item \texttt{SVC} (Support Vector Machine)
+    \item \texttt{LogisticRegression}
+\end{itemize}
+
+Chia tập train/test, đánh giá độ chính xác, chọn mô hình tốt nhất để sử dụng.
+
+\textit{Gợi ý chèn hình: bảng so sánh độ chính xác các mô hình.}
+
+\subsection*{Trực quan hóa dữ liệu}
+
+Vẽ biểu đồ \textbf{scatter plot} để thấy sự phân tách giữa các loài.
+
+\begin{itemize}
+    \item Petal Length vs Petal Width
+    \item Sepal Length vs Sepal Width
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{projects/NoSQL3/Image/Scatter Plot.jpg}
+    \caption{
+    Biểu đồ \textbf{Scatter Plot} thể hiện sự phân bố các đặc trưng hình thái trong bộ dữ liệu \textbf{Iris}, phân loại theo ba loài hoa: \texttt{setosa}, \texttt{versicolor}, và \texttt{virginica}.}
+\end{figure}
+
+\textbf{Biểu đồ bên trái} so sánh \textbf{Petal Length} và \textbf{Petal Width} (chiều dài và chiều rộng cánh hoa):
+\begin{itemize}
+    \item Cho thấy sự phân tách rõ ràng giữa ba loài.
+    \item \texttt{Setosa} (đỏ) nằm hoàn toàn tách biệt.
+    \item \texttt{Versicolor} (xanh dương) và \texttt{Virginica} (xanh lá) có một số vùng chồng lấn.
+\end{itemize}
+
+\textbf{Biểu đồ bên phải} so sánh \textbf{Sepal Length} và \textbf{Sepal Width} (chiều dài và chiều rộng đài hoa):
+\begin{itemize}
+    \item Sự phân chia giữa các loài kém rõ ràng hơn.
+    \item Các cụm màu không hoàn toàn tách biệt, đặc biệt giữa versicolor và virginica.
+\end{itemize}
+
+Biểu đồ này minh họa tầm quan trọng của việc chọn đúng đặc trưng khi huấn luyện mô hình phân loại.
+
+\label{fig:scatter-iris}
+
+
+\section{Xây dựng Giao diện với Streamlit}
+
+\textbf{Streamlit} là framework siêu đơn giản để tạo web app bằng Python, rất thích hợp để demo AI/ML.
+
+Chức năng chính:
+
+\begin{itemize}
+    \item Form nhập 4 thông số hoa
+    \item Dự đoán loài
+    \item Ghi kết quả vào Firestore
+\end{itemize}
+
+\section{Kết luận}
+
+Firebase kết hợp với Python và Streamlit giúp bạn xây dựng hệ thống AI nhỏ gọn, dễ triển khai và không cần lo về hạ tầng.
+
+Với kiến thức trong bài viết, bạn có thể:
+
+\begin{itemize}
+    \item Hiểu rõ về hai hệ NoSQL của Firebase
+    \item Lưu trữ dữ liệu AI lên Firestore
+    \item Huấn luyện và đánh giá mô hình Machine Learning
+    \item Tạo app web dự đoán và kết nối cơ sở dữ liệu thực tế
+\end{itemize}

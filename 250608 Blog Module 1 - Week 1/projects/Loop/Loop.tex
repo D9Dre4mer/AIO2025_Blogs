@@ -1,0 +1,697 @@
+\begin{center}
+    \Large\textbf{Vòng lặp trong python}
+\end{center}
+
+\begin{center}
+    \Large\textit{Phạm Quốc An}
+\end{center}
+
+Vòng lặp là một trong những cấu trúc điều khiển luồng cơ bản và mạnh mẽ nhất trong lập trình, cho phép thực thi một khối lệnh lặp đi lặp lại. Trong Python, vòng lặp không chỉ là công cụ để tự động hóa các tác vụ lặp mà còn thể hiện triết lý "\textbf{Pythonic}" qua các cú pháp ngắn gọn và hiệu quả. Bài viết này sẽ trình bày chi tiết về vòng lặp trong Python, bắt đầu từ các khái niệm cơ bản và sau đó đi sâu vào các chủ đề nâng cao như lập trình song song, generator, iterator, module itertools, và vector hóa.
+
+\section{Phần 1: Vòng lặp cơ bản}
+
+Phần này tập trung vào các cấu trúc vòng lặp cốt lõi trong Python, bao gồm \textbf{for} và \textbf{while}, cùng với các câu lệnh điều khiển và một kỹ thuật Pythonic phổ biến là list comprehensions.
+
+
+
+\subsection{Giới Thiệu Chung về Vòng Lặp:}
+
+ \begin{itemize}
+\item Vòng lặp được sử dụng để thực thi một đoạn mã nhiều lần. Python cung cấp hai loại vòng lặp chính: \textbf{for} và \textbf{while}. Vòng lặp \textbf{for} thường được sử dụng khi số lần lặp biết trước hoặc khi cần duyệt qua các phần tử của một đối tượng có thể lặp như list, tuple, hoặc string. Ngược lại, vòng lặp \textbf{while} phù hợp khi số lần lặp không xác định trước và vòng lặp tiếp tục cho đến khi một điều kiện cụ thể không còn đúng nữa.
+
+     
+\item Việc sử dụng vòng lặp giúp giảm thiểu sự lặp lại mã, làm cho chương trình ngắn gọn hơn và dễ bảo trì hơn. Một trong những ưu điểm của Python là cú pháp vòng lặp rõ ràng và dễ đọc, giúp người lập trình dễ dàng diễn đạt ý tưởng của mình.
+
+\end{itemize}
+    
+    
+
+\subsection{Vòng Lặp For}
+
+    \begin{itemize}
+    
+   \item Vòng lặp \textbf{for} trong Python được thiết kế để lặp qua các phần tử của một chuỗi (sequence) hoặc bất kỳ đối tượng iterable nào khác theo thứ tự chúng xuất hiện. Điều này khác biệt so với vòng lặp for trong một số ngôn ngữ như C hay Pascal, nơi vòng lặp thường dựa trên một biến đếm với các bước tăng/giảm và điều kiện dừng cụ thể. 
+
+   \end{itemize}
+Cú pháp cơ bản:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{projects/Loop/image/Untitled.png}
+    \caption{cú pháp vòng lặp \textbf{for}}
+    \label{fig:enter-label}
+\end{figure}
+
+
+    Trong đó:
+    \begin{itemize}
+        \item \textbf{bien\_lap} (loop variable): là biến sẽ nhận giá trị của từng phần tử trong \textbf{doi\_tuong\_lap} qua mỗi lần lặp.
+        \item \textbf{doi\_tuong\_lap} (iterable object): có thể là một list, tuple, string, dictionary, set, hoặc một đối tượng do người dùng định nghĩa có khả năng lặp.
+    \end{itemize}
+    Cách hoạt động:
+    \begin{itemize}
+    \item 1. Khi vòng lặp for bắt đầu, Python lấy một iterator từ \textbf{doi\_tuong\_lap}.
+    \item 2. Trong mỗi lần lặp, biến \textbf{bien\_lap} được gán giá trị của phần tử tiếp theo từ iterator.
+    \item 3. Khối lệnh bên trong vòng lặp được thực thi với giá trị hiện tại của\textbf{ bien\_lap}.
+    \item 4. Quá trình này tiếp tục cho đến khi không còn phần tử nào trong\textbf{ doi\_tuong\_lap} (iterator ném ra ngoại lệ \textbf{StopIteration})
+    \end{itemize}
+
+\hspace{-5mm} Ví dụ:
+
+    \begin{itemize}
+    \item Lặp qua một list :
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.5\linewidth]{projects/Loop/image/fr.png}
+        \caption{Lặp qua một list}
+        \label{fig:enter-label}
+    \end{figure}
+
+    
+    \item 2. Lặp qua một chuỗi (string) :
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.5\linewidth]{projects/Loop/image/str.png}
+        \caption{Lặp qua một chuỗi}
+        \label{fig:enter-label}
+    \end{figure}
+    \end{itemize}
+
+\hspace{-5mm}\textbf{Hàm "range()"} :
+
+Hàm range() thường được sử dụng với vòng lặp for để tạo ra một chuỗi các số. 
+\begin{itemize}
+    \item \textbf{range(stop)}: Tạo chuỗi từ \textbf{0} đến \textbf{stop-1}.
+    \item \textbf{range(start, stop)}: Tạo chuỗi từ \textbf{start} đến \textbf{stop-1}
+    \item \textbf{range(start, stop, step)}: Tạo chuỗi từ \textbf{start} đến \textbf{stop-1} với bước nhảy \textbf{step}.
+    \item Đối tượng trả về bởi \textbf{range()} hoạt động như một iterable, nó không tạo ra toàn bộ danh sách số trong bộ nhớ ngay lập tức, giúp tiết kiệm bộ nhớ, đặc biệt với các khoảng số lớn.
+    \end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{projects/Loop/image/range.png}
+    \caption{cách dùng hàm \textbf{range()}}
+    \label{fig:enter-label}
+\end{figure}
+
+
+\hspace{-5mm}\textbf{Lặp với "enumerate()"}:
+
+Khi cần truy cập cả chỉ số (index) và giá trị của phần tử trong khi lặp, hàm enumerate() rất hữu ích.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{projects/Loop/image/enum.png}
+    \caption{Lặp với \textbf{enumerate()}}
+    \label{fig:enter-label}
+\end{figure}
+
+
+\hspace{-5mm}Một điểm quan trọng cần lưu ý là nếu ta cần sửa đổi một tập hợp (collection) trong khi đang lặp qua chính nó, tốt hơn là nên lặp qua một bản sao của tập hợp đó hoặc tạo một tập hợp mới để tránh các lỗi không mong muốn do thay đổi kích thước hoặc cấu trúc của tập hợp đang được lặp.
+
+
+\subsection{Vòng Lặp While}
+
+\begin{itemize}
+    \item Vòng lặp \textbf{while} trong Python được sử dụng để thực thi một khối lệnh lặp đi lặp lại miễn là một điều kiện (expression) nhất định còn đúng (True). Khi điều kiện trở thành sai (False), vòng lặp sẽ kết thúc và chương trình sẽ thực thi dòng lệnh tiếp theo sau khối lệnh của \textbf{while}.
+    \end{itemize}
+
+\hspace{-5mm}\textbf{Cú pháp cơ bản:}
+
+Cú pháp của vòng lặp \textbf{while} như sau :
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{projects/Loop/image/while.png}
+    \caption{cú pháp vòng lặp \textbf{while}}
+    \label{fig:enter-label}
+\end{figure}
+Trong đó \textbf{dieu\_kien} là một biểu thức logic. Trong Python, mọi giá trị khác 0 hoặc khác None đều được coi là True, trong khi 0 và None được coi là False.
+
+\hspace{-5mm}\textbf{Cách hoạt động:}
+\begin{itemize}
+    \item 1. Biểu thức \textbf{dieu\_kien} được đánh giá.
+    \item 2. Nếu \textbf{dieu\_kien} là True, khối lệnh bên trong vòng lặp while được thực thi.
+    \item 3. Sau khi thực thi khối lệnh, \textbf{dieu\_kien} lại được đánh giá lại.
+    \item 4. Quá trình này lặp lại cho đến khi \textbf{dieu\_kien} là False. Khi đó, vòng lặp kết thúc.
+    \item Điều cực kỳ quan trọng là phải đảm bảo rằng có một cơ chế nào đó bên trong vòng lặp để làm cho \textbf{dieu\_kien} cuối cùng trở thành False. Nếu không, vòng lặp sẽ chạy vô hạn (infinite loop), có thể làm chương trình bị treo.
+
+    \end{itemize}
+
+    
+\hspace{-5mm}\textbf{Ví dụ:}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.75\linewidth]{projects/Loop/image/count.png}
+        \caption{Đếm từ 1 đến 3}
+        \label{fig:enter-label}
+    \end{figure}
+
+\hspace{-5mm}\textbf{Vòng lặp vô hạn và cách ngắt:}
+\begin{itemize}
+    \item Một vòng lặp vô hạn xảy ra khi điều kiện của \textbf{while} luôn luôn đúng. Ví dụ: \textbf{while True:}
+    \item Để dừng một chương trình đang chạy vòng lặp vô hạn từ dòng lệnh, ta thường có thể nhấn \textbf{Ctrl + C}. Vòng lặp \textbf{while True:} thường được sử dụng kết hợp với câu lệnh break bên trong để thoát khỏi vòng lặp khi một điều kiện cụ thể được đáp ứng.
+    \end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{projects/Loop/image/wt.png}
+    \caption{\textbf{While True}}
+    \label{fig:enter-label}
+\end{figure}
+    
+
+\hspace{-5mm}\textbf{Sử dụng "while" với danh sách:}
+
+\begin{itemize}
+    \item Vòng lặp while có thể được dùng để xử lý các phần tử trong danh sách cho đến khi danh sách rỗng : 
+\begin{figure}[H]
+        \centering
+        \includegraphics[width=0.5\linewidth]{projects/Loop/image/wds.png}
+        \caption{duyệt danh sách bằng \textbf{while}}
+        \label{fig:enter-label}
+    \end{figure}
+        
+    \item Bản chất của vòng lặp \textbf{for} có thể được xem như một trường hợp đặc biệt của vòng lặp \textbf{while}. Một vòng lặp \textbf{for item in iterable:} về cơ bản tương đương với:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{projects/Loop/image/iter.png}
+    \label{fig:enter-label}
+\end{figure}
+
+    \item Sự tương đồng này cho thấy \textbf{for} là một cách viết trừu tượng hóa, tiện lợi hơn cho một mẫu \textbf{while} phổ biến, giúp làm sáng tỏ mối quan hệ giữa các cấu trúc lặp và giao thức iterator.
+
+    \end{itemize}
+Khi lựa chọn giữa \textbf{while True: if dieu\_kien\_thoat: break} và \textbf{while not dieu\_kien\_thoat:}, cấu trúc và khả năng đọc của mã có thể bị ảnh hưởng, đặc biệt khi có nhiều điểm thoát hoặc logic phức tạp. Cấu trúc \textbf{while True} với \textbf{break} bên trong thường được ưu tiên khi điều kiện thoát phức tạp hoặc có nhiều điểm thoát khác nhau trong thân vòng lặp, mang lại sự linh hoạt. Ngược lại, \textbf{while not dieu\_kien\_thoat:} (hoặc \textbf{while dieu\_kien\_tiep\_tuc:}) rõ ràng hơn khi chỉ có một điều kiện chính duy nhất để tiếp tục vòng lặp. Việc chọn đúng cấu trúc giúp mã dễ theo dõi hơn.
+
+
+
+\subsection{Câu Lệnh Điều Khiển Vòng Lặp}
+
+Python cung cấp các câu lệnh để kiểm soát luồng thực thi bên trong vòng lặp, bao gồm \textbf{break}, \textbf{continue}, và mệnh đề \textbf{else} đặc biệt của vòng lặp.
+
+
+\hspace{-5mm}\textbf{Câu lệnh "break":}
+\begin{itemize}
+\item Câu lệnh break được sử dụng để thoát khỏi vòng lặp for hoặc while chứa nó ngay lập tức, bất kể điều kiện của vòng lặp còn đúng hay không. Sau khi break được thực thi, chương trình sẽ tiếp tục với câu lệnh ngay sau khối lệnh của vòng lặp đã bị ngắt. Nếu break nằm trong một vòng lặp lồng nhau, nó chỉ thoát khỏi vòng lặp trong cùng nhất. break thường được dùng kết hợp với một câu lệnh if để thoát vòng lặp khi một điều kiện cụ thể được đáp ứng. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{projects/Loop/image/break.png}
+    \caption{ví dụ với \textbf{for}}
+    \label{fig:enter-label}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{projects/Loop/image/breakw.png}
+    \caption{ví dụ với \textbf{while}}
+    \label{fig:enter-label}
+\end{figure}
+
+
+\end{itemize}
+
+\hspace{-5mm}\textbf{Câu lệnh "continue"}
+\begin{itemize}
+    \item Câu lệnh \textbf{continue} được sử dụng để bỏ qua phần còn lại của khối lệnh trong lần lặp hiện tại và chuyển ngay sang lần lặp tiếp theo của vòng lặp. Vòng lặp không kết thúc hoàn toàn mà chỉ bỏ qua lần lặp hiện tại.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.5\linewidth]{projects/Loop/image/ctnf.png}
+        \label{fig:enter-label}
+    \end{figure}
+\end{itemize}
+
+\hspace{-5mm}\textbf{Mệnh đề "else" trong vòng lặp:}
+\begin{itemize}
+\item Python cho phép sử dụng mệnh đề \textbf{else} với cả vòng lặp \textbf{for} và \textbf{while}. Khối lệnh trong \textbf{else} sẽ được thực thi khi vòng lặp kết thúc một cách tự nhiên, tức là:   
+    \begin{itemize}
+    \item Đối với vòng lặp \textbf{for}: khi đã duyệt qua tất cả các phần tử của iterable (không bị ngắt bởi \textbf{break}).   
+    \item Đối với vòng lặp \textbf{while}: khi điều kiện của vòng lặp trở thành False (không bị ngắt bởi \textbf{break}).   
+    \end{itemize}
+\item Nếu vòng lặp bị kết thúc bởi câu lệnh \textbf{break}, khối \textbf{else} sẽ không được thực thi.   
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{projects/Loop/image/snt.png}
+    \caption{tìm số nguyên tố}
+    \label{fig:enter-label}
+\end{figure}
+
+\item Mệnh đề \textbf{else} trong vòng lặp là một tính năng khá độc đáo của Python. Nó thường gây nhầm lẫn cho người mới học nhưng lại rất hữu ích trong một số trường hợp nhất định, giúp mã nguồn trở nên rõ ràng hơn. Ví dụ, trong trường hợp tìm kiếm một phần tử trong một tập hợp, nếu vòng lặp kết thúc mà không tìm thấy phần tử đó (tức là không có \textbf{break} nào được thực thi), khối \textbf{else} có thể được sử dụng để thực hiện một hành động cụ thể, chẳng hạn như thông báo "không tìm thấy". Điều này giúp loại bỏ nhu cầu sử dụng một biến cờ (flag variable) để theo dõi xem phần tử có được tìm thấy hay không, làm cho mã nguồn ngắn gọn và dễ hiểu hơn. Ngữ nghĩa của \textbf{else} trong vòng lặp gần với \textbf{else} trong cấu trúc \textbf{try...except...else} (thực thi nếu không có ngoại lệ nào xảy ra) hơn là \textbf{else} trong cấu trúc \textbf{if...else}.
+
+\end{itemize}
+
+ \hspace{-5mm}Việc lạm dụng \textbf{break} và \textbf{continue}, đặc biệt trong các vòng lặp lồng nhau phức tạp, có thể làm giảm đáng kể khả năng đọc và gỡ lỗi của mã. Các câu lệnh này tạo ra các điểm nhảy trong luồng thực thi, khiến việc theo dõi logic trở nên khó khăn. Trong nhiều trường hợp, việc cấu trúc lại vòng lặp hoặc sử dụng các hàm phụ trợ có thể dẫn đến mã rõ ràng hơn mà không cần đến các lệnh \textbf{break} hoặc \textbf{continue} phức tạp
+
+
+\subsection{List Comprehensions}
+List comprehensions trong Python cung cấp một cách thức ngắn gọn và thanh lịch để tạo ra các danh sách (list) mới từ các đối tượng iterable hiện có. Chúng thường được coi là một cách "Pythonic" hơn so với việc sử dụng vòng lặp \textbf{for} truyền thống kết hợp với phương thức \textbf{append()} để xây dựng danh sách.  
+
+
+\hspace{-5mm}\textbf{Cú pháp và lợi ích:}
+\begin{itemize}
+\item Cú pháp chung của list comprehension là \textbf{[expression for item in iterable if condition]}.   
+\begin{itemize}
+    \item \textbf{expression}: Biểu thức được áp dụng cho mỗi item.
+\item \textbf{item}: Biến đại diện cho từng phần tử trong iterable.
+\item \textbf{iterable}: Đối tượng có thể lặp qua (ví dụ: list, tuple, range).
+\item \textbf{if condition} (tùy chọn): Điều kiện để lọc các item.
+\end{itemize}
+
+\item Lợi ích chính của list comprehensions bao gồm mã nguồn ngắn gọn hơn, dễ đọc hơn (đối với các trường hợp đơn giản), và thường có hiệu suất tốt hơn so với vòng lặp \textbf{for} tương đương. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{projects/Loop/image/lc.png}
+    \label{fig:enter-label}
+\end{figure}
+
+\end{itemize}
+
+\hspace{-5mm}\textbf{So sánh hiệu suất và khả năng đọc với vòng lặp "for":}
+\begin{itemize}
+
+\item List comprehensions thường nhanh hơn vòng lặp \textbf{for} truyền thống vì việc tạo danh sách và phương thức \textbf{append()} được tối ưu hóa ở mức C bên trong trình thông dịch Python. Tuy nhiên, đối với các logic phức tạp hoặc lồng nhiều vòng lặp bên trong list comprehension, vòng lặp for tường minh có thể dễ đọc và dễ gỡ lỗi hơn. Sự ra đời của list comprehensions phản ánh một xu hướng hướng tới cú pháp khai báo (declarative) hơn là mệnh lệnh (imperative) cho các tác vụ phổ biến. Thay vì chỉ định từng bước (khởi tạo list rỗng, lặp, append) như vòng lặp \textbf{for}, list comprehension mô tả list kết quả trông như thế nào (\textbf{[x*x for x in numbers if x \% 2 == 0]}). Điều này thường dẫn đến mã dễ hiểu hơn (khi không quá phức tạp) và ít lỗi hơn do ít chi tiết thủ công hơn.
+
+\item Mặc dù list comprehensions thường nhanh hơn, sự khác biệt về hiệu suất có thể không đáng kể đối với các thao tác rất phức tạp bên trong vòng lặp, nơi thời gian thực thi của chính thao tác đó chiếm ưu thế. Lợi ích về tốc độ chủ yếu đến từ việc giảm thiểu chi phí gọi phương thức \textbf{append} và tối ưu hóa vòng lặp ở mức C. Nếu mỗi \textbf{expression} trong comprehension là một hàm Python phức tạp, tốn nhiều thời gian, thì phần trăm thời gian tiết kiệm được từ tối ưu hóa vòng lặp sẽ nhỏ hơn. Tài liệu  cũng lưu ý rằng hiệu suất giảm khi độ phức tạp của phép toán tăng. Do đó, việc đo lường hiệu suất (profiling)  vẫn quan trọng cho các tác vụ quan trọng.
+
+\end{itemize}
+
+\hspace{-5mm}\textbf{Khi nên và không nên dùng List Comprehension:}
+\begin{itemize}
+\item \textbf{Nên dùng:}
+\begin{itemize}
+\item Khi cần biến đổi hoặc lọc các phần tử từ một iterable hiện có để tạo một list mới một cách ngắn gọn.   
+\item Cho các tác vụ đơn giản đến trung bình, nơi list comprehension giúp code dễ đọc và ngắn gọn hơn.   
+\end{itemize}
+\end{itemize}
+
+\begin{itemize}
+\item \textbf{Không nên dùng:}
+\begin{itemize}
+\item Khi logic trở nên quá phức tạp, lồng nhiều lớp for hoặc if bên trong comprehension, làm giảm khả năng đọc. Trong trường hợp này, vòng lặp for rõ ràng có thể tốt hơn.   
+\item Khi xử lý các tập dữ liệu cực lớn mà không thể nạp toàn bộ danh sách đầu ra vào bộ nhớ. List comprehensions tạo toàn bộ danh sách trong bộ nhớ. Trong những trường hợp này, nên sử dụng generator expressions (sẽ được thảo luận ở Phần 2) vì chúng thực hiện đánh giá lười biếng (lazy evaluation).   
+\item Khi cần thực hiện các tác vụ phụ (side effects) trong vòng lặp, không chỉ đơn thuần là tạo list.
+
+\end{itemize}
+\end{itemize}
+
+\section{Phần 2: Các Chủ Đề Nâng Cao về Vòng Lặp}
+
+Phần này sẽ khám phá các khái niệm sâu hơn liên quan đến cơ chế lặp của Python, bao gồm iterators, generators, các công cụ từ module itertools, và cách tối ưu hóa cũng như song song hóa các vòng lặp.
+
+\subsection{Iterators và Iterables}
+
+Để hiểu sâu về cách vòng lặp for và các cấu trúc lặp khác hoạt động trong Python, cần nắm vững khái niệm về iterable và iterator, cùng với giao thức iterator.
+
+\hspace{-5mm}\textbf{Khái niệm Iterable và Iterator:}
+
+\begin{itemize}
+\item Iterable (Đối tượng có thể lặp): Là bất kỳ đối tượng nào trong Python mà từ đó có thể lấy được một iterator. Ví dụ phổ biến bao gồm list, tuple, string, dictionary, set, và file object. Một đối tượng được coi là iterable nếu nó triển khai phương thức \_\_iter\_\_() hoặc, đối với các sequence, phương thức \_\_getitem\_\_() cho phép truy cập phần tử theo chỉ số bắt đầu từ 0. Về cơ bản, iterable là bất cứ thứ gì bạn có thể dùng trong vòng lặp for.   
+\item Iterator (Đối tượng lặp): Là một đối tượng đại diện cho một luồng dữ liệu. Nó trả về dữ liệu, một phần tử tại một thời điểm. Iterator duy trì trạng thái của lần lặp hiện tại (ví dụ, phần tử tiếp theo sẽ là gì). Một đối tượng là iterator nếu nó triển khai hai phương thức đặc biệt của giao thức iterator: \_\_iter\_\_() và \_\_next\_\_().   
+\end{itemize}
+
+
+\hspace{-5mm}\textbf{Giao thức Iterator (Iterator Protocol):}
+
+\hspace{-5mm}Giao thức iterator là một tập hợp các quy tắc mà một đối tượng phải tuân theo để được coi là một iterator. Nó bao gồm hai phương thức chính:
+
+\begin{itemize}
+\item \_\_iter\_\_(): Phương thức này được gọi khi một iterator được yêu cầu từ một iterable (ví dụ, khi bắt đầu một vòng lặp for item in iterable:). Đối với một iterable, \_\_iter\_\_() trả về một đối tượng iterator mới. Đối với một iterator, \_\_iter\_\_() thường trả về chính nó (self), điều này cho phép iterator cũng có thể được sử dụng ở những nơi mong đợi một iterable.   
+\item \_\_next\_\_(): Phương thức này trả về phần tử tiếp theo từ luồng dữ liệu của iterator. Nếu không còn phần tử nào để trả về, nó phải ném ra một ngoại lệ StopIteration. Ngoại lệ này được vòng lặp for sử dụng để biết khi nào cần kết thúc.   
+\end{itemize}
+
+\hspace{-5mm}Giao thức iterator là nền tảng cho tất cả các cơ chế lặp trong Python, bao gồm vòng lặp for, comprehensions, và unpacking. Khi bạn viết for x in my\_object:, Python ngầm gọi iter(my\_object) để lấy một iterator. Sau đó, trong mỗi lần lặp, Python gọi next() trên iterator đó để lấy giá trị tiếp theo cho x. Khi next() ném StopIteration, vòng lặp kết thúc. Sự tách biệt giữa iterable (nguồn dữ liệu) và iterator (cơ chế lặp có trạng thái) cho phép nhiều iterator độc lập có thể cùng lặp trên một iterable duy nhất mà không ảnh hưởng lẫn nhau.
+
+
+
+\hspace{-5mm}\textbf{Xây dựng Custom Iterators (Iterator Tùy Chỉnh):}
+
+
+
+\hspace{-5mm}Ta có thể tạo các lớp iterator tùy chỉnh của riêng mình bằng cách triển khai các phương thức \_\_init\_\_ (để khởi tạo trạng thái), \_\_iter\_\_ (thường trả về self), và \_\_next\_\_ (để trả về phần tử tiếp theo và ném StopIteration).
+
+Ví dụ: Tạo một iterator cho dãy số chẵn :   
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{projects/Loop/image/it.png}
+    \label{fig:enter-label}
+\end{figure}
+
+\hspace{-5mm}Việc tự tạo custom iterators cho phép các đối tượng của bạn tích hợp một cách liền mạch với các cấu trúc lặp của Python. Nếu một lớp tùy chỉnh (ví dụ, một cấu trúc dữ liệu mới, hoặc một đối tượng đọc dữ liệu từ một nguồn đặc biệt như API theo từng trang) triển khai giao thức iterator, người dùng có thể sử dụng nó trực tiếp trong vòng lặp for mà không cần biết chi tiết triển khai bên trong. Điều này thúc đẩy tính đóng gói, khả năng tái sử dụng mã, và làm cho các đối tượng trở nên "Pythonic" hơn.
+
+
+
+\subsection{Generators: Lặp Hiệu Quả Bộ Nhớ}
+
+Generators là một cách đặc biệt để tạo ra các iterator. Chúng cho phép bạn khai báo một hàm hoạt động như một iterator, tức là nó có thể được sử dụng trong vòng lặp for. Generators đặc biệt hữu ích khi làm việc với các chuỗi dữ liệu lớn hoặc vô hạn vì chúng tạo ra các giá trị "một cách lười biếng" (lazy evaluation), chỉ khi cần thiết, giúp tiết kiệm bộ nhớ đáng kể.
+
+\hspace{-5mm}\textbf{Generator Functions và từ khóa yield:}
+\begin{itemize}
+\item \textbf{Từ khóa yield}: Điểm khác biệt chính của một generator function so với một hàm thông thường là việc sử dụng từ khóa yield thay vì return. Khi một generator function được gọi, nó không thực thi thân hàm ngay lập tức. Thay vào đó, nó trả về một đối tượng generator, là một loại iterator.   
+\item \textbf{Cách hoạt động}: Mã bên trong generator function chỉ bắt đầu thực thi khi phương thức \_\_next\_\_() (hoặc hàm next()) được gọi lần đầu tiên trên đối tượng generator. Khi thực thi đến câu lệnh yield, hàm sẽ "pause" (tạm dừng) và trả về giá trị được yield. Quan trọng hơn, trạng thái của hàm (bao gồm các biến cục bộ và con trỏ lệnh) được lưu lại. Lần gọi next() tiếp theo sẽ tiếp tục thực thi từ ngay sau câu lệnh yield trước đó, với trạng thái đã được khôi phục.   
+\item \textbf{Lazy Evaluation}: Do giá trị chỉ được tạo ra "on demand" (khi được yêu cầu), generators rất hiệu quả về bộ nhớ. Chúng không cần lưu trữ toàn bộ chuỗi giá trị trong bộ nhớ cùng một lúc, điều này cực kỳ có lợi khi xử lý các tập dữ liệu lớn không thể vừa trong bộ nhớ, hoặc các chuỗi vô hạn (ví dụ: itertools.count()).
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{projects/Loop/image/yel.png}
+    \label{fig:enter-label}
+\end{figure}
+
+\hspace{-5mm}\textbf{So sánh yield và return:}
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|p{3cm}|p{6cm}|p{6cm}|}
+        \hline
+        \textbf{Tính năng} & \textbf{return (trong hàm thông thường)} & \textbf{yield (trong generator function)} \\
+        \hline
+        \textbf{Mục đích} & Trả về một giá trị và kết thúc hàm hoàn toàn & Trả về một giá trị, tạm dừng hàm, lưu trạng thái \\
+        \hline
+        \textbf{Số lần gọi} & Một lần mỗi khi hàm được gọi & Có thể được "gọi" nhiều lần (qua next() trên generator) \\
+        \hline
+        \textbf{Giá trị trả về} & Một đối tượng đơn lẻ (có thể là collection) & Một đối tượng generator (là một iterator) \\
+        \hline
+        \textbf{Trạng thái hàm} & Bị hủy sau khi return & Được bảo lưu giữa các lần yield \\
+        \hline
+        \textbf{Sử dụng bộ nhớ} & Phụ thuộc vào kích thước của giá trị trả về & Rất hiệu quả, chỉ tạo giá trị khi cần thiết \\
+        \hline
+    \end{tabular}
+    \label{tab:return_vs_yield}
+\end{table}
+
+\hspace{-5mm}Generators là một hình thức của "coroutines" ở mức độ cơ bản. Từ khóa yield không chỉ trả về giá trị mà còn là một điểm mà tại đó generator có thể nhận giá trị được gửi từ bên ngoài thông qua phương thức send() của đối tượng generator. Khả năng "pause" và "resume" này là cốt lõi của coroutines, mặc dù generator truyền thống chủ yếu dùng cho việc tạo dữ liệu. Hiểu điều này mở đường cho việc tìm hiểu các khái niệm nâng cao hơn như async/await trong Python, vốn cũng dựa trên ý tưởng tương tự.
+
+\hspace{-5mm}\textbf{Generator Expressions:}
+
+\hspace{-5mm}Generator expressions cung cấp một cú pháp ngắn gọn hơn để tạo ra các đối tượng generator, tương tự như list comprehensions nhưng sử dụng dấu ngoặc đơn thay vì dấu ngoặc vuông.
+
+\begin{itemize}
+
+\item \textbf{Cú pháp:} (expression for item in iterable if condition)
+
+\item \textbf{Hoạt động:} Thay vì tạo ra một danh sách đầy đủ trong bộ nhớ ngay lập tức như list comprehension, generator expression tạo ra một đối tượng generator. Các giá trị được tạo ra một cách lười biếng khi đối tượng generator được lặp qua.   
+
+\item \textbf{Ưu điểm về bộ nhớ:} Đây là ưu điểm lớn nhất so với list comprehensions, đặc biệt khi làm việc với các tập dữ liệu rất lớn mà việc tạo ra một danh sách đầy đủ sẽ tiêu tốn quá nhiều bộ nhớ. Ví dụ, sys.getsizeof() cho một generator expression sẽ nhỏ hơn nhiều so với một list comprehension tương đương cho một dãy lớn.   
+
+\item \textbf{So sánh hiệu suất:} Đối với các tập dữ liệu nhỏ, list comprehensions có thể nhanh hơn một chút do chi phí (overhead) khởi tạo và quản lý trạng thái của generator. Tuy nhiên, với dữ liệu lớn, lợi ích về bộ nhớ của generator expressions thường quan trọng hơn và có thể dẫn đến hiệu suất tổng thể tốt hơn do giảm áp lực lên bộ nhớ.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|p{5cm}|p{6cm}|}
+\hline
+\textbf{Tính năng} & \textbf{List Comprehension} & \textbf{Generator Expression} \\
+\hline
+Cú pháp & \texttt{[...]} & \texttt{(...)} \\
+\hline
+Kiểu trả về & \texttt{list} (toàn bộ được tạo và lưu trong bộ nhớ) & \texttt{generator object} (là một iterator) \\
+\hline
+Đánh giá & Eager (tham lam - tạo hết một lần) & Lazy (lười biếng - tạo khi cần) \\
+\hline
+Sử dụng bộ nhớ & Cao hơn, lưu trữ toàn bộ danh sách & Rất thấp, chỉ lưu trạng thái của iterator \\
+\hline
+Hiệu suất & Có thể nhanh hơn cho list nhỏ & Chậm hơn một chút do overhead của iterator, nhưng hiệu quả hơn cho dữ liệu lớn do tiết kiệm bộ nhớ \\
+\hline
+Trường hợp dùng & Tạo list nhỏ, cần truy cập ngẫu nhiên các phần tử & Xử lý luồng dữ liệu, tập dữ liệu lớn/vô hạn, tiết kiệm bộ nhớ, tạo pipeline \\
+\hline
+\end{tabular}
+\caption{So sánh giữa List Comprehension và Generator Expression trong Python}
+\end{table}
+
+\hspace{-5mm}Generator expressions cung cấp một cú pháp cực kỳ ngắn gọn và hiệu quả để tạo các pipeline xử lý dữ liệu lười biếng. Ví dụ, \textbf{sum(x*x for x in range(1000000) if x \% 2 == 0)} tính tổng bình phương của các số chẵn trong một triệu số đầu tiên mà không cần tạo ra một danh sách trung gian khổng lồ chứa các số chẵn hoặc bình phương của chúng. Các generator expression có thể được lồng vào nhau hoặc truyền vào các hàm chấp nhận iterables, tạo ra các chuỗi xử lý dữ liệu hiệu quả về bộ nhớ, khuyến khích một phong cách lập trình có phần giống lập trình chức năng.
+
+
+
+
+
+\subsection{Module itertools: Công Cụ Lặp Nâng Cao}
+
+Module itertools trong thư viện chuẩn của Python là một kho tàng các hàm tạo ra các iterator cho các vòng lặp hiệu quả. Các công cụ này được thiết kế để nhanh chóng, hiệu quả về bộ nhớ, và thường được lấy cảm hứng từ các cấu trúc trong các ngôn ngữ lập trình hàm như APL, Haskell, và SML. Chúng có thể được sử dụng độc lập hoặc kết hợp với nhau để xây dựng các iterator phức tạp một cách ngắn gọn.   
+
+\hspace{-5mm}\textbf{Giới thiệu module itertools:}
+
+\hspace{-5mm}Mục đích chính của itertools là cung cấp các khối xây dựng cơ bản để làm việc với iterators. Thay vì tạo ra các danh sách đầy đủ trong bộ nhớ, hầu hết các hàm trong itertools trả về các iterator, có nghĩa là chúng thực hiện "lazy evaluation" – các phần tử chỉ được tính toán khi chúng thực sự cần thiết. Điều này làm cho itertools trở thành công cụ lý tưởng để xử lý các luồng dữ liệu lớn hoặc thậm chí vô hạn.
+
+\hspace{-5mm}\textbf{Phân loại các hàm trong itertools:}
+
+\begin{itemize}
+    
+
+\item \textbf{Iterators Vô Hạn (Infinite Iterators)}: Các iterator này tạo ra các chuỗi có thể kéo dài vô tận.
+
+\begin{itemize}
+
+\item count(start=0, step=1): Tạo ra một chuỗi các số bắt đầu từ start và tăng dần theo step. Ví dụ: itertools.count(10, 2) sẽ tạo ra 10, 12, 14,....   
+\item cycle(iterable): Lặp lại các phần tử của iterable một cách vô hạn. Ví dụ: itertools.cycle('ABC') sẽ tạo ra A, B, C, A, B, C,....   
+\item repeat(object, times=None): Lặp lại object một số lần times xác định, hoặc vô hạn nếu times không được cung cấp. Ví dụ: itertools.repeat(10, 3) sẽ tạo ra 10, 10, 10.   
+
+\end{itemize}
+
+\item \textbf{Iterators Kết Thúc Trên Chuỗi Đầu Vào Ngắn Nhất (Iterators Terminating on the Shortest Input Sequence):} Các iterator này hoạt động trên một hoặc nhiều iterable đầu vào và dừng lại khi iterable ngắn nhất cạn kiệt.
+
+\begin{itemize}
+\item accumulate(iterable, func=operator.add, *, initial=None): Trả về các tổng tích lũy (hoặc kết quả của hàm func hai ngôi khác). Ví dụ: itertools.accumulate([1, 2, 3 ,4]) tạo ra 1, 3, 6, 10. 
+
+\item chain(*iterables) hoặc chain.from\_iterable(iterable\_of\_iterables): Nối nhiều iterables lại với nhau thành một chuỗi duy nhất. Ví dụ: itertools.chain('ABC', 'DEF') tạo ra A, B, C, D, E, F.   
+\item compress(data, selectors): Lọc các phần tử từ data dựa trên một iterable selectors chứa các giá trị boolean. Trả về các phần tử từ data mà phần tử tương ứng trong selectors là True. Ví dụ: itertools.compress('ABCDEF', selector) tạo ra A, C, E, F.   
+\item dropwhile(predicate, iterable): Bỏ qua các phần tử từ iterable miễn là predicate (một hàm) trả về True cho phần tử đó, sau đó trả về tất cả các phần tử còn lại. Ví dụ: itertools.dropwhile(lambda x: x<5, [1, 4, 2, 6, 3, 8]  ) tạo ra 6, 3, 8.   
+\item filterfalse(predicate, iterable): Ngược lại với hàm filter() tích hợp sẵn. Trả về các phần tử từ iterable mà predicate trả về False. Ví dụ: itertools.filterfalse(lambda x: x\%2==0, range(10)) tạo ra 1, 3, 5, 7, 9.   
+\item groupby(iterable, key=None): Tạo ra một iterator trả về các khóa và các nhóm liên tiếp từ iterable. Các phần tử được nhóm lại nếu chúng có cùng giá trị khóa (được tính bằng hàm key). Điều quan trọng là iterable cần được sắp xếp theo cùng một hàm key để nhóm hoạt động như mong đợi.   
+\item islice(iterable, start, stop[, step]): Trả về một "lát cắt" của iterable dưới dạng iterator, tương tự như slicing cho list nhưng không tạo bản sao và có thể hoạt động trên các iterator vô hạn. Ví dụ: itertools.islice(itertools.count(), 2, 7, 2) tạo ra 2, 4, 6.   
+\item pairwise(iterable): Trả về các cặp phần tử chồng chéo liên tiếp từ iterable đầu vào. Ví dụ: itertools.pairwise('ABCDE') tạo ra (A,B), (B,C), (C,D), (D,E).   
+\item starmap(function, iterable\_of\_tuples): Tương tự map(), nhưng thay vì gọi function(item), nó gọi function(*item) cho mỗi tuple item trong iterable\_of\_tuples. Hữu ích khi các đối số của hàm đã được đóng gói sẵn thành tuple. 
+\item takewhile(predicate, iterable): Trả về các phần tử từ iterable miễn là predicate còn trả về True. Ngay khi predicate trả về False lần đầu tiên, iterator sẽ dừng. Ví dụ: itertools.takewhile(lambda x: x<5, [1, 4, 2, 6, 3, 8]) tạo ra 1, 4.   
+\item tee(iterable, n=2): Tạo ra n iterator độc lập từ một iterable duy nhất. Sau khi tee được gọi, không nên sử dụng iterable gốc nữa.   
+\item zip\_longest(*iterables, fillvalue=None): Tương tự hàm zip() tích hợp sẵn, nhưng tiếp tục cho đến khi iterable dài nhất cạn kiệt, lấp đầy các giá trị bị thiếu bằng fillvalue. Ví dụ: itertools.zip\_longest('ABCD', 'xy', fillvalue='-') tạo ra (A,x), (B,y), (C,-), (D,-).   
+\item batched(iterable, n): (Mới trong Python 3.12) Gom dữ liệu từ iterable thành các tuple (batch) có độ dài n. Batch cuối cùng có thể ngắn hơn n.   
+
+\end{itemize}
+
+\item \textbf{Iterators Tổ Hợp (Combinatoric Iterators)}: Các hàm này tạo ra các tổ hợp, hoán vị, hoặc tích Descartes của các phần tử đầu vào.
+
+\begin{itemize}
+\item product(*iterables, repeat=1): Tích Descartes của các iterables đầu vào. Tương đương với các vòng lặp for lồng nhau. Ví dụ: itertools.product('AB', '12') tạo ra (A,1), (A,2), (B,1), (B,2).   
+\item permutations(iterable, r=None): Trả về các hoán vị có độ dài r của các phần tử từ iterable. Nếu r không được cung cấp, trả về các hoán vị có độ dài bằng độ dài của iterable. Ví dụ: itertools.permutations('ABC', 2) tạo ra (A,B), (A,C), (B,A), (B,C), (C,A), (C,B).   
+\item combinations(iterable, r): Trả về các tổ hợp (không lặp lại, không phân biệt thứ tự) có độ dài r của các phần tử từ iterable. Các phần tử được coi là duy nhất dựa trên vị trí của chúng, không phải giá trị. Ví dụ: itertools.combinations('ABC', 2) tạo ra (A,B), (A,C), (B,C).   
+\item combinations\_with\_replacement(iterable, r): Tương tự combinations, nhưng cho phép các phần tử riêng lẻ được chọn nhiều lần. Ví dụ: itertools.combinations\_with\_replacement('ABC', 2) tạo ra (A,A), (A,B), (A,C), (B,B), (B,C), (C,C).   
+\end{itemize}
+\end{itemize}
+
+Module itertools khuyến khích một phong cách lập trình "iterator-centric", nơi dữ liệu được xử lý như một luồng (stream) thay vì các collection cố định trong bộ nhớ. Điều này rất phù hợp với triết lý của generator. Nhiều hàm itertools trả về iterator, nghĩa là chúng thực hiện lazy evaluation và có thể được xâu chuỗi (chained) lại với nhau để tạo thành các pipeline xử lý dữ liệu phức tạp mà vẫn hiệu quả về bộ nhớ. Ví dụ, sum(islice(filterfalse(lambda x: x \% 2, count()), 10)) sẽ tính tổng 10 số chẵn đầu tiên mà không cần tạo ra bất kỳ danh sách trung gian nào.
+
+Việc hiểu và sử dụng thành thạo itertools có thể giúp tránh việc phải "phát minh lại bánh xe" bằng cách viết các vòng lặp tùy chỉnh phức tạp, có khả năng kém hiệu quả và dễ lỗi hơn. Các hàm trong itertools thường được triển khai bằng C và được tối ưu hóa cao, do đó việc cố gắng tự viết lại logic của chúng bằng Python thuần túy sẽ khó đạt được hiệu suất và sự mạnh mẽ tương tự.
+
+
+\subsection{Lập Trình Song Song và Vòng Lặp}
+
+Khi xử lý các vòng lặp tính toán nặng hoặc các vòng lặp thực hiện nhiều thao tác I/O (nhập/xuất), việc thực thi tuần tự có thể trở thành một nút thắt cổ chai về hiệu suất. Lập trình song song cung cấp các kỹ thuật để phân chia công việc và thực thi đồng thời trên nhiều luồng (thread) hoặc tiến trình (process), có khả năng tận dụng các hệ thống đa lõi (multi-core).
+
+\hspace{-5mm}\textbf{Global Interpreter Lock (GIL):}
+\begin{itemize}
+\item \textbf{Global Interpreter Lock (GIL)} là một mutex (khóa loại trừ lẫn nhau) trong trình thông dịch CPython (phiên bản Python phổ biến nhất) chỉ cho phép một luồng duy nhất nắm quyền kiểm soát trình thông dịch Python và thực thi Python bytecode tại một thời điểm, ngay cả trên các hệ thống đa lõi. Mỗi tiến trình thông dịch Python có một GIL riêng.   
+
+\item \textbf{Tại sao GIL tồn tại?} GIL tồn tại chủ yếu để đơn giản hóa việc quản lý bộ nhớ trong CPython, đặc biệt là cơ chế đếm tham chiếu (reference counting) được sử dụng để tự động giải phóng bộ nhớ khi các đối tượng không còn được sử dụng. GIL giúp bảo vệ các cấu trúc dữ liệu nội bộ của Python khỏi các xung đột truy cập đồng thời từ nhiều luồng, làm cho việc viết các C extension cho Python trở nên dễ dàng hơn và đảm bảo an toàn luồng cho nhiều phần của thư viện chuẩn mà không cần các cơ chế khóa phức tạp ở khắp mọi nơi.   
+
+\item \textbf{Cách GIL hoạt động:} Một luồng cần phải giành được GIL trước khi có thể thực thi Python bytecode. Sau khi thực thi một số lượng bytecode nhất định (được xác định bởi "switching interval") hoặc khi luồng gặp một thao tác I/O chặn (blocking I/O operation) như đọc file hoặc yêu cầu mạng, nó sẽ giải phóng GIL. Điều này cho phép các luồng khác có cơ hội giành lấy GIL và thực thi.   
+
+\item \textbf{Ảnh hưởng đến multithreading:}
+
+    \begin{itemize}
+    \item Tác vụ CPU-bound (tính toán nặng): GIL hạn chế đáng kể hiệu suất của các chương trình Python đa luồng đối với các tác vụ CPU-bound. Vì chỉ một luồng có thể chạy Python bytecode tại một thời điểm, các luồng CPU-bound sẽ không thể chạy song song thực sự trên các lõi CPU khác nhau. Thay vào đó, chúng sẽ thay phiên nhau chạy trên một lõi, có thể làm tăng thêm chi phí chuyển đổi ngữ cảnh và không mang lại lợi ích về tốc độ, thậm chí có thể chậm hơn so với thực thi đơn luồng.   
+    \item Tác vụ I/O-bound (chờ đợi nhập/xuất): Multithreading vẫn rất hữu ích cho các tác vụ I/O-bound. Khi một luồng thực hiện một thao tác I/O (ví dụ: chờ phản hồi từ mạng, đọc/ghi file), nó sẽ giải phóng GIL, cho phép các luồng khác chạy trong khi luồng đầu tiên đang chờ. Điều này cho phép chương trình thực hiện các công việc khác trong thời gian chờ I/O, cải thiện khả năng đáp ứng và thông lượng tổng thể.   
+    \end{itemize}
+\end{itemize}
+
+\hspace{-5mm}GIL là một "thỏa hiệp kỹ thuật" trong CPython. Nó đơn giản hóa việc phát triển trình thông dịch và các C extension, nhưng lại là rào cản cho hiệu suất đa luồng thực sự trên CPU. Hiểu được điều này giúp người dùng không đổ lỗi cho Python một cách mù quáng mà tìm cách làm việc xung quanh nó, ví dụ như sử dụng multiprocessing cho các tác vụ CPU-bound.
+
+\hspace{-5mm}\textbf{Multithreading cho các tác vụ I/O-bound:}
+
+\hspace{-5mm}Module threading cung cấp cách tạo và quản lý các luồng. Một giao diện cấp cao hơn và thường được khuyến nghị là concurrent.futures.ThreadPoolExecutor, giúp quản lý một nhóm (pool) các luồng worker một cách dễ dàng hơn.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{projects/Loop/image/thr.png}
+    \caption{Enter Caption}
+    \label{fig:enter-label}
+\end{figure}
+
+\hspace{-5mm}\textbf{Multiprocessing cho các tác vụ CPU-bound:}
+
+\hspace{-5mm}Để vượt qua giới hạn của GIL cho các tác vụ tính toán nặng, Python cung cấp module multiprocessing. Module này cho phép tạo ra các tiến trình (process) con, mỗi tiến trình có trình thông dịch Python và không gian bộ nhớ riêng, do đó mỗi tiến trình có GIL riêng và có thể chạy song song thực sự trên các lõi CPU khác nhau.   
+\begin{itemize}
+\item Lớp Process: Cho phép tạo một tiến trình mới để thực thi một hàm mục tiêu.   
+\item Lớp Pool: Quản lý một nhóm các tiến trình worker. Các phương thức như map(), starmap(), apply\_async() cho phép dễ dàng song song hóa việc áp dụng một hàm lên các phần tử của một iterable. Để truyền nhiều đối số cho pool.map(), có thể sử dụng functools.partial để "cố định" một số đối số của hàm, hoặc tạo một hàm bao (wrapper function) nhận một tuple đối số và giải nén nó khi gọi hàm gốc. • 
+\item concurrent.futures.ProcessPoolExecutor: Cung cấp một giao diện tương tự như ThreadPoolExecutor nhưng sử dụng các tiến trình thay vì luồng, phù hợp cho các tác vụ CPU-bound.   
+\item Chia sẻ dữ liệu giữa các tiến trình: Vì các tiến trình có không gian bộ nhớ riêng biệt, việc chia sẻ dữ liệu trực tiếp phức tạp hơn so với luồng. multiprocessing cung cấp các cơ chế như Queue (hàng đợi an toàn cho tiến trình), Pipe (đường ống hai chiều), Value và Array (cho bộ nhớ chia sẻ). Tuy nhiên, chi phí của việc "pickling" (tuần tự hóa) dữ liệu để truyền giữa các tiến trình có thể là một yếu tố hiệu suất đáng kể, đặc biệt với các đối tượng lớn hoặc phức tạp. Điều này nhấn mạnh tầm quan trọng của việc thiết kế các tác vụ song song sao cho lượng dữ liệu truyền đi là tối thiểu hoặc sử dụng bộ nhớ chia sẻ khi có thể.   
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{projects/Loop/image/mtp.png}
+    \label{fig:enter-label}
+\end{figure}
+
+
+\textbf{So sánh Multithreading và Multiprocessing:}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{3cm}|p{5.5cm}|p{5.5cm}|}
+\hline
+\textbf{Tính năng} & \textbf{Multithreading} & \textbf{Multiprocessing} \\
+\hline
+Đơn vị thực thi & Luồng (Thread) & Tiến trình (Process) \\
+\hline
+Chia sẻ bộ nhớ & Chia sẻ không gian bộ nhớ (dễ dàng, nhưng cần cơ chế khóa để đồng bộ hóa) & Không gian bộ nhớ riêng biệt (cần IPC như Pipe, Queue để giao tiếp) \\
+\hline
+Ảnh hưởng GIL & Bị giới hạn bởi GIL (không song song thực sự cho CPU-bound) & Bỏ qua GIL (song song thực sự trên đa lõi) \\
+\hline
+Tạo và quản lý & Nhẹ hơn, nhanh hơn để tạo và chuyển đổi ngữ cảnh & Nặng hơn, tốn nhiều tài nguyên hơn để tạo và chuyển đổi ngữ cảnh \\
+\hline
+Giao tiếp & Dễ dàng qua biến chia sẻ (cần đảm bảo an toàn luồng) & Phức tạp hơn (Pipes, Queues, Shared Memory, pickling/unpickling dữ liệu) \\
+\hline
+Khả năng chịu lỗi & Lỗi ở một luồng có thể ảnh hưởng toàn bộ tiến trình & Lỗi ở một tiến trình thường ít ảnh hưởng đến các tiến trình khác \\
+\hline
+Tác vụ phù hợp & I/O-bound (chờ mạng, đọc/ghi file, tương tác người dùng) & CPU-bound (tính toán số học, xử lý dữ liệu lớn, mô phỏng) \\
+\hline
+\end{tabular}
+\caption{So sánh Multithreading và Multiprocessing}
+\end{table}
+
+
+\hspace{-5mm}\textbf{Sử dụng joblib để song song hóa vòng lặp:}
+
+\hspace{-5mm}Thư viện joblib cung cấp một cách đơn giản và hiệu quả để song song hóa các vòng lặp, đặc biệt hữu ích cho các tác vụ "embarrassingly parallel" (các tác vụ mà mỗi lần lặp là độc lập với nhau). 
+\begin{itemize}
+ \item Parallel và delayed: Cú pháp chính của joblib để thực hiện song song. Parallel tạo ra một đối tượng quản lý việc thực thi song song, và delayed được dùng để "bọc" hàm và các đối số của nó để thực thi sau.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{projects/Loop/image/jl.png}
+    \label{fig:enter-label}
+\end{figure}
+ 
+\item Backend loky: joblib thường sử dụng backend loky theo mặc định, đây là một triển khai mạnh mẽ và đa nền tảng của ProcessPoolExecutor, có ưu điểm là không yêu cầu khối if \_\_name\_\_ == "\_\_main\_\_": một cách nghiêm ngặt trên Windows, giúp mã dễ di động hơn.
+\end{itemize}
+
+\hspace{-5mm}Các thư viện như joblib trừu tượng hóa nhiều chi tiết phức tạp của multiprocessing, giúp việc song song hóa các vòng lặp trở nên dễ tiếp cận hơn, đặc biệt cho cộng đồng khoa học dữ liệu. Cú pháp joblib.Parallel(n\_jobs=-1)(delayed(func)(arg) for arg in iterable) là một cách rất ngắn gọn và mạnh mẽ để song song hóa. Nó tự động xử lý việc chia tác vụ, pickling dữ liệu, và thu thập kết quả, cho phép người dùng tập trung vào logic của hàm cần song song hóa. 
+
+
+\subsection{Vector Hóa (Vectorization)}
+Vector hóa là một kỹ thuật tối ưu hóa quan trọng trong tính toán khoa học và phân tích dữ liệu, đặc biệt khi làm việc với các thư viện tính toán khoa học trong Python. Nó liên quan đến việc thực hiện các phép toán trên toàn bộ mảng (array) hoặc vector dữ liệu cùng một lúc, thay vì lặp qua từng phần tử riêng lẻ bằng vòng lặp Python tường minh. 
+
+\hspace{-5mm}\textbf{Khái niệm Vectorization:}
+
+\hspace{-5mm}Thay vì viết một vòng lặp for để cộng từng cặp phần tử của hai danh sách, vector hóa cho phép bạn thực hiện phép cộng trực tiếp trên hai mảng.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{projects/Loop/image/vt.png}
+    \label{fig:enter-label}
+\end{figure}
+
+\hspace{-5mm}\textbf{Tại sao nhanh hơn vòng lặp:}
+
+\hspace{-5mm}Các phép toán vector hóa trong NumPy thường nhanh hơn đáng kể so với việc sử dụng vòng lặp Python thuần túy vì nhiều lý do :   
+
+\begin{itemize}
+\item Triển khai bằng C/Fortran: Hầu hết các hàm và phép toán của NumPy được viết bằng các ngôn ngữ biên dịch như C hoặc Fortran, vốn nhanh hơn nhiều so với Python (là ngôn ngữ thông dịch) cho các tác vụ tính toán số học.
+\item Giảm thiểu Overhead của Vòng Lặp Python: Vòng lặp Python có một lượng chi phí (overhead) nhất định cho mỗi lần lặp (ví dụ: kiểm tra kiểu, dispatch lệnh). Vector hóa thực hiện vòng lặp ở tầng C, nơi các chi phí này thấp hơn nhiều.
+\item Thao tác trên Khối Dữ Liệu Liền Kề: NumPy arrays lưu trữ dữ liệu trong các khối bộ nhớ liền kề. Điều này cho phép các phép toán tận dụng tốt hơn cache của CPU và các tối ưu hóa bộ nhớ.
+\item Sử dụng SIMD (Single Instruction, Multiple Data): Nhiều bộ xử lý hiện đại hỗ trợ các chỉ lệnh SIMD, cho phép thực hiện cùng một phép toán trên nhiều phần tử dữ liệu cùng một lúc. Các thư viện như NumPy được thiết kế để tận dụng khả năng này.
+\end{itemize}
+
+\hspace{-5mm}Hiệu quả của vectorization đến từ việc chuyển gánh nặng tính toán từ trình thông dịch Python (chậm cho từng thao tác riêng lẻ) sang các thư viện C/Fortran đã biên dịch (nhanh cho các khối thao tác lớn). Đây là một ví dụ về việc "trả chi phí một lần" cho việc gọi hàm NumPy, thay vì "trả chi phí nhiều lần" cho overhead của mỗi lần lặp trong Python.
+
+\hspace{-5mm}\textbf{Thực hiện các phép toán vector hóa với NumPy:}
+
+\begin{itemize}
+\item Tạo NumPy array: np.array(), np.arange(), np.zeros(), np.ones(), np.linspace(), v.v.
+\item Các phép toán số học theo phần tử (element-wise): +, -, *, /, ** (lũy thừa), \%, // hoạt động trên các mảng có cùng kích thước hoặc tương thích qua broadcasting.
+\item Universal Functions (ufuncs): Là các hàm hoạt động trên ndarray theo kiểu element-wise. Ví dụ: np.sin(), np.cos(), np.exp(), np.log(), np.sqrt(), np.add(), np.subtract(), v.v. Chúng được tối ưu hóa cao.
+\item Broadcasting: Là một cơ chế mạnh mẽ cho phép NumPy làm việc với các mảng có hình dạng (shape) khác nhau trong các phép toán số học. Nếu các mảng có hình dạng tương thích, NumPy sẽ "mở rộng" (broadcast) mảng nhỏ hơn để khớp với hình dạng của mảng lớn hơn mà không cần tạo bản sao dữ liệu thực tế trong bộ nhớ.   
+\item So sánh hiệu suất: Các phép đo thường cho thấy sự cải thiện hiệu suất đáng kể khi sử dụng vector hóa so với vòng lặp Python, đặc biệt với các mảng lớn. Tuy nhiên, hàm numpy.vectorize là một trường hợp đặc biệt. Nó chủ yếu là một tiện ích cú pháp để cho phép một hàm Python thuần túy (không được viết để xử lý mảng) hoạt động trên các mảng NumPy theo kiểu element-wise. Bên trong, numpy.vectorize vẫn sử dụng một vòng lặp Python ngầm và không mang lại hiệu suất của một ufunc thực sự được viết bằng C. Trong một số trường hợp, nó thậm chí có thể chậm hơn vòng lặp Python thông thường. Để có hiệu suất tối đa, nên ưu tiên sử dụng các ufunc có sẵn của NumPy hoặc viết các extension bằng C/Cython nếu cần thiết.   
+\end{itemize}
+
+\hspace{-5mm}Vectorization không chỉ mang lại lợi ích về tốc độ mà còn giúp viết mã ngắn gọn, dễ đọc hơn và gần gũi hơn với các biểu diễn toán học cho các thao tác trên mảng. Ví dụ, c = a + b (với a, b là mảng NumPy) rõ ràng và trực quan hơn nhiều so với một vòng lặp for để cộng từng phần tử. Điều này làm giảm khả năng xảy ra lỗi và giúp việc diễn giải mã dễ dàng hơn, đặc biệt với các thuật toán phức tạp.
+
+\hspace{-5mm}\textbf{Khi nào nên sử dụng vector hóa:}
+
+
+\hspace{-5mm}Vector hóa đặc biệt hiệu quả khi làm việc với dữ liệu số, mảng, ma trận trong các lĩnh vực như khoa học dữ liệu, học máy, xử lý tín hiệu, mô phỏng khoa học, và bất kỳ tác vụ nào đòi hỏi nhiều phép tính trên các tập dữ liệu lớn.
+
+
+\subsection{Tối Ưu Hóa Vòng Lặp}
+Viết vòng lặp hiệu quả và dễ đọc là một kỹ năng quan trọng trong lập trình Python. Dưới đây là một số  mẹo tối ưu hóa:
+
+\begin{itemize}
+
+\item \textbf{Chọn đúng loại vòng lặp:}
+
+\begin{itemize}
+\item Sử dụng vòng lặp for khi số lần lặp biết trước hoặc khi cần duyệt qua các phần tử của một iterable.   
+\item Sử dụng vòng lặp while khi số lần lặp không chắc chắn hoặc phụ thuộc vào một điều kiện động.   
+\end{itemize}
+
+\item \textbf{Sử dụng cấu trúc dữ liệu phù hợp:}
+\begin{itemize}
+\item Khi cần kiểm tra sự tồn tại của một phần tử nhiều lần bên trong vòng lặp, việc sử dụng set hoặc dict (với thời gian tìm kiếm trung bình là O(1)) sẽ hiệu quả hơn nhiều so với list (thời gian tìm kiếm O(n)). Hiểu biết về độ phức tạp thuật toán (Big O notation) của các thao tác dữ liệu bên trong vòng lặp là chìa khóa. Nếu một vòng lặp chạy N lần và bên trong thực hiện một thao tác O(M) (ví dụ: item in my\_list), tổng độ phức tạp là O(N×M). Thay thế bằng thao tác O(1) (ví dụ: item in my\_set) có thể cải thiện đáng kể hiệu suất từ O(N×M) xuống O(N).   
+\end{itemize}
+\item \textbf{Tận dụng các hàm tích hợp sẵn và phương thức tối ưu:}
+\begin{itemize}
+\item Python cung cấp nhiều hàm tích hợp sẵn như sum(), min(), max(), all(), any() hoạt động hiệu quả trên các iterable. Chúng thường được triển khai bằng C và nhanh hơn nhiều so với việc tự viết vòng lặp tương đương bằng Python.   
+\item Đối với việc nối chuỗi, sử dụng phương thức str.join(iterable\_of\_strings) hiệu quả hơn nhiều so với việc dùng toán tử + lặp đi lặp lại bên trong vòng lặp, vì toán tử + tạo ra một đối tượng chuỗi mới sau mỗi lần nối.   
+
+\end{itemize}
+
+
+\item \textbf{Tránh tính toán không cần thiết trong vòng lặp:}
+\begin{itemize}
+\item Nếu một giá trị hoặc biểu thức không thay đổi qua các lần lặp, hãy tính toán nó một lần bên ngoài vòng lặp thay vì tính lại mỗi lần.   
+\end{itemize}
+\item \textbf{Sử dụng List Comprehensions và Generator Expressions:}
+\begin{itemize}
+\item Ưu tiên list comprehensions để tạo list một cách ngắn gọn và thường nhanh hơn vòng lặp for truyền thống cho các tác vụ đơn giản.   
+\item Sử dụng generator expressions khi làm việc với các tập dữ liệu lớn hoặc vô hạn để tiết kiệm bộ nhớ nhờ lazy evaluation.   
+\end{itemize}
+\item \textbf{Hạn chế sử dụng biến toàn cục (global variables):}
+\begin{itemize}
+\item Việc truy cập biến cục bộ (local variables) thường nhanh hơn so với biến toàn cục do cơ chế tra cứu của Python.   
+\end{itemize}
+\item \textbf{Sử dụng import hợp lý:}
+\begin{itemize}
+\item Cân nhắc sử dụng from module import specific\_function thay vì import module rồi gọi module.specific\_function nhiều lần trong vòng lặp. Điều này có thể giảm một chút chi phí tra cứu thuộc tính (dấu chấm .). Tuy nhiên, cần cân nhắc với việc làm rõ không gian tên.   
+Giữ khối lệnh trong vòng lặp ngắn gọn và dễ hiểu:
+
+\item Nếu logic bên trong vòng lặp trở nên phức tạp, hãy xem xét việc tách nó ra thành một hàm riêng. Điều này cải thiện khả năng đọc và bảo trì. 
+\end{itemize}
+\item \textbf{Sử dụng break một cách tiết kiệm:}
+\begin{itemize}
+\item Mặc dù break hữu ích, việc lạm dụng nó, đặc biệt trong các vòng lặp lồng nhau, có thể làm cho luồng điều khiển của chương trình khó theo dõi. Cố gắng cấu trúc vòng lặp sao cho điều kiện thoát rõ ràng nếu có thể.   
+\end{itemize}
+\item \textbf{Kiểm tra và gỡ lỗi kỹ lưỡng:}
+\begin{itemize}
+\item Đặc biệt chú ý đến điều kiện dừng của vòng lặp while để tránh vòng lặp vô hạn. Kiểm tra các trường hợp biên.   
+\end{itemize}
+\end{itemize}
+
+\hspace{-5mm}Phong cách "Pythonic" không chỉ là về việc viết mã ngắn gọn mà còn là về việc tận dụng các tính năng và thư viện được tối ưu hóa của ngôn ngữ để đạt hiệu suất tốt hơn và mã dễ bảo trì hơn. Ví dụ, sử dụng sum() thay vì tự viết vòng lặp for để tính tổng không chỉ ngắn hơn mà còn nhanh hơn vì sum() được viết bằng C. Những lựa chọn này phản ánh sự hiểu biết về cách Python hoạt động "bên dưới".
+
+
+
+
+\hspace{-5mm}Tuy nhiên, cần cẩn trọng với việc tối ưu hóa sớm (premature optimization). Nên tập trung vào việc viết mã rõ ràng, đúng đắn trước, sau đó mới tiến hành đo lường hiệu suất (profiling) và tối ưu hóa các điểm nóng (bottlenecks) thực sự nếu cần thiết. Nhiều "mẹo" tối ưu hóa nhỏ (như while 1 thay vì while True ) có thể có tác động không đáng kể trong hầu hết các ứng dụng thực tế so với các lựa chọn về thuật toán hoặc cấu trúc dữ liệu.   
+
+
+\section{Phần 3: Kết Luận}
+
+
+\begin{itemize}
+    
+\item Vòng lặp là một thành phần không thể thiếu trong lập trình Python, cung cấp các công cụ mạnh mẽ để xử lý các tác vụ lặp đi lặp lại. Từ các vòng lặp for và while cơ bản, Python mở rộng khả năng lặp với các cấu trúc thanh lịch như list comprehensions, cho phép viết mã ngắn gọn và hiệu quả.
+
+\item Việc hiểu sâu hơn về giao thức iterator và cách hoạt động của generator với từ khóa yield mở ra cánh cửa cho việc xử lý dữ liệu theo luồng một cách hiệu quả về bộ nhớ, đặc biệt quan trọng đối với các tập dữ liệu lớn. Module itertools cung cấp một bộ công cụ phong phú, được tối ưu hóa cao để xây dựng các pipeline lặp phức tạp một cách dễ dàng.
+
+\item Đối với các tác vụ đòi hỏi hiệu suất cao, Python cung cấp các giải pháp để vượt qua những hạn chế như Global Interpreter Lock. Multithreading phù hợp cho các tác vụ I/O-bound, trong khi multiprocessing cho phép tận dụng thực sự các hệ thống đa lõi cho các tác vụ CPU-bound. Các thư viện như joblib còn đơn giản hóa hơn nữa việc song song hóa các vòng lặp. Ngoài ra, kỹ thuật vector hóa với NumPy là một phương pháp cực kỳ hiệu quả để tăng tốc các phép toán trên mảng dữ liệu số.
+
+\item Cuối cùng, việc viết các vòng lặp "Pythonic" không chỉ dừng lại ở cú pháp mà còn bao hàm việc lựa chọn đúng công cụ, cấu trúc dữ liệu phù hợp và áp dụng các thực hành tốt nhất để mã nguồn không chỉ chạy đúng mà còn hiệu quả, dễ đọc và dễ bảo trì. Sự hiểu biết toàn diện về các khía cạnh của vòng lặp, từ cơ bản đến nâng cao, sẽ trang bị cho nhà phát triển khả năng giải quyết một loạt các vấn đề lập trình một cách tối ưu trong Python.
+
+\end{itemize}

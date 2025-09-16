@@ -1,0 +1,514 @@
+\begin{center}
+    \Large\textbf{Quản Lý Dữ Liệu Trên Cloud -- Từ Nền Tảng Đến Ứng Dụng Thực Tiễn}
+\end{center}
+
+\begin{center}
+    \Large\textit{Đàm Nguyên Khánh}
+\end{center}
+
+\begin{abstract}
+Trong kỷ nguyên dữ liệu, việc quản lý và khai thác thông tin hiệu quả đóng vai trò then chốt trong thành công của doanh nghiệp. 
+Bài viết này cung cấp một cái nhìn toàn diện về \textbf{Data Engineering} và \textbf{Cloud Data Management}, từ các khái niệm nền tảng như kiểu dữ liệu, Data Warehouse, Data Lake, đến sự khác biệt giữa ETL và ELT. 
+Ngoài ra, bài viết còn giới thiệu các dịch vụ đám mây quan trọng của AWS bao gồm IAM, S3, Glue, Athena và CloudWatch. 
+Thông qua nội dung này, người đọc không chỉ nắm được kiến thức cơ bản mà còn hiểu rõ cách áp dụng vào thực tiễn để xây dựng hệ thống dữ liệu hiện đại, linh hoạt và có khả năng mở rộng.
+\end{abstract}
+
+\section{Giới thiệu}
+Trong kỷ nguyên số, dữ liệu chính là ``dầu mỏ mới'' của thế giới. Khối lượng dữ liệu mà doanh nghiệp cần xử lý ngày càng khổng lồ, đa dạng và phức tạp. Do đó, \textbf{Data Engineering} và \textbf{Cloud Data Management} trở thành hai mảnh ghép quan trọng giúp tổ chức khai thác dữ liệu hiệu quả.
+
+Bài blog này sẽ đưa bạn đi từ những khái niệm cơ bản như \textit{Data Engineering}, \textit{Cloud Computing}, cho đến các dịch vụ cloud cụ thể như \textbf{AWS S3, Glue, Athena, CloudWatch}. 
+
+\section{Data Engineering là gì?}
+\subsection{Vai trò của Data Engineer}
+Data Engineer đóng vai trò như một “kỹ sư hạ tầng dữ liệu”, giúp dữ liệu từ nhiều nguồn khác nhau được thu thập, biến đổi và sẵn sàng cho việc phân tích. 
+Các nhiệm vụ chính bao gồm:
+
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{Xây dựng và duy trì Data Pipelines (ETL/ELT):} 
+    Thiết kế các luồng xử lý dữ liệu tự động từ nguồn (Database, API, log files) để trích xuất, biến đổi và nạp vào hệ thống lưu trữ. 
+    Nhờ đó, dữ liệu luôn được cập nhật liên tục và nhất quán.
+    
+    \item \textbf{Thiết kế và triển khai Data Warehouse:} 
+    Xây dựng kho dữ liệu tập trung, nơi dữ liệu được tổ chức có cấu trúc, dễ dàng cho việc phân tích, báo cáo và hỗ trợ ra quyết định của doanh nghiệp.
+    
+    \item \textbf{Đảm bảo chất lượng và độ tin cậy dữ liệu:} 
+    Kiểm tra, làm sạch, loại bỏ dữ liệu trùng lặp hoặc sai lệch. 
+    Đảm bảo dữ liệu được chuẩn hóa để người dùng cuối (Data Analyst, Data Scientist) có thể sử dụng mà không cần xử lý thêm.
+    
+    \item \textbf{Tối ưu hoá hạ tầng xử lý dữ liệu:} 
+    Sử dụng công nghệ Big Data và Cloud để cải thiện tốc độ xử lý, giảm chi phí và nâng cao khả năng mở rộng. 
+    Điều này giúp hệ thống đáp ứng tốt ngay cả khi dữ liệu tăng trưởng rất lớn.
+\end{itemize}
+
+\subsection{Kỹ năng cần thiết}
+Để trở thành một Data Engineer giỏi, cần trang bị nhiều kỹ năng đa dạng, kết hợp giữa lập trình, cơ sở dữ liệu và công nghệ hiện đại. Một số kỹ năng quan trọng bao gồm:
+
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{Lập trình (Python):} 
+    Python là ngôn ngữ phổ biến nhất trong lĩnh vực dữ liệu nhờ thư viện phong phú (Pandas, PySpark, Airflow). 
+    Data Engineer cần dùng Python để xử lý dữ liệu, viết script tự động và triển khai các pipeline.
+    
+    \item \textbf{Kiến thức cơ sở dữ liệu:} 
+    Hiểu cách làm việc với cả cơ sở dữ liệu quan hệ (SQL Server, PostgreSQL, MySQL) và phi quan hệ (MongoDB, Cassandra). 
+    Đây là nền tảng để thiết kế hệ thống lưu trữ dữ liệu hiệu quả và tối ưu cho việc truy vấn.
+    
+    \item \textbf{Công nghệ Big Data:} 
+    Thành thạo các công cụ xử lý dữ liệu lớn như Hadoop, Spark, Kafka. 
+    Những công nghệ này giúp xử lý dữ liệu với dung lượng hàng terabyte hoặc petabyte một cách nhanh chóng và phân tán.
+    
+    \item \textbf{Điện toán đám mây (Cloud):} 
+    Hiểu và sử dụng dịch vụ của các nhà cung cấp cloud như AWS, Azure, Google Cloud. 
+    Các kỹ năng quan trọng gồm: lưu trữ dữ liệu trên S3, xây dựng pipeline với Glue, phân tích với Athena, hoặc triển khai hệ thống trên Kubernetes.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{projects/Cloud/image/Pipeline.png}
+    \caption{Sơ đồ Pipeline dữ liệu: dữ liệu từ \textbf{Database} hoặc \textbf{API} sẽ được trích xuất, biến đổi và nạp qua quy trình \textbf{ETL}, sau đó lưu trữ tập trung trong \textbf{Data Warehouse} và cuối cùng được trực quan hoá qua \textbf{Dashboard}.}
+    \label{fig:pipeline}
+\end{figure}
+
+\section{Các loại dữ liệu}
+Trong lĩnh vực dữ liệu, ta thường gặp ba loại chính: dữ liệu có cấu trúc, phi cấu trúc và nửa cấu trúc. 
+Mỗi loại dữ liệu có đặc điểm và cách lưu trữ, xử lý khác nhau:
+
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{Structured data (Dữ liệu có cấu trúc):} 
+    Là loại dữ liệu được tổ chức theo hàng và cột trong bảng, có \textit{schema} rõ ràng. 
+    Dữ liệu này rất dễ lưu trữ trong cơ sở dữ liệu quan hệ (RDBMS) và có thể truy vấn trực tiếp bằng ngôn ngữ SQL.  
+    \textit{Ví dụ:} Bảng khách hàng trong SQL với các cột \texttt{ID}, \texttt{Name}, \texttt{Age}.
+    
+    \item \textbf{Unstructured data (Dữ liệu phi cấu trúc):} 
+    Không tuân theo một định dạng hay cấu trúc nào cụ thể, khó phân tích trực tiếp bằng SQL. 
+    Thông thường cần sử dụng AI/ML hoặc NLP để xử lý.  
+    \textit{Ví dụ:} Email, văn bản tự do, video, hình ảnh, file âm thanh.
+    
+    \item \textbf{Semi-structured data (Dữ liệu nửa cấu trúc):} 
+    Nằm giữa structured và unstructured. 
+    Dữ liệu không được lưu trong bảng hàng-cột, nhưng vẫn có các thẻ hoặc cặp \texttt{key-value} để định nghĩa cấu trúc. 
+    Điều này giúp việc xử lý và phân tích dễ dàng hơn so với unstructured.  
+    \textit{Ví dụ:} JSON, XML, YAML, log files.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{So sánh ba loại dữ liệu: Structured, Semi-structured và Unstructured}
+\label{tab:data-types}
+\begin{tabular}{|p{3cm}|p{5cm}|p{5cm}|}
+\hline
+\textbf{Loại dữ liệu} & \textbf{Đặc điểm} & \textbf{Ví dụ} \\ \hline
+\textbf{Structured (Có cấu trúc)} 
+& - Tổ chức chặt chẽ theo schema (hàng, cột). \newline 
+- Dễ lưu trữ, truy vấn và phân tích bằng SQL. 
+& CSDL quan hệ (MySQL, PostgreSQL), bảng Excel. \\ \hline
+
+\textbf{Semi-structured (Nửa cấu trúc)} 
+& - Không tuân thủ schema nghiêm ngặt. \newline 
+- Có thẻ/tags hoặc thuộc tính giúp tổ chức dữ liệu. \newline 
+- Linh hoạt nhưng vẫn có khả năng phân tích. 
+& JSON, XML, YAML, log files. \\ \hline
+
+\textbf{Unstructured (Phi cấu trúc)} 
+& - Không có tổ chức rõ ràng. \newline 
+- Khó lưu trữ và phân tích trực tiếp. \newline 
+- Thường cần AI/ML hoặc NLP để xử lý. 
+& Văn bản tự do, email, hình ảnh, video, âm thanh. \\ \hline
+\end{tabular}
+\end{table}
+
+\section{Data Warehouse vs Data Lake}
+Hai khái niệm thường được so sánh trong quản lý dữ liệu là \textbf{Data Warehouse} và \textbf{Data Lake}. 
+Chúng đều là nơi lưu trữ dữ liệu tập trung, nhưng cách tổ chức và mục đích sử dụng lại khác nhau:
+
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{Data Warehouse:} 
+    Là kho dữ liệu truyền thống, nơi chỉ lưu trữ dữ liệu đã được \textit{làm sạch}, \textit{biến đổi} và tổ chức theo \textbf{schema rõ ràng} trước khi nạp vào hệ thống (\textbf{schema-on-write}).  
+    Dữ liệu trong Data Warehouse thường ở dạng bảng (structured), phù hợp cho phân tích BI (Business Intelligence), báo cáo, và ra quyết định chiến lược.  
+    \textit{Ví dụ:} Lưu trữ báo cáo doanh thu theo tháng từ hệ thống bán hàng.
+    
+    \item \textbf{Data Lake:} 
+    Là kho dữ liệu hiện đại, có khả năng lưu trữ \textbf{tất cả các loại dữ liệu} ở dạng thô: structured, semi-structured, unstructured.  
+    Schema chỉ được áp dụng khi dữ liệu được đọc hoặc phân tích (\textbf{schema-on-read}).  
+    Điều này cho phép Data Lake linh hoạt hơn, phù hợp cho phân tích dữ liệu lớn, machine learning và nghiên cứu chuyên sâu.  
+    \textit{Ví dụ:} Lưu log website, dữ liệu IoT, video, hình ảnh để phân tích hành vi người dùng.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{So sánh Data Lake và Data Warehouse}
+\label{tab:lake-vs-warehouse}
+\begin{tabular}{|p{4cm}|p{5.5cm}|p{5.5cm}|}
+\hline
+\textbf{Tiêu chí} & \textbf{Data Lake} & \textbf{Data Warehouse} \\ \hline
+
+\textbf{Kiểu dữ liệu} 
+& Lưu trữ mọi loại dữ liệu: structured, semi-structured, unstructured (dạng thô). 
+& Chủ yếu lưu trữ dữ liệu structured, đã được xử lý và chuẩn hóa. \\ \hline
+
+\textbf{Cách lưu trữ} 
+& \textit{Schema-on-read}: Áp dụng schema khi truy vấn. 
+& \textit{Schema-on-write}: Dữ liệu phải tuân thủ schema trước khi nạp. \\ \hline
+
+\textbf{Chi phí lưu trữ} 
+& Thường rẻ hơn, do dùng công nghệ lưu trữ phân tán (ví dụ: S3). 
+& Cao hơn vì yêu cầu xử lý, tối ưu hóa và phần cứng mạnh. \\ \hline
+
+\textbf{Tốc độ truy vấn} 
+& Truy vấn chậm hơn vì dữ liệu chưa được xử lý. 
+& Truy vấn nhanh, tối ưu cho báo cáo và phân tích BI. \\ \hline
+
+\textbf{Người dùng chính} 
+& Data Scientist, Data Engineer (phân tích nâng cao, AI/ML). 
+& Business Analyst, nhà quản trị (báo cáo, dashboard). \\ \hline
+
+\textbf{Trường hợp sử dụng} 
+& Lưu trữ log, dữ liệu IoT, hình ảnh, video, dữ liệu raw để phân tích. 
+& Lưu trữ dữ liệu đã chuẩn hóa phục vụ báo cáo tài chính, KPI, dashboard. \\ \hline
+\end{tabular}
+\end{table}
+
+\section{ETL vs ELT}
+Trong quá trình xây dựng \textbf{pipeline dữ liệu}, có hai mô hình phổ biến để trích xuất và xử lý dữ liệu: \textbf{ETL} và \textbf{ELT}. 
+Chúng có điểm giống nhau ở việc đều bao gồm 3 bước \textit{Extract}, \textit{Transform}, \textit{Load}, 
+nhưng khác nhau ở \textit{thứ tự thực hiện} và \textit{cách xử lý dữ liệu}:
+
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{ETL (Extract -- Transform -- Load):} 
+    Đây là cách tiếp cận truyền thống. 
+    Dữ liệu được \textbf{trích xuất (Extract)} từ nguồn (database, API), 
+    sau đó \textbf{biến đổi (Transform)} trên một máy chủ trung gian để làm sạch, chuẩn hoá, 
+    và cuối cùng mới \textbf{nạp (Load)} vào kho dữ liệu (Data Warehouse).  
+    \textit{Ví dụ:} Trước khi nạp dữ liệu bán hàng vào Data Warehouse, hệ thống loại bỏ bản ghi trùng, 
+    đổi đơn vị tiền tệ về cùng chuẩn, rồi mới lưu vào bảng phân tích doanh thu.
+
+    \item \textbf{ELT (Extract -- Load -- Transform):} 
+    Đây là cách tiếp cận hiện đại, thường dùng trong môi trường \textbf{cloud}. 
+    Dữ liệu được \textbf{trích xuất (Extract)} và \textbf{nạp trực tiếp (Load)} vào Data Lake hoặc Data Warehouse ở dạng thô, 
+    sau đó mới \textbf{biến đổi (Transform)} ngay bên trong hệ thống lưu trữ. 
+    Cách làm này tận dụng khả năng tính toán phân tán và mở rộng của cloud.  
+    \textit{Ví dụ:} Tải log website thô lên Amazon S3, rồi sử dụng AWS Athena để chạy truy vấn SQL nhằm làm sạch và phân tích.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{So sánh ETL (Extract--Transform--Load) và ELT (Extract--Load--Transform)}
+\label{tab:etl-vs-elt}
+\begin{tabular}{|p{4cm}|p{5.5cm}|p{5.5cm}|}
+\hline
+\textbf{Tiêu chí} & \textbf{ETL} & \textbf{ELT} \\ \hline
+
+\textbf{Trình tự xử lý} 
+& Extract $\rightarrow$ Transform $\rightarrow$ Load 
+& Extract $\rightarrow$ Load $\rightarrow$ Transform \\ \hline
+
+\textbf{Vị trí xử lý} 
+& Dữ liệu được biến đổi trên máy chủ trung gian trước khi lưu vào kho dữ liệu. 
+& Dữ liệu được tải trực tiếp vào hệ thống lưu trữ (Data Lake/Warehouse) rồi mới xử lý. \\ \hline
+
+\textbf{Ứng dụng} 
+& Phù hợp với Data Warehouse truyền thống, dữ liệu có cấu trúc rõ ràng. 
+& Phù hợp với hệ thống cloud hiện đại, hỗ trợ dữ liệu đa dạng (structured, semi-structured, unstructured). \\ \hline
+
+\textbf{Hiệu năng và chi phí} 
+& Có thể tốn thời gian khi dữ liệu lớn vì phải biến đổi trước khi lưu. 
+& Tận dụng khả năng mở rộng của cloud, xử lý nhanh hơn và chi phí tối ưu hơn. \\ \hline
+\end{tabular}
+\end{table}
+
+
+\section{Cloud Computing}
+
+\subsection{Định nghĩa}
+\textbf{Điện toán đám mây (Cloud Computing)} là mô hình cung cấp tài nguyên công nghệ thông tin (như máy chủ, bộ nhớ, cơ sở dữ liệu, mạng, phần mềm) qua Internet theo nhu cầu. 
+Thay vì phải \textit{mua, cài đặt và duy trì} hạ tầng vật lý, doanh nghiệp có thể thuê dịch vụ đám mây và chỉ trả tiền theo mức sử dụng thực tế (\textbf{pay-as-you-go}).  
+
+\textit{Ví dụ:} Một startup thương mại điện tử có thể thuê máy chủ ảo trên AWS để chạy website bán hàng, thay vì mua cả hệ thống server vật lý tốn kém.
+
+\subsection{Lý do sử dụng Cloud}
+Các doanh nghiệp hiện nay chuyển dịch sang Cloud bởi nhiều lợi ích nổi bật:
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{Chi phí thấp:} Không cần đầu tư lớn vào phần cứng, giảm chi phí bảo trì. 
+    Doanh nghiệp chỉ trả tiền cho tài nguyên họ thực sự dùng.
+    
+    \item \textbf{Bảo mật và sẵn sàng cao:} Các nhà cung cấp Cloud có trung tâm dữ liệu phân tán toàn cầu, đảm bảo dữ liệu luôn được sao lưu và bảo mật theo chuẩn quốc tế.
+    
+    \item \textbf{Scalability (Khả năng mở rộng):} Dịch vụ có thể tự động tăng hoặc giảm tài nguyên (autoscaling) tùy theo lưu lượng người dùng, phù hợp với các ứng dụng có lượng truy cập biến động.
+    
+    \item \textbf{Agility (Tính linh hoạt):} Doanh nghiệp có thể nhanh chóng triển khai hoặc gỡ bỏ một dịch vụ chỉ trong vài phút, giúp thử nghiệm ý tưởng mới dễ dàng.
+\end{itemize}
+
+\subsection{Nhà cung cấp phổ biến}
+Trên thế giới, các “ông lớn” về Cloud chiếm lĩnh thị phần:
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{Quốc tế:} Amazon Web Services (AWS), Microsoft Azure, Google Cloud Platform (GCP), Alibaba Cloud, IBM Cloud, Oracle Cloud.
+    \item \textbf{Tại Việt Nam:} Viettel Cloud, FPT Smart Cloud, VNPT Cloud là những đơn vị chủ lực cung cấp hạ tầng đám mây cho doanh nghiệp trong nước.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{projects/Cloud/image/Market.png}
+    \caption{Thị phần dịch vụ Cloud: 
+    Trên thế giới, AWS (33\%), Microsoft (26\%), Google (16\%) dẫn đầu thị trường với doanh thu 490.3 tỷ USD (tăng trưởng 18\%). 
+    Tại Việt Nam, tổng doanh thu đạt 459 triệu USD (tăng trưởng 17\%), trong đó Viettel (30\%), FPT (25\%), VNPT (20\%) và các nhà cung cấp khác chiếm 20\%.}
+    \label{fig:cloud-market}
+\end{figure}
+
+
+\section{Command Line Interface (CLI) với Cloud}
+Bên cạnh giao diện web (Console), hầu hết các dịch vụ Cloud đều hỗ trợ thao tác qua 
+\textbf{Command Line Interface (CLI)}. 
+Đây là cách giao tiếp với hệ thống bằng cách gõ lệnh thay vì dùng chuột. 
+Thông qua CLI, người dùng có thể \textbf{tạo, quản lý và giám sát tài nguyên trên Cloud} một cách nhanh chóng, 
+đặc biệt hữu ích khi tự động hóa (automation) hoặc triển khai hạ tầng bằng script.
+
+\subsection*{Ví dụ lệnh cơ bản trong Linux}
+Dưới đây là một số lệnh thường dùng trong Linux, nền tảng cơ bản khi làm việc với Cloud:
+
+\begin{itemize}[leftmargin=2em]
+    \item \texttt{pwd} -- Hiển thị đường dẫn của thư mục hiện tại (Print Working Directory).
+    \item \texttt{ls} -- Liệt kê tất cả các file và thư mục trong thư mục hiện tại.
+    \item \texttt{cd <tên\_thư\_mục>} -- Di chuyển sang một thư mục khác.
+    
+    \item \texttt{mkdir <tên\_thư\_mục>} -- Tạo thư mục mới.
+    \item \texttt{rm <tên\_file>} -- Xóa file.
+    \item \texttt{cp <file1> <file2>} -- Sao chép \texttt{file1} sang \texttt{file2}.
+    \item \texttt{mv <file1> <file2>} -- Di chuyển hoặc đổi tên file.
+    
+    \item \texttt{cat <tên\_file>} -- In toàn bộ nội dung file ra màn hình.
+    \item \texttt{head <tên\_file>} -- Hiển thị 10 dòng đầu tiên của file.
+    \item \texttt{tail <tên\_file>} -- Hiển thị 10 dòng cuối cùng của file.
+    \item \texttt{grep <từ\_khóa> <tên\_file>} -- Tìm kiếm từ khóa trong file.
+\end{itemize}
+
+\section{AWS IAM}
+\textbf{IAM (Identity and Access Management)} là dịch vụ cốt lõi của AWS, 
+cho phép doanh nghiệp quản lý người dùng và quyền truy cập vào các tài nguyên AWS một cách an toàn. 
+IAM giúp đảm bảo rằng chỉ những người (hoặc ứng dụng) có quyền phù hợp mới được phép thực hiện hành động trên hệ thống.
+
+\subsection*{Các thành phần chính trong IAM}
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{User (Người dùng):} 
+    Đại diện cho một cá nhân hoặc một ứng dụng cụ thể. 
+    Mỗi user có thông tin đăng nhập riêng (username, password hoặc access key) để truy cập AWS.
+    
+    \item \textbf{Group (Nhóm):} 
+    Tập hợp nhiều user lại để dễ dàng gán quyền chung. 
+    Thay vì cấp quyền riêng lẻ cho từng người, ta có thể gán policy cho nhóm (ví dụ: nhóm \texttt{Developers} có quyền truy cập S3 và EC2).
+    
+    \item \textbf{Role (Vai trò):} 
+    Cung cấp quyền truy cập tạm thời cho user, ứng dụng hoặc dịch vụ khác. 
+    Ví dụ: một ứng dụng chạy trên EC2 có thể sử dụng Role để truy cập vào S3 mà không cần lưu trữ access key trong code.
+    
+    \item \textbf{Policy (Chính sách):} 
+    Là tập hợp các quy tắc được viết bằng JSON, định nghĩa rõ \textit{ai được làm gì trên tài nguyên nào}. 
+    Ví dụ: một policy có thể cho phép user đọc dữ liệu từ S3 nhưng không được xóa file.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{projects/Cloud/image/AWSIAM.jpg}
+    \caption{Mô hình \textbf{AWS IAM (Identity \& Access Management)}: 
+    \textbf{IAM User} hoặc \textbf{IAM Group} được gán quyền qua \textbf{IAM Policy}. 
+    Người dùng cũng có thể tạm thời đảm nhận \textbf{IAM Roles} để truy cập vào \textbf{AWS Resources}. 
+    IAM cho phép quản lý danh tính và phân quyền chi tiết, đảm bảo tính bảo mật và kiểm soát trong hệ thống AWS.}
+    \label{fig:aws-iam}
+\end{figure}
+
+
+\section{AWS S3 (Simple Storage Service)}
+
+\subsection{Đặc điểm}
+Amazon S3 là dịch vụ lưu trữ đám mây phổ biến nhất của AWS, cho phép lưu trữ và truy xuất dữ liệu ở bất kỳ đâu qua Internet. 
+Một số đặc điểm nổi bật:
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{Lưu trữ không giới hạn:} Có thể chứa từ vài kilobytes đến hàng petabytes dữ liệu mà không lo hết dung lượng.
+    \item \textbf{Độ bền 99.999999999\% (11 số 9):} Dữ liệu được sao chép và phân tán trên nhiều thiết bị, nhiều khu vực trong cùng một vùng (region), đảm bảo độ an toàn cực cao.
+    \item \textbf{Trả phí theo mức dùng:} Người dùng chỉ trả tiền cho dung lượng lưu trữ và băng thông sử dụng thực tế, giúp tối ưu chi phí.
+\end{itemize}
+
+\subsection{Ứng dụng}
+S3 có nhiều ứng dụng trong thực tế, đặc biệt trong việc quản lý và phân tích dữ liệu:
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{Data Lake:} Dùng để tập trung lưu trữ dữ liệu thô (raw data) từ nhiều nguồn, phục vụ phân tích sau này.
+    \item \textbf{Backup \& Disaster Recovery:} Lưu trữ bản sao dữ liệu dự phòng, giúp khôi phục nhanh chóng khi hệ thống gặp sự cố.
+    \item \textbf{Static Website Hosting:} Có thể dùng S3 để triển khai website tĩnh (HTML, CSS, JS) mà không cần máy chủ web phức tạp.
+\end{itemize}
+
+\subsection{Khái niệm chính}
+Một số khái niệm quan trọng trong S3:
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{Bucket:} Là “thư mục gốc” để lưu trữ dữ liệu trong S3. 
+    Mỗi bucket phải có tên \textbf{duy nhất toàn cầu} và được tạo tại một khu vực địa lý (region) cụ thể.
+    \item \textbf{Object:} Là đơn vị lưu trữ cơ bản trong S3, có thể là bất kỳ loại file nào (ảnh, video, tài liệu...). 
+    Mỗi object gồm:
+    \begin{itemize}
+        \item \textbf{Data:} Nội dung file.
+        \item \textbf{Key:} Tên duy nhất trong bucket.
+        \item \textbf{Metadata:} Thông tin bổ sung (ví dụ: loại file, ngày tạo).
+        \item \textbf{Version ID:} Định danh phiên bản, nếu bucket bật tính năng versioning.
+    \end{itemize}
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{projects/Cloud/image/S3.png}
+    \caption{Kiến trúc cơ bản của Amazon S3: 
+    Client (ứng dụng hoặc SDK) gửi yêu cầu qua giao thức HTTP/REST tới \textbf{WebServer Fleet}. 
+    Các request này được điều phối đến \textbf{Storage Management}, nơi quản lý \textbf{Name space} và \textbf{Storage Fleet}. 
+    Cuối cùng, dữ liệu được lưu trữ trên hệ thống \textbf{hard disks} phân tán, đảm bảo khả năng mở rộng, độ bền và tính sẵn sàng cao.}
+    \label{fig:aws-s3-arch}
+\end{figure}
+
+
+\section{AWS Glue}
+\textbf{AWS Glue} là một dịch vụ \textbf{ETL (Extract -- Transform -- Load) serverless} do AWS cung cấp. 
+Điều này có nghĩa là người dùng không cần quản lý máy chủ, mà chỉ tập trung vào việc chuẩn bị và biến đổi dữ liệu để phục vụ cho phân tích và machine learning. 
+
+\subsection*{Các thành phần chính}
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{Data Catalog:} 
+    Đây là kho siêu dữ liệu (metadata repository) trung tâm, lưu trữ thông tin về dữ liệu như vị trí, schema, định dạng. 
+    Data Catalog giúp các dịch vụ khác của AWS (như Athena, Redshift, EMR) có thể dễ dàng tìm kiếm và hiểu cấu trúc dữ liệu.  
+    \textit{Ví dụ:} Khi dữ liệu log được lưu dưới dạng file Parquet trên S3, Data Catalog sẽ ghi nhận tên bảng, cột và kiểu dữ liệu để Athena có thể truy vấn bằng SQL.
+
+    \item \textbf{Crawlers:} 
+    Là các chương trình tự động quét dữ liệu từ nhiều nguồn (S3, RDS, DynamoDB...), 
+    nhận diện cấu trúc (schema inference), sau đó ghi lại thông tin đó vào Data Catalog.  
+    Nhờ Crawlers, người dùng không cần thủ công định nghĩa schema cho từng dataset.  
+    \textit{Ví dụ:} Một crawler có thể phát hiện file JSON trên S3 và tự động ánh xạ thành bảng có các cột tương ứng.
+
+    \item \textbf{ETL Jobs:} 
+    Là các tác vụ xử lý dữ liệu, nơi người dùng định nghĩa logic ETL. 
+    AWS Glue hỗ trợ nhiều cách tạo ETL Job:
+    \begin{itemize}
+        \item \textbf{Giao diện trực quan (Glue Studio):} Kéo-thả các bước xử lý dữ liệu mà không cần code.
+        \item \textbf{Sinh code tự động:} Glue có thể tạo sẵn code bằng Python/Scala dựa trên dữ liệu đầu vào và đầu ra.
+        \item \textbf{Viết code tùy chỉnh:} Người dùng có thể viết script Python/Scala chạy trên nền tảng Apache Spark phân tán.
+    \end{itemize}
+    \textit{Ví dụ:} Một ETL Job có thể đọc dữ liệu CSV từ S3, làm sạch dữ liệu (loại bỏ giá trị null), chuyển sang định dạng Parquet, rồi ghi ngược lại vào S3 để phục vụ Athena.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{projects/Cloud/image/ParquetWriterAWSGlue3.png}
+    \caption{Quy trình xử lý dữ liệu với AWS Glue: 
+    \textbf{Events} được thu thập bởi \textbf{Kinesis Firehose} và lưu dưới dạng \textbf{JSON files} trong \textbf{Amazon S3}. 
+    Từ đây, \textbf{AWS Glue ETL Job} (kích hoạt bởi S3 hoặc trigger) sẽ thực hiện trích xuất, biến đổi và nạp dữ liệu, sử dụng \textbf{Glue Catalog} để quản lý metadata. 
+    Cuối cùng, dữ liệu đã qua xử lý được nạp vào \textbf{Amazon Redshift} để phục vụ phân tích.}
+    \label{fig:aws-glue-etl}
+\end{figure}
+
+
+\section{AWS Athena}
+\textbf{Amazon Athena} là dịch vụ \textbf{query serverless} cho phép người dùng sử dụng ngôn ngữ SQL để phân tích dữ liệu trực tiếp trên \textbf{Amazon S3} mà không cần thiết lập máy chủ hay cơ sở dữ liệu riêng. 
+Athena tự động mở rộng theo nhu cầu, và chi phí chỉ tính dựa trên lượng dữ liệu được quét trong mỗi truy vấn.
+
+\subsection*{Đặc điểm nổi bật}
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{Không cần hạ tầng:} Hoàn toàn serverless, người dùng chỉ tập trung vào câu lệnh SQL.
+    \item \textbf{Tích hợp với Glue:} Sử dụng \textbf{AWS Glue Data Catalog} để định nghĩa schema, bảng và cột, giúp truy vấn dữ liệu dễ dàng.
+    \item \textbf{Thanh toán theo truy vấn:} Mỗi lần chạy SQL, Athena chỉ tính phí dựa trên số GB dữ liệu được quét.
+    \item \textbf{Hỗ trợ nhiều định dạng dữ liệu:} CSV, JSON, ORC, Avro, Parquet...
+\end{itemize}
+
+\subsection*{Các trường hợp sử dụng}
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{Phân tích log:} Truy vấn trực tiếp log hệ thống hoặc ứng dụng lưu trên S3, phục vụ giám sát hoặc phát hiện sự cố.
+    \item \textbf{Business Intelligence (BI):} Kết hợp Athena với công cụ trực quan hóa (như QuickSight, Tableau) để tạo dashboard theo thời gian thực.
+    \item \textbf{Truy vấn Data Lake:} Khai thác dữ liệu thô hoặc bán cấu trúc trong Data Lake mà không cần di chuyển dữ liệu sang hệ quản trị cơ sở dữ liệu khác.
+\end{itemize}
+
+\subsection*{Ví dụ minh họa}
+Giả sử bạn có log website lưu dưới dạng file CSV trong S3, bạn có thể truy vấn số lượng truy cập theo ngày bằng Athena:
+
+\begin{verbatim}
+SELECT date, COUNT(*) AS total_visits
+FROM web_logs
+GROUP BY date
+ORDER BY date DESC;
+\end{verbatim}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{projects/Cloud/image/Athena.png}
+    \caption{Kiến trúc Amazon Athena: 
+    Dữ liệu từ \textbf{Traditional Server} hoặc \textbf{Client} được lưu trữ trong \textbf{Amazon S3}. 
+    Quá trình \textbf{Data Archiving} sử dụng \textbf{Crawler} và \textbf{AWS Glue} để lập danh mục và chuẩn hóa dữ liệu. 
+    Người dùng có thể truy vấn trực tiếp bằng \textbf{Amazon Athena}, dữ liệu được xử lý thông qua \textbf{AWS Lambda} và \textbf{Amazon API Gateway}, với tham số truy vấn được quản lý trong \textbf{Amazon S3}. 
+    Điều này cho phép phân tích dữ liệu nhanh chóng, serverless và linh hoạt.}
+    \label{fig:aws-athena-arch}
+\end{figure}
+
+
+\section{AWS CloudWatch}
+\textbf{Amazon CloudWatch} là dịch vụ giám sát và quan sát hệ thống trong AWS. 
+Nó cung cấp dữ liệu và thông tin chi tiết giúp người dùng theo dõi hiệu năng, độ tin cậy và mức sử dụng tài nguyên. 
+CloudWatch đóng vai trò như một “trung tâm điều khiển”, thu thập dữ liệu từ nhiều dịch vụ khác nhau để hỗ trợ giám sát toàn diện.
+
+\subsection*{Các tính năng chính}
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{Metrics (Chỉ số):} 
+    CloudWatch tự động thu thập các chỉ số từ dịch vụ AWS (như CPUUtilization của EC2, số lượng request của S3). 
+    Người dùng cũng có thể tạo custom metrics từ ứng dụng của mình.
+    
+    \item \textbf{Logs:} 
+    CloudWatch Logs cho phép tập trung toàn bộ log từ EC2, Lambda hoặc hệ thống on-premises, 
+    giúp dễ dàng phân tích, tìm kiếm và đặt cảnh báo khi có lỗi bất thường.
+    
+    \item \textbf{Events:} 
+    CloudWatch Events (hiện tích hợp trong Amazon EventBridge) ghi nhận các sự kiện thay đổi trạng thái của tài nguyên. 
+    Ví dụ: khi một instance EC2 thay đổi trạng thái từ \texttt{running} sang \texttt{stopped}, sự kiện này có thể kích hoạt một Lambda function.
+    
+    \item \textbf{Alarms (Cảnh báo):} 
+    Người dùng có thể thiết lập ngưỡng cho bất kỳ metric nào và nhận cảnh báo (qua SNS, email, SMS) khi vượt ngưỡng. 
+    Ví dụ: gửi cảnh báo khi CPU của EC2 vượt 80\%.
+    
+    \item \textbf{Dashboards:} 
+    CloudWatch Dashboards cho phép tùy chỉnh giao diện trực quan, tập hợp nhiều biểu đồ và chỉ số trên một màn hình, 
+    hỗ trợ quản trị hệ thống theo thời gian thực.
+\end{itemize}
+
+\subsection*{Ví dụ minh họa}
+\begin{itemize}[leftmargin=2em]
+    \item Giám sát CPU và RAM của EC2 để đảm bảo hiệu năng hệ thống.
+    \item Thu thập log từ Lambda để debug ứng dụng serverless.
+    \item Tự động kích hoạt scale-out khi traffic web tăng cao.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{projects/Cloud/image/cloudwatch.png}
+    \caption{Amazon CloudWatch giám sát nhiều tài nguyên trong hệ sinh thái AWS, 
+    bao gồm \textbf{EC2 instances}, \textbf{Auto-Scaling}, \textbf{Load Balancer}, 
+    dịch vụ nhắn tin như \textbf{SNS} và \textbf{SQS}, các dịch vụ lưu trữ và cơ sở dữ liệu như 
+    \textbf{RDS}, \textbf{S3}, và \textbf{DynamoDB}. 
+    CloudWatch cung cấp dữ liệu metrics, logs, alarms để theo dõi hiệu năng và độ ổn định toàn hệ thống.}
+    \label{fig:aws-cloudwatch}
+\end{figure}
+
+\section{Kết luận}
+Trong bài viết này, chúng ta đã cùng tìm hiểu những kiến thức cốt lõi trong quản lý và xử lý dữ liệu trên nền tảng đám mây. 
+Từ \textbf{Data Engineering} với vai trò xây dựng pipeline dữ liệu, đến \textbf{Cloud Computing} như một hạ tầng linh hoạt, 
+và cách thao tác bằng \textbf{CLI}, tất cả đều là nền móng quan trọng để khai thác dữ liệu hiệu quả.
+
+Bên cạnh đó, chúng ta cũng đã làm quen với các dịch vụ AWS then chốt:
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{IAM} giúp kiểm soát truy cập và đảm bảo bảo mật. 
+    \item \textbf{S3} mang lại khả năng lưu trữ không giới hạn và chi phí tối ưu. 
+    \item \textbf{Glue} hỗ trợ xây dựng pipeline ETL/ELT linh hoạt và tự động. 
+    \item \textbf{Athena} cho phép phân tích dữ liệu nhanh chóng chỉ với SQL. 
+    \item \textbf{CloudWatch} giúp giám sát và đảm bảo hệ thống hoạt động ổn định.
+\end{itemize}
+
+Điện toán đám mây không chỉ giúp doanh nghiệp \textbf{giảm chi phí đầu tư hạ tầng}, 
+mà còn mang lại \textbf{khả năng mở rộng linh hoạt, độ tin cậy cao và bảo mật toàn diện}. 
+Với việc nắm vững những công cụ và kiến thức trên, bạn đã có nền tảng vững chắc để:
+\begin{itemize}[leftmargin=2em]
+    \item Xây dựng hệ thống dữ liệu hiện đại và dễ mở rộng.
+    \item Đáp ứng nhu cầu phân tích, báo cáo, và machine learning.
+    \item Tận dụng tối đa sức mạnh của dữ liệu để đưa ra quyết định kinh doanh.
+\end{itemize}
+
+\begin{center}
+    \textit{``Nắm dữ liệu trong tay, bạn nắm trong tay nội lực để kiến tạo tương lai.''}
+\end{center}

@@ -1,0 +1,227 @@
+\begin{center}
+    \Large\textbf{Tìm Hiểu Numpy và Biểu Diễn Dữ Liệu 2D/3D Qua Ứng Dụng AI}
+\end{center}
+
+\begin{center}
+    \Large\textit{Đàm Nguyên Khánh}
+\end{center}
+
+\section*{Mục tiêu bài viết}
+
+Trong bài viết này, bạn sẽ học cách sử dụng thư viện \textbf{NumPy} để làm việc với dữ liệu dạng mảng nhiều chiều, các thao tác phổ biến như \textit{reshape}, \textit{slicing}, \textit{broadcasting}, và các ứng dụng thực tế trong \textbf{AI và xử lý ảnh}.
+
+\section*{1. Giới thiệu về NumPy}
+
+\begin{itemize}
+  \item NumPy là thư viện Python chuyên dụng cho tính toán khoa học.
+  \item Hỗ trợ mảng nhiều chiều \texttt{ndarray}.
+  \item Tương thích tốt với OpenCV, Pandas, SciPy, Matplotlib.
+\end{itemize}
+
+\textbf{Ví dụ tạo mảng:}
+\begin{minted}[fontsize=\small, breaklines]{bash}
+import numpy as np
+arr = np.array([1, 2, 3])
+\end{minted}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width= 1\textwidth]{projects/Numpy-2D-3D/Image/1690699382737.jpg}
+    \caption{ So sánh array trong Python list và NumPy array. }
+\end{figure}
+
+Mảng NumPy và danh sách Python thoạt nhìn có vẻ tương tự, nhưng chúng thuộc hai lớp đối tượng hoàn toàn khác nhau:
+
+\begin{itemize}
+    \item \textbf{Mảng NumPy} (\texttt{class ndarray}):
+    \begin{itemize}
+        \item Dữ liệu được lưu trữ trong \textbf{một khối bộ nhớ liền kề} (contiguous memory block).
+        \item Tính chất này được gọi là \textbf{tính cục bộ tham chiếu} (locality of reference), giúp truy cập và xử lý dữ liệu nhanh hơn.
+        \item Phù hợp cho việc xử lý \textbf{tập dữ liệu lớn} nhờ cấu trúc tối ưu.
+    \end{itemize}
+
+    \item \textbf{Danh sách Python} (\texttt{class list}):
+    \begin{itemize}
+        \item Dữ liệu \textbf{không được lưu trữ liền kề} trong bộ nhớ, mà nằm rải rác ở nhiều vị trí.
+        \item Do đó, việc truy cập và xử lý dữ liệu chậm hơn so với mảng NumPy.
+    \end{itemize}
+\end{itemize}
+
+\section*{2. Một số hàm thường dùng}
+
+\subsection*{Tạo mảng}
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+np.zeros((2, 3))
+np.ones((2, 3))
+np.arange(0, 10, 2)
+\end{minted}
+
+\subsection*{Thay đổi cấu trúc}
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+arr.reshape((3, 2))
+arr.flatten()
+\end{minted}
+
+\subsection*{Repeat theo chiều}
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+np.repeat(data, 2, axis=0)
+np.repeat(data, 2, axis=1)
+\end{minted}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{projects/Numpy-2D-3D/Image/numpy-manipulation-reshape.png}
+        \caption{Hàm reshape}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.6\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{projects/Numpy-2D-3D/Image/python-numpy-repeat.png}
+        \caption{Hàm repeat}
+    \end{subfigure}
+\end{figure}
+
+\section*{3. Truy cập dữ liệu (Indexing)}
+
+\begin{itemize}
+  \item \textbf{Slicing:} \texttt{arr[1:3, 0:2]}
+  \item \textbf{Row/column:} \texttt{arr[0, :]} vs \texttt{arr[:, 1]}
+  \item \textbf{Boolean:} \texttt{arr[arr > 3]}
+\end{itemize}
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+arr = np.array([[10, 20, 30],
+                [40, 50, 60]])
+
+col = arr[:, 1]
+row = arr[1, :]
+\end{minted}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{projects/Numpy-2D-3D/Image/Boolean Mask.jpg}
+    \caption{Chọn hàng, cột bằng slicing và boolean mask.}
+\end{figure}
+
+
+\section*{4. Broadcasting}
+
+NumPy hỗ trợ thực hiện phép toán giữa mảng và số vô hướng, hoặc giữa các mảng khác kích thước (nếu phù hợp).
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+data = np.array([[1, 2], [3, 4]])
+result = data * 2
+\end{minted}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{projects/Numpy-2D-3D/Image/broadcasting.png}
+    \caption{Broadcasting giữa ma trận và vector/scalar.}
+\end{figure}
+
+\section*{5. Hàm Softmax trong AI}
+
+\textbf{Công thức ổn định:}
+\[
+f(x_i) = \frac{e^{x_i - \max(x)}}{\sum_j e^{x_j - \max(x)}}
+\]
+
+\textbf{Ví dụ:}
+\begin{minted}[fontsize=\small, breaklines]{bash}
+x = np.array([1.0, 2.0, 3.0])
+e_x = np.exp(x - np.max(x))
+softmax = e_x / e_x.sum()
+\end{minted}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.75\linewidth]{projects/Numpy-2D-3D/Image/Softmax_Function_07fe934386.png}
+    \caption{Phân phối xác suất softmax}
+\end{figure}
+
+\section*{6. Xử lý ảnh với OpenCV và NumPy}
+
+\subsection*{Ảnh Grayscale và RGB}
+
+\begin{itemize}
+  \item Ảnh grayscale: mỗi pixel là số từ 0–255.
+  \item Ảnh RGB: mỗi pixel là bộ 3 giá trị R, G, B.
+\end{itemize}
+
+\subsection*{Đọc ảnh với OpenCV}
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+import cv2
+img = cv2.imread("image.jpg")
+img_rgb = img[:, :, ::-1]  # Chuyển từ BGR sang RGB
+\end{minted}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{projects/Numpy-2D-3D/Image/Color-image-representation-and-RGB-matrix.png}
+    \caption{Pixel RGB và hiển thị ảnh}
+\end{figure}
+
+\section*{7. Điều chỉnh độ sáng ảnh}
+
+\subsection*{Tăng hoặc giảm độ sáng}
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+img = img.astype(float)
+img += 50        # hoặc img -= 50
+img = np.clip(img, 0, 255)
+img = img.astype(np.uint8)
+\end{minted}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{projects/Numpy-2D-3D/Image/Ảnh gốc.png}
+        \caption{ Ảnh gốc }
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{projects/Numpy-2D-3D/Image/Tăng sáng.png}
+        \caption{Ảnh tăng sáng}
+    \end{subfigure}
+\end{figure}
+
+\section*{8. Một số ứng dụng thực tế}
+
+\subsection*{One-hot Encoding}
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+np.eye(3)[2]  # Output: [0, 0, 1]
+\end{minted}
+
+\subsection*{Xử lý dữ liệu thời tiết}
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+temps = np.array([...])
+reshaped = temps.reshape(6, 6)
+daily_avg = np.mean(reshaped, axis=1)
+\end{minted}
+
+\subsection*{Xử lý dữ liệu văn bản}
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+labels = np.genfromtxt("data.csv", delimiter=",", usecols=4, dtype=str)
+np.unique(labels)
+\end{minted}
+
+\section*{Tổng kết}
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Tạo mảng:} \texttt{zeros}, \texttt{ones}, \texttt{arange}
+  \item \textbf{Thay đổi cấu trúc:} \texttt{reshape}, \texttt{flatten}, \texttt{repeat}
+  \item \textbf{Truy cập dữ liệu:} slicing, boolean indexing
+  \item \textbf{Broadcasting:} thao tác với mảng khác kích thước
+  \item \textbf{Ứng dụng AI:} xử lý ảnh, one-hot, softmax, thời tiết
+\end{itemize}

@@ -1,0 +1,93 @@
+\documentclass[a4paper,12pt]{article}
+
+\input{preamble.tex} % Gọi preamble từ file riêng
+
+\begin{document}
+\fancyhead[L]{%
+    \includegraphics[height=1.2cm]{Logo/Logo.png}%
+}
+\newpage
+
+\begin{center}
+    \vspace*{2em}
+    {\LARGE\bfseries Blog Tuần 2 – Module 3 \par}
+    \vspace{0.5em}
+    {\Huge\bfseries K-Means, KNN và PySpark: Từ Thuật Toán Đến Ứng Dụng Dữ Liệu Lớn \par}
+    \vspace{1em}
+    {\Large\itshape Hiểu sâu, triển khai và khai thác sức mạnh của các công cụ phân tích dữ liệu \par}
+    \vspace{2em}
+    {\large\textbf{Tác giả:} GRID034} \\
+    \vspace{2em}
+    \hrule
+    \vspace{1.5em}
+\end{center}
+
+\noindent
+Tuần thứ hai của Module 3 tiếp tục hành trình khám phá các công cụ và thuật toán quan trọng trong phân tích và xử lý dữ liệu. Bài Blog tuần này tập trung vào ba mảng lớn: \textbf{K-Means} – thuật toán phân cụm đơn giản nhưng mạnh mẽ, \textbf{KNN} – phương pháp “hỏi hàng xóm” trực quan và dễ hiểu trong học máy, và \textbf{PySpark} – công cụ toàn diện để xử lý dữ liệu lớn. Nội dung không chỉ giải thích nguyên lý, công thức và quy trình hoạt động, mà còn kèm theo cài đặt chi tiết bằng Python và các tình huống ứng dụng thực tế, giúp bạn có thể áp dụng ngay vào công việc.
+
+\vspace{1em}
+
+\noindent
+Các chủ đề nổi bật bao gồm:
+
+\vspace{1em}
+\begin{enumerate}
+    \item \textbf{Thuật toán K-Means}
+    \begin{itemize}
+        \item Nguyên lý hoạt động, công thức tổng quát và tiêu chí tối ưu WCSS.
+        \item Cài đặt từ đầu bằng NumPy, từ khởi tạo centroid, tính khoảng cách, gán nhãn đến hội tụ.
+        \item Ứng dụng với dữ liệu số, dữ liệu ảnh và văn bản (BoW, TF-IDF).
+        \item Phân tích kết quả thực nghiệm, minh họa quá trình hội tụ và đánh giá chất lượng cụm.
+    \end{itemize}
+
+    \item \textbf{Thuật toán k-Nearest Neighbors (KNN)}
+    \begin{itemize}
+        \item Ba đặc trưng quan trọng: Supervised Learning, Non-parametric, Instance-based.
+        \item Bốn bước hoạt động: chọn $k$, tính khoảng cách, tìm láng giềng gần nhất, ra quyết định.
+        \item Thực hành dự đoán kết quả học tập sinh viên (Classification và Regression).
+        \item Ứng dụng trong hệ thống gợi ý của Netflix và cài đặt KNN đơn giản bằng Python.
+    \end{itemize}
+
+    \item \textbf{PySpark – Xử lý dữ liệu lớn}
+    \begin{itemize}
+        \item Giới thiệu Big Data và các thách thức 5V: Volume, Velocity, Variety, Veracity, Value.
+        \item So sánh Spark và Hadoop; cấu trúc RDD, DataFrame, Spark SQL.
+        \item Các thao tác cơ bản với RDD, DataFrame, UDF, và Pipeline MLlib.
+        \item Ứng dụng PySpark trong phân tích dữ liệu lớn và mô hình hóa học máy.
+    \end{itemize}
+\end{enumerate}
+
+\vspace{1em}
+\noindent\textbf{ Giá trị nhận được sau khi đọc Blog}
+\begin{itemize}
+    \item Nắm vững nguyên lý và cách triển khai K-Means và KNN bằng Python.
+    \item Biết cách áp dụng hai thuật toán này trong các bài toán thực tế từ phân cụm đến gợi ý.
+    \item Thành thạo các thao tác cơ bản với PySpark để xử lý dữ liệu lớn.
+    \item Hiểu rõ sự khác biệt và ứng dụng của Spark so với các công cụ xử lý dữ liệu khác.
+\end{itemize}
+
+
+\vspace{1em}
+\newpage
+
+\input{projects/Kmean/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\input{projects/KNN/Main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+%\input{projects/Statistic application/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+%\input{projects/NoSQL3/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\input{projects/PySpark/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\end{document}

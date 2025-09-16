@@ -1,0 +1,298 @@
+\begin{center}
+    \LARGE{Basic Statistic}
+\end{center}
+\begin{center}
+    \large{\textit{Dao Lam Hoang}}
+\end{center}
+
+\section*{Mở đầu}
+\addcontentsline{toc}{section}{Mở đầu}
+Thống kê là nền tảng không thể thiếu trong khoa học dữ liệu, trí tuệ nhân tạo và nhiều lĩnh vực khác. Tài liệu này nhằm giới thiệu các khái niệm cơ bản trong thống kê như: biến ngẫu nhiên, các hàm phân phối xác suất, kỳ vọng, phương sai và tương quan. Mỗi phần đều đi kèm ví dụ minh hoạ rõ ràng, giúp người đọc dễ tiếp cận và hiểu sâu vấn đề.
+
+\section{Biến ngẫu nhiên}
+
+\begin{tcolorbox}[colback=yellow!5!white, colframe=green!40!black, arc=8pt]
+    \textbf{Biến ngẫu nhiên \(X\)} là một hàm số \(X: \Omega \rightarrow \mathbb{R}\), ánh xạ một kết quả \(s \in \Omega\) tới một số thực trên trục số thực, tức là \(X(s) \in \mathbb{R}\).
+\end{tcolorbox}
+
+\vspace{1cm}
+\noindent
+\begin{minipage}{0.48\textwidth}
+\begin{tcolorbox}[colback=yellow!5!white, colframe=green!40!black, arc=8pt,
+                  left=6pt, right=6pt, 
+                  ,height=5.6cm, valign=center]
+{\large\textbf{Biến ngẫu nhiên liên tục $X$}}
+
+\vspace{2pt}
+
+$X(s): \Omega \rightarrow \mathbb{R}$, ánh xạ mỗi $s$ trong không gian mẫu (không đếm được) đến một giá trị thực. 
+
+\vspace{4pt}
+
+\textbf{Ví dụ:} Thời gian chờ đợi xe buýt $T$ (phút), nhận mọi giá trị thực không âm.
+
+\[
+f_T(t) = \lambda e^{-\lambda t},\quad t \geq 0,\, \lambda > 0.
+\]
+
+\end{tcolorbox}
+\end{minipage}%
+\hfill
+\begin{minipage}{0.48\textwidth}
+\begin{tcolorbox}[colback=yellow!5!white, colframe=green!40!black, arc=8pt,
+                  left=6pt, right=6pt,
+                  , height=5.6cm, valign=center]
+{\large\textbf{Biến ngẫu nhiên rời rạc $X$}}
+
+\vspace{2pt}
+
+$X(s): \Omega \rightarrow \mathbb{R}$, ánh xạ mỗi $s$ trong không gian mẫu hữu hạn hoặc đếm được đến một giá trị thực.
+
+\vspace{4pt}
+
+\textbf{Ví dụ:} Số chấm trên mặt xúc xắc $X$:
+
+\[
+X \in \{1,2,3,4,5,6\},\quad P(X = x) = \frac{1}{6}
+\]
+
+\end{tcolorbox}
+\end{minipage}
+
+
+
+
+\section{Các Hàm Phân Phối Xác Suất}
+
+\subsection{Hàm phân phối xác suất rời rạc (Probability Mass Function - PMF)}
+\begin{tcolorbox}[colback=yellow!5!white, colframe=green!40!black, arc=8pt]
+Cho biến ngẫu nhiên rời rạc \(X\) có tập giá trị \(S = \{x_1, x_2, \ldots\}\). Hàm phân phối xác suất của \(X\) được định nghĩa bởi:
+\[
+p_X(x) = P(X = x), \quad \forall x \in S,
+\]
+thỏa mãn:
+\[
+p_X(x) \geq 0, \quad \sum_{x \in S} p_X(x) = 1.
+\]
+\end{tcolorbox}
+\medskip
+
+\textbf{Ví dụ:} Gieo một con xúc xắc đều, biến ngẫu nhiên \(X\) biểu diễn số mặt xúc xắc xuất hiện. Tập giá trị: \(S = \{1,2,3,4,5,6\}\) và
+\[
+p_X(x) = P(X=x) = \frac{1}{6}, \quad x = 1,2,3,4,5,6.
+\]
+
+\subsection{Hàm phân phối xác suất tích lũy (Cumulative Distribution Function - CDF)}
+\begin{tcolorbox}[colback=yellow!5!white, colframe=green!40!black, arc=8pt]
+Hàm phân phối tích lũy của biến ngẫu nhiên \(X\) được định nghĩa bởi:
+\[
+F_X(x) = P(X \leq x).
+\]
+
+Với biến ngẫu nhiên rời rạc, 
+\[
+F_X(x) = \sum_{t \leq x} p_X(t).
+\]
+\end{tcolorbox}
+\smallskip
+
+\textbf{Ví dụ:} Với \(X\) là số mặt xúc xắc khi gieo kể trên, 
+\[
+F_X(3) = P(X \le 3) = p_X(1) + p_X(2) + p_X(3) = \frac{1}{6} + \frac{1}{6} + \frac{1}{6} = \frac{3}{6} = 0.5.
+\]
+
+Ngoài ra, \(F_X\) có dạng bậc thang, như sau:
+\[
+F_X(x) = \begin{cases}
+0, & x < 1, \\
+\frac{1}{6}, & 1 \leq x < 2, \\
+\frac{2}{6}, & 2 \leq x < 3, \\
+\frac{3}{6}, & 3 \leq x < 4, \\
+\frac{4}{6}, & 4 \leq x < 5, \\
+\frac{5}{6}, & 5 \leq x < 6, \\
+1, & x \geq 6.
+\end{cases}
+\]
+
+\subsection{Hàm mật độ xác suất (Probability Density Function - PDF)}
+\begin{tcolorbox}[colback=yellow!5!white, colframe=green!40!black, arc=8pt]
+Với biến ngẫu nhiên liên tục \(X\), hàm mật độ xác suất \(f_X(x)\) thoả mãn:
+\[
+P(a \leq X \leq b) = \int_{a}^{b} f_X(x)\, dx,
+\]
+với mọi \(a,b \in \mathbb{R}\), và
+\[
+f_X(x) \geq 0, \quad \int_{-\infty}^{+\infty} f_X(x) \, dx = 1.
+\]
+
+Hàm phân phối tích lũy tương ứng:
+\[
+F_X(x) = \int_{-\infty}^x f_X(t) \, dt.
+\]
+\end{tcolorbox}
+\medskip
+\newpage
+\textbf{Ví dụ:} Giả sử biến ngẫu nhiên \(X\) biểu diễn thời gian chờ đợi (tính bằng phút) cho một xe buýt đến, phân phối theo phân phối mũ với tham số \(\lambda > 0\):
+\[
+f_X(x) = \begin{cases}
+\lambda e^{-\lambda x}, & x \geq 0, \\
+0, & \text{ngược lại}.
+\end{cases}
+\]
+
+Khi đó, hàm phân phối tích lũy là:
+\[
+F_X(x) = P(X \le x) = \int_0^x \lambda e^{-\lambda t} dt = 1 - e^{-\lambda x}, \quad x \ge 0.
+\]
+
+
+
+\section{Kỳ vọng, trung bình, phương sai và độ lệch chuẩn}
+
+\subsection{Kỳ vọng (Expected Value), Trung bình (Mean)}
+\begin{tcolorbox}[colback=yellow!5!white, colframe=green!40!black, arc=8pt]
+\textbf{Kỳ Vọng:} Là giá trị trung bình lý thuyết mà biến ngẫu nhiên có thể nhận được nếu phép thử được lặp lại vô số lần. 
+\newline
+Cho biến ngẫu nhiên rời rạc \(X\) với giá trị \(x_1, x_2, ..., x_n\) và xác suất tương ứng \(p_1, p_2, ..., p_n\):
+
+\[
+\mathbb{E}[X] = \mu = \sum_{i=1}^n x_i \, p_i = \mathbb{E}[X^2] - \mu^2
+\]
+
+Trong trường hợp liên tục:
+\[
+\mathbb{E}[X] = \int_{-\infty}^{+\infty} x \, f_X(x)\,dx
+\]
+\end{tcolorbox}
+\subsection{Phương sai (Variance) và Độ lệch chuẩn (Standard Deviation)}
+\begin{tcolorbox}[colback=yellow!5!white, colframe=green!40!black, arc=8pt]
+\textbf{Phương sai:} Đo mức độ phân tán hoặc độ biến động của các giá trị biến ngẫu nhiên quanh giá trị kỳ vọng.
+\[
+\mathrm{Var}(X) = \mathbb{E}\left[(X - \mu)^2\right] = \sum_{i=1}^n (x_i - \mu)^2 \, p_i
+\]
+
+\textbf{Độ lệch chuẩn:} giúp đo độ phân tán theo cách trực quan và dễ hiểu hơn
+\[
+\sigma_X = \sqrt{\mathrm{Var}(X)}
+\]
+\end{tcolorbox}
+
+\newpage
+
+\subsection{Ví dụ: Tung một đồng xu hai lần}
+\begin{tcolorbox}[colback=yellow!5!white, colframe=green!40!black, title=Ví dụ]
+
+- Gọi \(X\) là số lần xuất hiện mặt ngửa khi tung hai đồng xu liên tiếp.
+
+\begin{itemize}
+  \item Các giá trị của \(X\): \(0, 1, 2\).
+  \item Xác suất:
+      \begin{itemize}
+        \item \(P(X=0) = \frac{1}{4}\) (cả hai lần đều là mặt sấp)
+        \item \(P(X=1) = \frac{2}{4} = \frac{1}{2}\) (một lần ngửa, một lần sấp)
+        \item \(P(X=2) = \frac{1}{4}\) (cả hai lần đều là mặt ngửa)
+      \end{itemize}
+\end{itemize}
+
+- Tính toán
+
+
+\[
+\mathbb{E}[X] = 0 \cdot \frac{1}{4} + 1 \cdot \frac{1}{2} + 2 \cdot \frac{1}{4} = 0 + \frac{1}{2} + \frac{2}{4} = 1
+\]
+
+\[
+\mathrm{Var}(X) = (0 - 1)^2 \cdot \frac{1}{4} + (1 - 1)^2 \cdot \frac{1}{2} + (2 - 1)^2 \cdot \frac{1}{4} = 1 \cdot \frac{1}{4} + 0 + 1 \cdot \frac{1}{4} = \frac{1}{2}
+\]
+
+\[
+\sigma_X = \sqrt{\mathrm{Var}(X)} = \sqrt{\frac{1}{2}} \approx 0.707
+\]
+\end{tcolorbox}
+\newpage
+\section{Hiệp phương sai và Hệ số tương quan}
+
+\subsection{Hiệp phương sai (Covariance)}
+\begin{tcolorbox}[colback=yellow!5!white, colframe=green!40!black, arc=8pt]
+\textbf{Hiệp phương sai} giữa \(X\) và \(Y\) là biểu thị hướng và mức độ liên hệ tuyến tính giữa chúng. \\ 
+Cho hai biến ngẫu nhiên \(X\) và \(Y\) với kỳ vọng \(\mu_X = \mathbb{E}[X]\) và \(\mu_Y = \mathbb{E}[Y]\). \\  
+\[
+\mathrm{Cov}(X, Y) = \mathbb{E}\left[(X - \mu_X)(Y - \mu_Y)\right] = \mathbb{E}[XY] - \mu_X \mu_Y. = \frac{\sum (x-\mu_x)(y-\mu_y)}{n}
+\]
+\begin{itemize}
+    \item Nếu \(\mathrm{Cov}(X,Y) > 0\), \(X\) và \(Y\) có xu hướng tăng cùng nhau.
+    \item Nếu \(\mathrm{Cov}(X,Y) < 0\), \(X\) và \(Y\) có xu hướng ngược chiều.
+\end{itemize}
+
+\end{tcolorbox}
+\subsection{Hệ số tương quan (Correlation coefficient)}
+\begin{tcolorbox}[colback=yellow!5!white, colframe=green!40!black, arc=8pt]
+Hệ số tương quan Là hiệp phương sai đã được chuẩn hóa để nằm trong khoảng \( [-1,1] \). \\
+\newline
+Với  \(\sigma_X = \sqrt{\mathrm{Var}(X)}\) và \(\sigma_Y = \sqrt{\mathrm{Var}(Y)}\) là độ lệch chuẩn của \(X\) và \(Y\), ta có hệ số tương quan:
+\[
+\rho_{X,Y} = \mathrm{Corr}(X, Y) = \frac{\mathrm{Cov}(X,Y)}{\sigma_X \sigma_Y},
+\]
+
+\begin{itemize}
+    \item \(\rho_{X,Y} = 1\):tuyến tính tăng hoàn hảo.
+    \item \(\rho_{X,Y} = -1\): tuyến tính giảm hoàn hảo.
+    \item \(\rho_{X,Y} = 0\): không có tương quan tuyến tính.
+\end{itemize}
+
+
+\end{tcolorbox}
+
+
+\subsection{Ví dụ: Hiệp phương sai và hệ số tương quan}
+
+\begin{tcolorbox}[colback=yellow!5!white, colframe=green!40!black, title=Ví dụ]
+Giả sử ta có hai biến ngẫu nhiên $X$ và $Y$ biểu diễn điểm Toán và Lý của 5 học sinh:
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+Học sinh & $X$ (Toán) & $Y$ (Lý) \\
+\hline
+1 & 6 & 7 \\
+2 & 7 & 6 \\
+3 & 8 & 9 \\
+4 & 9 & 10 \\
+5 & 10 & 9 \\
+\hline
+\end{tabular}
+\end{center}
+
+Tính kỳ vọng:
+\[
+\mu_X = \frac{6 + 7 + 8 + 9 + 10}{5} = 8, \quad 
+\mu_Y = \frac{7 + 6 + 9 + 10 + 9}{5} = 8.2
+\]
+
+Tính hiệp phương sai:
+\begin{align*}
+    \text{Cov}(X,Y) &= \frac{1}{5} \sum (x_i - \mu_X)(y_i - \mu_Y) \\ 
+                    &= \frac{1}{5} [(-2)(-1.2) + (-1)(-2.2) + 0(0.8) + 1(1.8) + 2(0.8)] \\
+                    &= 1.72
+\end{align*}
+
+
+
+Tính độ lệch chuẩn:
+\[
+\sigma_X = \sqrt{\frac{1}{5} \sum (x_i - \mu_X)^2} = \sqrt{2}, \quad
+\sigma_Y = \sqrt{\frac{1}{5} \sum (y_i - \mu_Y)^2} \approx 1.326
+\]
+
+Hệ số tương quan:
+\[
+\rho_{X,Y} = \frac{\text{Cov}(X,Y)}{\sigma_X \sigma_Y} \approx \frac{1.72}{\sqrt{2} \cdot 1.326} \approx 0.918
+\]
+
+\textbf{Kết luận:} $\rho_{X,Y} \approx 0.918$ cho thấy mối tương quan tuyến tính mạnh giữa điểm Toán và điểm Lý.
+\end{tcolorbox}
+
+\section*{Kết luận}
+\addcontentsline{toc}{section}{Kết luận}
+
+Qua bài viết này, chúng ta đã tìm hiểu những khái niệm cốt lõi trong thống kê cơ bản: từ biến ngẫu nhiên, các hàm phân phối xác suất, đến các đại lượng như kỳ vọng, phương sai, tương quan. Những khái niệm này không chỉ là nền tảng lý thuyết mà còn có vai trò thiết yếu trong việc phân tích và hiểu dữ liệu trong thực tiễn. Việc nắm vững những nội dung này sẽ giúp bạn tự tin hơn khi bước vào các chủ đề nâng cao như suy luận thống kê, học máy hoặc phân tích dữ liệu lớn.

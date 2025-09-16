@@ -1,0 +1,59 @@
+\documentclass[a4paper,12pt]{article}
+
+\input{preamble.tex} % Gọi preamble từ file riêng
+
+\begin{document}
+\newpage
+
+\begin{center}
+    \vspace*{2em}
+    {\Huge\bfseries Blog Tuần 2 – Module 2 \par}
+    \vspace{1em}
+    {\Large\itshape Xác suất và Ứng dụng trong Machine Learning\par}
+    \vspace{2em}
+    {\large\textbf{Tác giả:} GRID034} \\
+    \vspace{2em}
+    \hrule
+    \vspace{1.5em}
+\end{center}
+
+% Giới thiệu
+\noindent
+Tuần thứ hai của Module 2 mở đầu hành trình tư duy xác suất – một nền tảng không thể thiếu trong Trí tuệ nhân tạo (AI) và Khoa học dữ liệu. Blog này không chỉ cung cấp kiến thức lý thuyết về xác suất cơ bản mà còn dẫn dắt người học đến những ứng dụng thực tiễn như phân loại email, lọc spam, dự đoán học lực, và xây dựng bộ phân loại Naive Bayes bằng Python.
+
+\vspace{1em}
+\noindent
+Các nội dung nổi bật trong tuần:
+\begin{itemize}[leftmargin=1.8em]
+    \item \textbf{Xác suất cơ bản:} Không gian mẫu, biến cố, quy tắc cộng – nhân, xác suất có điều kiện, định lý xác suất toàn phần và Bayes.
+    \item \textbf{Bayesian Thinking:} Hiểu bản chất của tiên nghiệm – hậu nghiệm – khả năng, và cách cập nhật kiến thức bằng dữ liệu mới.
+    \item \textbf{Phân loại Naive Bayes:} Phân loại rời rạc (Bernoulli), liên tục (Gaussian), áp dụng cho văn bản, dữ liệu học sinh.
+    \item \textbf{Python thực chiến:} Cài đặt Naive Bayes từ đầu, tính xác suất thủ công, ứng dụng scikit-learn cho bài toán phân loại email spam.
+    \item \textbf{MongoDB nâng cao (tiếp nối tuần 1):} Tìm hiểu Aggregation Pipeline, các toán tử và chỉ mục tối ưu truy vấn.
+\end{itemize}
+
+\vspace{0.5em}
+\noindent
+Bài viết được trình bày trực quan, kết hợp giữa giải thích công thức, ví dụ minh họa và mã nguồn Python, giúp người học kết nối xác suất với AI một cách tự nhiên và thực tế.
+
+\vspace{1em}
+\newpage
+
+
+\input{projects/BasicProbability/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\input{projects/AIApplication/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\input{projects/NaiveBayesclassifier/Main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\input{projects/NoSQL2/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\end{document}

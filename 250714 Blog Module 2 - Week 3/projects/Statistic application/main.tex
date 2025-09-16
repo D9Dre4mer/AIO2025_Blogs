@@ -1,0 +1,104 @@
+
+\begin{center}
+    \Large\textbf{Thống Kê Cơ Bản và Hệ Số Tương Quan: Khám Phá Mối Quan Hệ Dữ Liệu}
+\end{center}
+
+\begin{center}
+    \Large\textit{Bùi Đức Xuân}
+\end{center}
+
+\section*{\textbf{1. Thống Kê Mô Tả Cơ Bản}}
+
+Thống kê mô tả là nền tảng để tóm tắt và mô tả các đặc điểm chính của một tập dữ liệu.
+
+\subsection*{\textbf{Giá Trị Trung Bình (Mean)}}
+\begin{itemize}
+    \item \textbf{Trung bình tổng thể (Population Mean - $\mu$)}: Đây là giá trị trung bình của tất cả các phần tử trong một tập dữ liệu tổng thể. Công thức tính là $\mu = \frac{1}{n}\sum_{i=1}^{n} x_i$. Ví dụ, để tính cân nặng trung bình của toàn bộ 200,000 con chuột, chúng ta sẽ cần thu thập dữ liệu từ tất cả chúng.
+    \item \textbf{Trung bình mẫu (Sample Mean - $\bar{x}$)}: Trong thực tế, việc thu thập dữ liệu từ toàn bộ tổng thể thường tốn kém và mất thời gian. Do đó, chúng ta thường ước tính trung bình tổng thể bằng cách sử dụng một mẫu nhỏ hơn. Trung bình mẫu được tính bằng $\bar{x} = \frac{1}{n}\sum_{i=1}^{n} x_i$. Ví dụ, từ 5 mẫu cân nặng chuột (3, 13, 19, 24, 29g), trung bình mẫu là 17.6g.
+\end{itemize}
+
+\subsection*{\textbf{Phương Sai (Variance) \& Độ Lệch Chuẩn (Standard Deviation)}}
+\begin{itemize}
+    \item \textbf{Phương sai tổng thể (Population Variance)}: Được tính bằng $\text{var}(X) = \frac{1}{n}\sum_{i=1}^{n} (x_i - \mu)^2$. Độ lệch chuẩn ($\sigma$) là căn bậc hai của phương sai tổng thể.
+    \item \textbf{Ước tính phương sai mẫu (Sample Variance)}: Khi ước tính phương sai của tổng thể từ một mẫu, nếu chúng ta chia cho 'n', chúng ta sẽ \textbf{liên tục đánh giá thấp phương sai thực tế} xung quanh giá trị trung bình của tổng thể. Để khắc phục điều này, công thức ước tính phương sai mẫu chính xác hơn là $\text{var}(X) = \frac{1}{n-1}\sum_{i=1}^{n} (x_i - \bar{x})^2$. Độ lệch chuẩn mẫu cũng được ước tính bằng căn bậc hai của phương sai mẫu.
+\end{itemize}
+
+\section*{\textbf{2. Bậc Tự Do (Degrees of Freedom)}}
+
+Bậc tự do là \textbf{số lượng giá trị trong phép tính cuối cùng của một thống kê được tự do thay đổi} (theo Wikipedia).
+
+\begin{itemize}
+    \item \textbf{Ví dụ minh họa}:
+    \begin{itemize}
+        \item Nếu bạn tung đồng xu 100 lần và muốn biết có bao nhiêu mặt sấp và mặt ngửa, bạn chỉ cần hỏi tôi một câu: "Bạn có bao nhiêu mặt sấp?" Khi biết số mặt sấp, bạn tự động biết số mặt ngửa (100 - số mặt sấp). Ở đây, chỉ có 1 bậc tự do.
+        \item Nếu bạn hỏi về màu của đèn giao thông và được cho biết "nó không phải màu vàng cũng không phải màu đỏ", bạn ngay lập tức biết nó là màu xanh lá. Có 3 kết quả có thể (đỏ, vàng, xanh) nhưng chỉ cần 2 thông tin để xác định (không đỏ, không vàng), do đó có 2 bậc tự do.
+    \end{itemize}
+    \item \textbf{Liên hệ với Trung bình mẫu}: Khi tính phương sai mẫu, nếu bạn đã biết giá trị trung bình của mẫu, giá trị cuối cùng trong mẫu không còn độc lập nữa. Điều này giải thích lý do tại sao chúng ta chia cho 'n-1' thay vì 'n' trong công thức phương sai mẫu, vì một giá trị đã bị "khóa" bởi trung bình mẫu.
+\end{itemize}
+
+\section*{\textbf{3. Hiệp Phương Sai (Covariance)}}
+
+Hiệp phương sai là một phép đo thống kê giúp chúng ta hiểu mối quan hệ giữa hai biến.
+
+\begin{itemize}
+    \item \textbf{Ý tưởng chính}: Hiệp phương sai giúp nhận biết ba loại mối liên hệ chính giữa hai biến: xu hướng đồng biến (positive trend), xu hướng nghịch biến (negative trend), hoặc không có xu hướng nào.
+    \item \textbf{Minh họa bằng ví dụ}: Hãy tưởng tượng chúng ta đếm số lượng táo xanh và táo đỏ ở các siêu thị khác nhau.
+    \begin{itemize}
+        \item Nếu số lượng táo xanh và táo đỏ cùng thấp (ví dụ: Hà Nội, Hồ Chí Minh) hoặc cùng cao (ví dụ: Cần Thơ, Đà Nẵng, Bình Định) so với giá trị trung bình của chúng, điều này cho thấy một \textbf{xu hướng đồng biến}. Khi đó, Hiệp phương sai (Cov) $>$ 0.
+        \item Nếu một biến tăng trong khi biến kia giảm, điều này chỉ ra một \textbf{xu hướng nghịch biến}. Khi đó, Cov $<$ 0.
+        \item Nếu không có mối liên hệ rõ ràng nào, Cov sẽ gần bằng 0.
+    \end{itemize}
+    \item \textbf{Hạn chế của Hiệp phương sai}: Mặc dù Hiệp phương sai cho biết hướng của mối quan hệ (đồng biến hay nghịch biến), nhưng nó \textbf{khó diễn giải và phụ thuộc vào thang đo của dữ liệu}. Giá trị Hiệp phương sai không cho biết liệu độ dốc của đường biểu diễn mối quan hệ có dốc hay không, hoặc các điểm dữ liệu có gần đường xu hướng hay không.
+\end{itemize}
+
+\section*{\textbf{4. Hệ Số Tương Quan (Correlation Coefficient)}}
+
+Hệ số tương quan khắc phục những hạn chế của Hiệp phương sai, cung cấp một thước đo chuẩn hóa và dễ diễn giải hơn về mối quan hệ giữa hai biến. Khi làm việc với các biến liên tục, hệ số tương quan thường dùng là \textbf{Pearson's r}.
+
+\begin{itemize}
+    \item \textbf{Định nghĩa}: Hệ số tương quan, thường được biểu thị là 'r', là một phép đo hướng và độ mạnh của mối quan hệ giữa hai biến. Nó là một "bước đệm tính toán" từ Hiệp phương sai.
+    \item \textbf{Giá trị và Ý nghĩa}: Hệ số tương quan có giá trị trong khoảng từ \textbf{-1 đến +1}.
+    \begin{itemize}
+        \item \textbf{+1}: Cho thấy một \textbf{tương quan dương hoàn hảo} (perfect positive correlation), nghĩa là khi một biến tăng, biến kia cũng tăng theo một đường thẳng.
+        \item \textbf{-1}: Cho thấy một \textbf{tương quan âm hoàn hảo} (perfect negative correlation), nghĩa là khi một biến tăng, biến kia giảm theo một đường thẳng.
+        \item \textbf{0}: Cho thấy \textbf{không có mối quan hệ tuyến tính} nào giữa hai biến.
+        \item \textbf{Giá trị càng gần +1 hoặc -1}: Cho thấy mối quan hệ tuyến tính giữa hai biến càng mạnh. Ví dụ, 0 $<$ Correlation $<$ 1 cho thấy mối quan hệ dương nhưng không hoàn hảo.
+    \end{itemize}
+    \item \textbf{Công thức (Pearson's r)}:
+    \begin{equation*}
+        \rho_{xy} = \frac{E[(x - \mu_x)(y - \mu_y)]}{\sqrt{\text{var}(x) \text{var}(y)}} = \frac{n \sum x_i y_i - \sum x_i \sum y_i}{\sqrt{(n \sum x_i^2 - (\sum x_i)^2)(n \sum y_i^2 - (\sum y_i)^2)}}
+    \end{equation*}
+    \item \textbf{Tính chất}:
+    \begin{itemize}
+        \item Phạm vi từ -1 đến +1.
+        \item Tính đối xứng: $\rho_{xy} = \rho_{yx}$.
+        \item \textbf{Không nhạy cảm với thang đo dữ liệu}: Hệ số tương quan không thay đổi khi dữ liệu được nhân với một hằng số dương ($\rho_{x,y} = \rho_{ax,by}$ với a, b $>$ 0).
+        \item \textbf{Không nhạy cảm với phép dịch chuyển}: Hệ số tương quan không thay đổi khi một hằng số được cộng vào dữ liệu ($\rho_{x,y} = \rho_{x+c, y+d}$).
+    \end{itemize}
+    \item \textbf{Tương quan (Correlation) và Hồi quy (Regression)}: Sự khác biệt chính là tương quan đo lường \textbf{mức độ của mối quan hệ} giữa hai biến độc lập (x và y), trong khi hồi quy là cách một biến \textbf{ảnh hưởng đến} biến khác.
+    \item \textbf{Tương quan (Correlation) và Nhân quả (Causation)}: Một nguyên tắc quan trọng là \textbf{"Tương quan không phải là nhân quả"}. Điều này có nghĩa là chỉ vì hai biến có mối liên hệ với nhau không nhất thiết có nghĩa là biến này gây ra biến kia. Ví dụ, sẽ là phi đạo đức nếu thực hiện một thí nghiệm để xác định liệu hút thuốc có gây ung thư phổi hay không; tuy nhiên, mối tương quan mạnh giữa chúng có thể được quan sát một cách tự nhiên.
+    \item \textbf{Ưu điểm của Tương quan}:
+    \begin{itemize}
+        \item Cho phép nhà nghiên cứu khảo sát các biến tự nhiên mà có thể phi đạo đức hoặc không thực tế nếu thử nghiệm bằng thực nghiệm.
+        \item Cho phép nhà nghiên cứu thấy rõ ràng và dễ dàng liệu có mối quan hệ giữa các biến hay không, và có thể hiển thị dưới dạng đồ họa.
+    \end{itemize}
+\end{itemize}
+
+\section*{\textbf{5. Ứng Dụng của Hệ Số Tương Quan}}
+
+Hệ số tương quan được ứng dụng rộng rãi trong nhiều lĩnh vực, đặc biệt là trong thị giác máy tính.
+
+\begin{itemize}
+    \item \textbf{Tìm kiếm khuôn mẫu (Template Matching) \& Phát hiện vật thể (Object Detection)}:
+    \begin{itemize}
+        \item Trong ứng dụng này, hệ số tương quan được sử dụng để tìm một khuôn mẫu (template) cụ thể trong một hình ảnh lớn hơn.
+        \item Nó hoạt động bằng cách tính toán hệ số tương quan giữa khuôn mẫu và các phần khác nhau của hình ảnh. Vị trí có hệ số tương quan cao nhất (gần +1) cho thấy sự trùng khớp tốt nhất.
+        \item Khả năng của $\rho$ hoạt động tốt dưới các biến đổi như dịch chuyển và thay đổi tỷ lệ (ví dụ: P2 = 1.2P1 + 10 và P1 và P2 vẫn có $\rho$ cao) khiến nó rất hiệu quả trong việc nhận diện các đối tượng ngay cả khi chúng xuất hiện ở các kích thước hoặc vị trí khác nhau.
+    \end{itemize}
+\end{itemize}
+
+\section*{\textbf{Kết Luận}}
+
+Từ trung bình và phương sai mô tả dữ liệu đơn lẻ, đến hiệp phương sai và hệ số tương quan khám phá mối quan hệ giữa các biến, những công cụ thống kê này là chìa khóa để phân tích và hiểu dữ liệu. Đặc biệt, hệ số tương quan cung cấp một cách diễn giải chuẩn hóa về hướng và độ mạnh của mối quan hệ, mở ra nhiều ứng dụng thực tế.
+
+Hãy tưởng tượng dữ liệu của bạn là một thành phố rộng lớn. Các thống kê mô tả cơ bản như trung bình hay phương sai giống như việc bạn mô tả một tòa nhà cụ thể trong thành phố đó – chiều cao của nó, diện tích của nó. Hiệp phương sai giống như việc bạn cố gắng xem liệu các tòa nhà cao tầng có xu hướng ở gần các con sông lớn hay không. Còn hệ số tương quan thì giống như việc bạn tạo ra một bản đồ chi tiết với các con đường được đánh dấu rõ ràng, cho biết không chỉ hướng đi mà còn độ chắc chắn của mỗi con đường (mối quan hệ). Điều này giúp bạn dễ dàng "điều hướng" và đưa ra dự đoán về cách các phần khác nhau của thành phố liên kết với nhau.

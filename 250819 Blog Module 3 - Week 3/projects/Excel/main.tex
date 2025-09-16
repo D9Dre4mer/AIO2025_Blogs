@@ -1,0 +1,447 @@
+\begin{center}
+    \Large\textbf{Excel cho Phân Tích Dữ Liệu – Phần II}
+\end{center}
+
+\begin{center}
+    \Large\textit{Đàm Nguyên Khánh}
+\end{center}
+
+\begin{abstract}
+Excel không chỉ là công cụ bảng tính quen thuộc mà còn là một nền tảng mạnh mẽ cho phân tích dữ liệu. 
+Bài viết này tập trung vào ba khía cạnh quan trọng: (1) \textbf{Trực quan hóa dữ liệu} giúp phát hiện xu hướng, truyền đạt thông tin và hỗ trợ ra quyết định; 
+(2) \textbf{Kiểm định giả thuyết \& A/B Testing} cung cấp công cụ thống kê để đánh giá sự khác biệt, xác minh hiệu quả chiến lược kinh doanh; 
+(3) \textbf{Tiền xử lý dữ liệu \& Hồi quy tuyến tính} làm sạch dữ liệu, loại bỏ sai lệch và xây dựng mô hình dự báo. 
+Thông qua các ví dụ và tình huống thực tế, bài viết cho thấy cách Excel có thể được khai thác như một công cụ phân tích dữ liệu hiện đại, 
+giúp doanh nghiệp và cá nhân đưa ra quyết định dựa trên dữ liệu (\textit{data-driven decisions}).
+\end{abstract}
+
+\section*{Giới thiệu}
+Excel thường được biết đến như một công cụ văn phòng quen thuộc để nhập số liệu và tính toán. 
+Tuy nhiên, ít ai nhận ra rằng Excel cũng là một \textbf{công cụ phân tích dữ liệu mạnh mẽ}, 
+có thể hỗ trợ trực tiếp trong các bài toán từ cơ bản đến nâng cao.  
+
+Trong bài viết này, chúng ta sẽ đi qua ba mảng kiến thức chính:  
+
+\begin{itemize}
+    \item \textbf{Trực quan hóa dữ liệu (Data Visualization)}:  
+    Đây là bước quan trọng giúp biến các con số khô khan thành hình ảnh trực quan như biểu đồ cột, đường, tròn, 
+    heatmap hay biểu đồ thác nước. Nhờ vậy, bạn có thể nhanh chóng nhận diện xu hướng, so sánh các nhóm dữ liệu 
+    và truyền đạt kết quả một cách sinh động.  
+
+    \item \textbf{Kiểm định giả thuyết \& A/B Testing (Hypothesis Testing \& A/B Testing)}:  
+    Đây là phần giúp ta \textit{kiểm tra và chứng minh bằng số liệu}. Thay vì ra quyết định theo cảm tính, 
+    bạn có thể dựa trên các kiểm định thống kê (t-test, ANOVA, chi-square, …) để xác định sự khác biệt có thật sự 
+    đáng kể hay chỉ là ngẫu nhiên. A/B Testing là ví dụ điển hình: so sánh hai phiên bản trang web hoặc chiến dịch 
+    marketing để chọn ra phương án hiệu quả hơn.  
+
+    \item \textbf{Tiền xử lý dữ liệu \& Hồi quy tuyến tính (Data Preprocessing \& Regression Analysis)}:  
+    Dữ liệu thô thường không hoàn hảo: có giá trị thiếu, ngoại lệ, hay định dạng không thống nhất. 
+    Tiền xử lý sẽ giúp làm sạch và chuẩn hóa dữ liệu trước khi phân tích. Sau đó, với hồi quy tuyến tính, 
+    bạn có thể xây dựng mô hình để \textit{dự đoán} và \textit{giải thích mối quan hệ} giữa các yếu tố kinh doanh 
+    (ví dụ: chi phí marketing ảnh hưởng thế nào đến doanh thu).
+\end{itemize}
+
+Với ba nội dung trên, bạn sẽ thấy Excel không chỉ dừng lại ở những phép tính cơ bản, 
+mà thực sự là một công cụ hỗ trợ đắc lực cho việc \textbf{ra quyết định dựa trên dữ liệu (data-driven decisions)}.
+
+
+---
+
+\section{Trực quan hóa dữ liệu}
+
+\subsection{Vì sao cần trực quan hóa?}
+Trực quan hóa dữ liệu là bước quan trọng biến những con số khô khan trong bảng tính 
+thành hình ảnh dễ hiểu và dễ ghi nhớ. Thay vì phải đọc hàng trăm dòng dữ liệu, 
+người dùng chỉ cần nhìn vào một biểu đồ là có thể nắm bắt ý chính.
+
+\begin{itemize}
+    \item \textbf{Giúp nhận diện xu hướng nhanh chóng}:  
+    Khi theo dõi doanh số bán hàng theo tháng, một bảng số liệu dài sẽ rất khó phát hiện xu hướng.  
+    Nhưng với \textit{biểu đồ đường (Line Chart)}, bạn sẽ ngay lập tức thấy được giai đoạn nào doanh số tăng mạnh, 
+    giai đoạn nào sụt giảm.  
+
+    \item \textbf{Truyền đạt thông điệp hiệu quả}:  
+    Một báo cáo dày đặc con số có thể mất 15 phút để giải thích, 
+    nhưng một \textit{dashboard} với biểu đồ trực quan chỉ cần 2--3 phút để người xem hiểu toàn cảnh.  
+    Điều này đặc biệt hữu ích trong các cuộc họp, khi thời gian trình bày rất hạn chế.  
+
+    \item \textbf{Hỗ trợ ra quyết định chính xác}:  
+    Các loại biểu đồ như \textit{heatmap} hay \textit{scatter plot} giúp phát hiện mối quan hệ giữa các biến.  
+    Ví dụ: heatmap thể hiện mức độ lợi nhuận của từng sản phẩm theo khu vực; 
+    scatter plot cho thấy mối liên hệ giữa chi phí quảng cáo và doanh thu.  
+    Từ đó, nhà quản lý có thể đưa ra chiến lược phân bổ nguồn lực hợp lý.  
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{projects/Excel/image/line chart.png}
+    \caption{Các bước tạo biểu đồ đường trong Excel: 
+    (1) Chọn vùng dữ liệu; 
+    (2) Chọn tab \textit{Insert}; 
+    (3) Chọn nhóm biểu đồ \textit{Line}; 
+    (4) Chèn biểu đồ đường để trực quan hóa xu hướng dữ liệu theo thời gian.}
+    \label{fig:linechart}
+\end{figure}
+
+
+\subsection{Các loại biểu đồ thường dùng}
+Trong Excel, có nhiều loại biểu đồ phục vụ cho những mục đích khác nhau. 
+Dưới đây là các loại biểu đồ phổ biến nhất và ý nghĩa của chúng:
+
+\begin{itemize}
+    \item \textbf{Biểu đồ cột (Bar Chart)}:  
+    Dùng để so sánh giá trị giữa các nhóm khác nhau.  
+    Ví dụ: So sánh doanh số giữa các chi nhánh trong cùng một quý.  
+
+    \item \textbf{Biểu đồ đường (Line Chart)}:  
+    Thể hiện xu hướng thay đổi theo thời gian.  
+    Ví dụ: Doanh thu theo từng tháng trong năm.  
+
+    \item \textbf{Biểu đồ tròn (Pie Chart)}:  
+    Hiển thị tỷ lệ phần trăm các thành phần trong một tổng thể.  
+    Ví dụ: Tỷ lệ thị phần của các hãng điện thoại trên thị trường.  
+    Lưu ý: Nên dùng khi số lượng phần tử $\leq 7$, tránh rối mắt.  
+
+    \item \textbf{Histogram (Biểu đồ tần suất)}:  
+    Cho thấy phân phối dữ liệu, giúp kiểm tra dữ liệu có phân bố chuẩn hay không.  
+    Ví dụ: Phân phối điểm thi của sinh viên trong một lớp học.  
+
+    \item \textbf{Heatmap}:  
+    Biểu diễn dữ liệu bằng màu sắc để phát hiện nhanh khu vực mạnh – yếu.  
+    Ví dụ: Bảng lợi nhuận theo sản phẩm và khu vực, trong đó màu đậm thể hiện doanh thu cao.  
+
+    \item \textbf{Biểu đồ thác nước (Waterfall Chart)}:  
+    Thể hiện sự thay đổi lũy kế của một chỉ số qua nhiều giai đoạn.  
+    Ví dụ: Theo dõi biến động quỹ tài chính qua các khoản thu, chi và kết quả cuối kỳ.  
+
+    \item \textbf{Biểu đồ phân tán (Scatter Plot)}:  
+    Thể hiện mối quan hệ giữa hai biến số.  
+    Ví dụ: Xem chi phí quảng cáo có ảnh hưởng như thế nào đến doanh thu bán hàng.  
+\end{itemize}
+
+\noindent\textit{Gợi ý chèn hình: Mỗi loại biểu đồ có thể minh họa bằng một ví dụ nhỏ, chẳng hạn Bar Chart cho doanh số chi nhánh, Line Chart cho xu hướng doanh thu, Pie Chart cho thị phần, Scatter Plot cho mối quan hệ chi phí – doanh thu.}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{projects/Excel/image/waterfall-chart-12.png}
+    \caption{Biểu đồ Waterfall thể hiện biến động quỹ X trong năm 2018. 
+    Các cột màu xanh dương biểu diễn khoản \textbf{tăng} (Increase), 
+    màu cam biểu diễn khoản \textbf{giảm} (Decrease), 
+    và cột màu xám biểu diễn \textbf{tổng cộng} (Total) tại các giai đoạn. 
+    Biểu đồ giúp nhận diện rõ yếu tố nào đóng góp tích cực hoặc tiêu cực 
+    vào kết quả tài chính cuối kỳ.}
+    \label{fig:waterfall}
+\end{figure}
+
+\subsection{Tips để trực quan hóa hiệu quả}
+Một biểu đồ đẹp chưa chắc đã hiệu quả, nhưng một biểu đồ hiệu quả luôn phải rõ ràng và dễ hiểu. 
+Dưới đây là một số mẹo quan trọng khi trực quan hóa dữ liệu trong Excel:
+
+\begin{enumerate}
+    \item \textbf{Chọn đúng loại biểu đồ}:  
+    Mỗi loại biểu đồ phù hợp cho một mục đích khác nhau.  
+    Ví dụ: biểu đồ cột để so sánh doanh số giữa các chi nhánh, 
+    biểu đồ đường để theo dõi xu hướng doanh thu theo tháng, 
+    biểu đồ tròn để thể hiện tỷ lệ thị phần.  
+
+    \item \textbf{Đơn giản hóa nội dung, loại bỏ chi tiết dư thừa}:  
+    Một biểu đồ quá nhiều chi tiết sẽ khiến người xem mất tập trung.  
+    Hãy loại bỏ gridline thừa, hạn chế số màu sắc, 
+    và sắp xếp dữ liệu theo thứ tự hợp lý (tăng/giảm hoặc theo thời gian).  
+
+    \item \textbf{Ghi nhãn rõ ràng, dùng màu sắc nhất quán}:  
+    Tiêu đề ngắn gọn giúp người xem hiểu ngay mục đích biểu đồ.  
+    Nhãn trục X, Y cần rõ ràng và dễ đọc.  
+    Màu sắc nên giữ nhất quán: ví dụ cùng một nhóm sản phẩm 
+    thì luôn dùng một màu xuyên suốt các biểu đồ trong báo cáo.  
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{projects/Excel/image/ROI.png}
+        \caption*{\textbf{(a) Biểu đồ rối rắm}: Quá nhiều màu, nhãn, ký hiệu và chú thích khiến người xem khó tập trung vào thông điệp chính.}
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{projects/Excel/image/Simple.png}
+        \caption*{\textbf{(b) Biểu đồ đơn giản}: Tập trung vào thông tin quan trọng (tổng số lượng bán ra), dễ đọc và dễ so sánh.}
+    \end{minipage}
+    \caption{So sánh giữa một biểu đồ rối rắm và một biểu đồ đơn giản.  
+    Bài học: \textit{Đơn giản hóa nội dung, loại bỏ chi tiết thừa, và chỉ giữ lại thông điệp chính mà biểu đồ cần truyền đạt.}}
+    \label{fig:chart-comparison}
+\end{figure}
+
+
+---
+
+\section{Kiểm định giả thuyết \& A/B Testing}
+
+\subsection{Khái niệm cơ bản}
+\textbf{Kiểm định giả thuyết} là một quy trình thống kê nhằm kiểm tra xem một giả thuyết đặt ra 
+có được dữ liệu ủng hộ hay không. Thay vì dựa vào cảm tính, chúng ta dựa vào bằng chứng số liệu 
+để đưa ra kết luận.  
+
+Trong kiểm định giả thuyết, thường có bốn khái niệm quan trọng:
+
+\begin{itemize}
+    \item \textbf{Giả thuyết gốc ($H_0$)}: Giả định ban đầu, thường là ``không có sự khác biệt hoặc tác động nào''.  
+    Ví dụ: Doanh thu trung bình trước và sau khi chạy chiến dịch marketing là như nhau.  
+
+    \item \textbf{Giả thuyết thay thế ($H_1$)}: Khẳng định có sự khác biệt hoặc tác động.  
+    Ví dụ: Doanh thu trung bình sau chiến dịch marketing \textbf{cao hơn} so với trước đó.  
+
+    \item \textbf{p-value}: Xác suất để thu được kết quả quan sát (hoặc cực đoan hơn) nếu $H_0$ là đúng.  
+    - Nếu p-value nhỏ (ví dụ $< 0.05$), dữ liệu mang lại bằng chứng mạnh để bác bỏ $H_0$.  
+    - Nếu p-value lớn ($\geq 0.05$), ta chưa đủ cơ sở để bác bỏ $H_0$.  
+
+    \item \textbf{Mức ý nghĩa ($\alpha$)}: Ngưỡng quyết định, thường chọn 5\% ($\alpha = 0.05$).  
+    Điều này nghĩa là chúng ta chấp nhận rủi ro 5\% có thể kết luận sai khi bác bỏ $H_0$.  
+\end{itemize}
+
+\noindent\textit{Ví dụ thực tế}: Một công ty muốn biết chiến dịch quảng cáo mới có thật sự làm tăng doanh số.  
+\begin{itemize}
+    \item $H_0$: Doanh thu trung bình trước và sau chiến dịch là như nhau.  
+    \item $H_1$: Doanh thu trung bình sau chiến dịch cao hơn.  
+    \item Nếu kết quả kiểm định cho p-value $= 0.02 < 0.05$, ta có đủ bằng chứng để bác bỏ $H_0$ 
+    và kết luận rằng chiến dịch có hiệu quả.  
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{projects/Excel/image/a-b-testing.jpg}
+    \caption{Minh họa quy trình A/B Testing: Người dùng (visitors) được chia ngẫu nhiên thành hai nhóm, 
+    trải nghiệm hai phiên bản giao diện (Option A và Option B). 
+    Kết quả cho thấy Option A có tỷ lệ chuyển đổi 17\%, trong khi Option B đạt 24\%. 
+    Phân tích thống kê từ kết quả này giúp lựa chọn phiên bản tối ưu.}
+    \label{fig:abtesting}
+\end{figure}
+
+\subsection{Ví dụ kinh doanh}
+Giả sử một công ty tiến hành chiến dịch marketing mới và muốn biết liệu chiến dịch này có giúp tăng doanh số hay không.  
+
+\begin{itemize}
+    \item \textbf{Trước chiến dịch:} Doanh thu trung bình mỗi tháng là 520 triệu đồng.  
+    \item \textbf{Sau chiến dịch:} Doanh thu trung bình tăng lên 567 triệu đồng.  
+    \item \textbf{Kết quả kiểm định:} Giá trị p-value thu được là 0.023.  
+\end{itemize}
+
+Vì $p$-value $= 0.023 < 0.05 = \alpha$, ta bác bỏ giả thuyết $H_0$ (``không có sự khác biệt'').  
+\textbf{Kết luận:} Với mức ý nghĩa 5\%, có đủ bằng chứng thống kê để khẳng định chiến dịch marketing mới 
+\textbf{thực sự giúp tăng doanh số trung bình}.  
+
+\begin{table}[H]
+\centering
+\caption{Doanh thu trước và sau chiến dịch marketing (Đơn vị: VND)}
+\label{tab:campaign_revenue}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Tháng} & \textbf{Trước chiến dịch} & \textbf{Sau chiến dịch} \\ \hline
+Tháng 1  & 52,993,400 & 58,532,300 \\ \hline
+Tháng 2  & 51,723,500 & 53,790,800 \\ \hline
+Tháng 3  & 53,295,400 & 54,205,200 \\ \hline
+Tháng 4  & 55,046,100 & 56,763,000 \\ \hline
+Tháng 5  & 51,531,700 & 55,771,800 \\ \hline
+Tháng 6  & 51,531,700 & 58,691,300 \\ \hline
+Tháng 7  & 55,158,400 & 56,002,300 \\ \hline
+Tháng 8  & 53,534,900 & 54,892,900 \\ \hline
+Tháng 9  & 51,061,100 & 61,224,400 \\ \hline
+Tháng 10 & 53,085,100 & 57,503,300 \\ \hline
+Tháng 11 & 51,073,200 & 58,148,600 \\ \hline
+Tháng 12 & 51,068,500 & 54,865,600 \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{projects/Excel/image/doanh thu.png}
+    \caption{So sánh doanh thu trung bình trước và sau chiến dịch marketing. 
+    Kết quả cho thấy doanh thu trung bình tăng từ \textbf{525,919,000 VND} 
+    lên \textbf{566,993,000 VND} sau chiến dịch. Giá trị $p$-value = 0.023 
+    ($< 0.05$) chứng tỏ sự khác biệt này có ý nghĩa thống kê, 
+    tức là chiến dịch marketing thực sự mang lại hiệu quả.}
+    \label{fig:campaign_revenue}
+\end{figure}
+
+\subsection{A/B Testing}
+A/B Testing là một ứng dụng phổ biến của kiểm định giả thuyết trong thực tế. Ý tưởng chính: 
+so sánh hai phiên bản khác nhau để xem phiên bản nào hiệu quả hơn.
+
+\begin{itemize}
+    \item \textbf{Phiên bản A (Control)}: Banner quảng cáo lớn, chiếm 70\% màn hình đầu tiên, kèm nút ``Mua ngay''.  
+    \item \textbf{Phiên bản B (Variation)}: Banner nhỏ hơn, kèm đánh giá 5 sao từ khách hàng, 
+    và hiển thị sản phẩm bán chạy ngay phía dưới.  
+    \item \textbf{Quy trình:} Người dùng được chia ngẫu nhiên thành hai nhóm để đảm bảo tính khách quan.  
+    \item \textbf{Kết quả đo lường:} Tỷ lệ chuyển đổi (conversion rate) được tính toán cho cả hai phiên bản.  
+    \item \textbf{Phân tích:} Nếu p-value $< 0.05$, ta bác bỏ $H_0$ và chọn phiên bản có tỷ lệ chuyển đổi cao hơn.  
+\end{itemize}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{projects/Excel/image/A-B-testing (1).jpg}
+    \caption{Kết quả A/B Testing: Phiên bản A (Control) đạt tỷ lệ chuyển đổi 23\%, 
+    trong khi phiên bản B (Variation) đạt 37\%. 
+    Sự khác biệt này cho thấy phiên bản B có hiệu quả cao hơn và được ưu tiên triển khai.}
+    \label{fig:abtesting-result}
+\end{figure}
+
+\subsection{Các loại kiểm định phổ biến}
+Trong phân tích dữ liệu, việc chọn đúng loại kiểm định thống kê phụ thuộc vào đặc điểm dữ liệu và mục tiêu nghiên cứu. 
+Một số kiểm định phổ biến trong Excel và thống kê ứng dụng gồm:
+
+\begin{itemize}
+    \item \textbf{t-Test (Kiểm định t)}:  
+    Dùng để so sánh \textit{giá trị trung bình của 2 nhóm}.  
+    Ví dụ: so sánh doanh thu trung bình của cửa hàng A và cửa hàng B.  
+    Trong Excel có các dạng: \textit{one-sample}, \textit{paired}, và \textit{independent two-sample}.  
+
+    \item \textbf{ANOVA (Analysis of Variance)}:  
+    Dùng để so sánh \textit{trung bình của nhiều nhóm cùng lúc} (lớn hơn 2 nhóm).  
+    Ví dụ: so sánh doanh số trung bình giữa 3 khu vực \textit{Miền Bắc, Miền Trung, Miền Nam}.  
+    Nếu ANOVA cho kết quả có khác biệt, ta cần làm thêm kiểm định hậu nghiệm (post-hoc test) để biết nhóm nào khác biệt.  
+
+    \item \textbf{Chi-Square Test (Kiểm định Chi-bình phương)}:  
+    Dùng cho dữ liệu phân loại, nhằm kiểm tra xem \textit{hai biến có độc lập với nhau hay không}.  
+    Ví dụ: kiểm tra xem việc khách hàng chọn loại sản phẩm (điện thoại, laptop, tablet) có độc lập với giới tính hay không.  
+
+    \item \textbf{Non-parametric tests (Kiểm định phi tham số)}:  
+    Dùng khi dữ liệu không tuân theo phân phối chuẩn hoặc kích thước mẫu nhỏ.  
+    \begin{itemize}
+        \item \textit{Mann-Whitney U}: thay thế cho t-test khi so sánh 2 nhóm độc lập.  
+        \item \textit{Wilcoxon Signed-Rank}: thay thế cho paired t-test (so sánh dữ liệu theo cặp).  
+        \item \textit{Kruskal-Wallis}: thay thế cho ANOVA khi so sánh nhiều nhóm.  
+    \end{itemize}
+\end{itemize}
+
+---
+
+\section{Tiền xử lý dữ liệu \& Hồi quy tuyến tính}
+
+\subsection{Tại sao cần tiền xử lý?}
+Trong thực tế, dữ liệu thu thập được thường không hoàn hảo. 
+Có thể tồn tại giá trị bị thiếu, số liệu nhập sai, ký hiệu không đồng nhất hoặc những điểm ngoại lệ bất thường. 
+Nếu không xử lý trước khi phân tích, những lỗi này sẽ dẫn đến kết quả sai lệch, làm giảm độ tin cậy của mô hình.  
+
+Tiền xử lý dữ liệu (\textit{data preprocessing}) đóng vai trò quan trọng trong mọi bài toán phân tích, với các lợi ích chính:
+
+\begin{itemize}
+    \item \textbf{Xử lý giá trị thiếu}:  
+    Ví dụ, một cột doanh thu bị bỏ trống ở vài tháng. Nếu không bổ sung hoặc ước lượng, kết quả trung bình sẽ sai lệch.  
+
+    \item \textbf{Phát hiện và loại bỏ ngoại lệ (outliers)}:  
+    Những giá trị quá lớn/nhỏ bất thường (ví dụ: doanh thu âm, hoặc tăng đột biến không hợp lý) có thể làm méo phân tích.  
+
+    \item \textbf{Chuẩn hóa định dạng dữ liệu}:  
+    Cùng một thông tin nhưng được ghi khác nhau (``MB'' và ``Miền Bắc'') cần được đồng nhất.  
+
+    \item \textbf{Tạo biến giả (Dummy variables)}:  
+    Khi làm việc với dữ liệu phân loại (ví dụ: khu vực Miền Bắc, Miền Nam, Miền Trung), cần chuyển đổi thành dạng số học (0/1) 
+    để có thể đưa vào mô hình hồi quy.  
+
+    \item \textbf{Tăng độ chính xác của phân tích}:  
+    Dữ liệu sau khi được làm sạch và chuẩn hóa sẽ giúp mô hình hồi quy hoạt động ổn định hơn, 
+    cho kết quả dễ tin cậy và dễ giải thích.  
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Bảng dữ liệu trước và sau xử lý}
+\label{tab:pre-post-cleaning}
+\begin{tabular}{|c|c|c|c||c|c|c|}
+\hline
+\multicolumn{4}{|c||}{\textbf{Dữ liệu thô (trước xử lý)}} & \multicolumn{3}{c|}{\textbf{Dữ liệu sau xử lý}} \\ \hline
+\textbf{Tháng} & \textbf{Doanh số (triệu VND)} & \textbf{Khu vực} & \textbf{Ghi chú} 
+& \textbf{Tháng} & \textbf{Doanh số (triệu VND)} & \textbf{Khu vực (Dummy)} \\ \hline
+T1/2023 & 45.2   & Miền Bắc & Đầy đủ      & T1/2023 & 45.2   & 1 (Miền Bắc) \\ \hline
+T2/2023 & NULL   & Miền Nam & Thiếu dữ liệu & T2/2023 & 48.95  & 2 (Miền Nam) \\ \hline
+T3/2023 & 52.7   & Miền Bắc & Đầy đủ      & T3/2023 & 52.7   & 1 (Miền Bắc) \\ \hline
+T4/2023 & 198.5  & Miền Bắc & Nghi ngờ sai sót & T4/2023 & 54.8   & 1 (Miền Bắc) \\ \hline
+T5/2023 & 54.8   & MB       & Đầy đủ      & T5/2023 & 54.8   & 1 (Miền Bắc) \\ \hline
+T6/2023 & -12.3  & Miền Trung & Giá trị âm   & T6/2023 & 53.7   & 3 (Miền Trung) \\ \hline
+\end{tabular}
+\end{table}
+
+
+\subsection{Các kỹ thuật phổ biến trong Excel}
+Trong Excel, có nhiều công cụ và hàm hỗ trợ cho việc tiền xử lý dữ liệu. 
+Một số kỹ thuật quan trọng thường dùng là:
+
+\begin{itemize}
+    \item \textbf{Xử lý giá trị thiếu}:  
+    Sử dụng các hàm \texttt{IFERROR()}, \texttt{IF(ISBLANK())}, \texttt{AVERAGE()}, \texttt{MEDIAN()} để thay thế giá trị bị thiếu.  
+    Ví dụ: nếu một tháng doanh thu bị bỏ trống, ta có thể điền bằng giá trị trung bình của các tháng liền kề.  
+
+    \item \textbf{Phát hiện ngoại lệ (Outliers)}:  
+    Dùng hàm \texttt{QUARTILE()} để tính các tứ phân vị, kết hợp với quy tắc IQR để phát hiện điểm bất thường.  
+    Ngoài ra có thể chuẩn hóa bằng \texttt{Z-score} hoặc dùng biểu đồ Box Plot để trực quan hóa ngoại lệ.  
+
+    \item \textbf{Tạo biến giả (Dummy Variables)}:  
+    Khi có dữ liệu phân loại (ví dụ: khu vực \textit{Miền Bắc, Miền Trung, Miền Nam}), 
+    ta cần chuyển thành biến nhị phân (0/1) để đưa vào phân tích hồi quy.  
+    Excel có thể thực hiện bằng \texttt{IF()}, \texttt{SWITCH()} hoặc Power Query.  
+
+    \item \textbf{Chuẩn hóa dữ liệu}:  
+    Để đưa các biến về cùng một thang đo, có thể dùng hàm \texttt{STANDARDIZE()}, 
+    hoặc biến đổi dữ liệu bằng \texttt{LOG()}, \texttt{SQRT()} khi phân phối dữ liệu bị lệch nhiều.  
+\end{itemize}
+
+\begin{itemize}
+    \item \textbf{$R^2$ (hệ số xác định)}:  
+    Cho biết mức độ mô hình giải thích được biến động của biến phụ thuộc.  
+    Ví dụ: $R^2 = 0.8$ nghĩa là 80\% sự thay đổi của doanh thu có thể được giải thích bởi các biến đầu vào (như marketing, khuyến mãi...).  
+
+    \item \textbf{p-value}:  
+    Dùng để đánh giá mức ý nghĩa thống kê của từng biến độc lập.  
+    - Nếu p-value $< 0.05$, biến có ảnh hưởng đáng kể đến $Y$.  
+    - Nếu p-value $\geq 0.05$, ảnh hưởng của biến không rõ ràng, có thể bỏ qua trong mô hình.  
+
+    \item \textbf{Hồi quy đơn biến (Simple Linear Regression)}:  
+    Mô hình chỉ xét một biến độc lập.  
+    Ví dụ: phân tích mối quan hệ giữa \textbf{chi phí marketing} và \textbf{doanh thu}.  
+    Kết quả có thể cho thấy: cứ tăng 1 triệu đồng chi phí marketing thì doanh thu trung bình tăng thêm khoảng 50 triệu đồng.  
+
+    \item \textbf{Hồi quy đa biến (Multiple Linear Regression)}:  
+    Mô hình xét nhiều biến độc lập cùng lúc để dự đoán biến phụ thuộc.  
+    Ví dụ: doanh thu chịu ảnh hưởng đồng thời bởi \textbf{chi phí marketing}, \textbf{tỉ lệ khuyến mãi}, 
+    và \textbf{vị trí cửa hàng}.  
+    Mô hình này phản ánh thực tế hơn, vì kết quả kinh doanh hiếm khi chỉ phụ thuộc vào một yếu tố.  
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{projects/Excel/image/maxresdefault.jpg}
+    \caption{Biểu đồ Scatter Plot kèm đường hồi quy tuyến tính. 
+    Mỗi điểm đỏ biểu diễn một cặp giá trị $(x, y)$. 
+    Đường gạch chấm là đường hồi quy với phương trình $y = 1.1819x - 21.984$ 
+    và hệ số xác định $R^2 = 0.7411$, cho thấy khoảng 74.1\% biến động của $y$ 
+    có thể được giải thích bởi $x$.}
+    \label{fig:scatter-regression}
+\end{figure}
+
+
+---
+
+\section*{Kết luận}
+Qua bài viết, chúng ta đã lần lượt khám phá ba khía cạnh quan trọng trong phân tích dữ liệu với Excel:
+
+\begin{itemize}
+    \item \textbf{Trực quan hóa dữ liệu}: 
+    Giúp biến những con số khô khan thành biểu đồ, từ đó nhanh chóng nhận diện xu hướng và truyền đạt thông tin một cách trực quan.  
+
+    \item \textbf{Kiểm định giả thuyết \& A/B Testing}: 
+    Cung cấp cơ sở thống kê để ra quyết định khách quan, 
+    thay thế cảm tính bằng bằng chứng định lượng, 
+    đồng thời ứng dụng trực tiếp trong các tình huống thực tế như so sánh chiến dịch marketing.  
+
+    \item \textbf{Tiền xử lý dữ liệu \& Hồi quy tuyến tính}: 
+    Làm sạch dữ liệu, loại bỏ sai lệch và xây dựng mô hình dự báo, 
+    từ đó phân tích mối quan hệ nhân quả và hỗ trợ lập kế hoạch chiến lược.  
+\end{itemize}
+
+Từ góc nhìn này, Excel không chỉ dừng lại ở vai trò một công cụ bảng tính, 
+mà thực sự trở thành một \textbf{nền tảng phân tích dữ liệu toàn diện}. 
+Khi nắm vững các kỹ năng từ trực quan hóa, kiểm định thống kê đến xây dựng mô hình hồi quy, 
+bạn hoàn toàn có thể sử dụng Excel để đưa ra \textbf{quyết định dựa trên dữ liệu (data-driven decisions)} 
+thay vì dựa trên cảm tính hay kinh nghiệm chủ quan.

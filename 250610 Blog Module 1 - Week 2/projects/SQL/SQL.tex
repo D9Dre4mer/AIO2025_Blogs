@@ -1,0 +1,134 @@
+\begin{center}
+    \Large\textbf{Thiết Kế Cơ Sở Dữ Liệu Hiệu Quả Cho Ứng Dụng Deep Learning: Nguyên Tắc, Thách Thức và Giải Pháp}
+\end{center}
+
+\begin{center}
+    \Large\textit{Đàm Nguyên Khánh}
+\end{center}
+
+
+\section*{Tóm Tắt}
+Trong kỷ nguyên dữ liệu lớn và trí tuệ nhân tạo, đặc biệt là Deep Learning (DL), cơ sở dữ liệu (CSDL) không chỉ là kho lưu trữ đơn thuần mà còn đóng vai trò là nền tảng sống còn cho toàn bộ pipeline xử lý dữ liệu và huấn luyện mô hình. Một CSDL được thiết kế tốt sẽ giúp mô hình học sâu tiếp cận dữ liệu chính xác, đầy đủ và hiệu quả hơn, từ đó nâng cao chất lượng dự đoán và giảm thiểu chi phí tính toán.
+
+Vậy làm thế nào để thiết kế một CSDL đáp ứng tốt cho nhu cầu đặc thù của DL? Phần dưới đây sẽ trình bày chi tiết.
+
+\section{Quy Trình Thiết Kế CSDL Cho Ứng Dụng Deep Learning}
+
+\begin{enumerate}[label=\textbf{Bước \arabic*:}]
+    \item \textbf{Phân Tích Yêu Cầu Nghiệp Vụ \& Dữ Liệu} \\
+    Hiểu rõ bài toán kinh doanh hoặc tác vụ ML cụ thể, loại dữ liệu, nguồn gốc và ý nghĩa của từng trường dữ liệu.
+    
+    \item \textbf{Thiết Kế Sơ Đồ Thực Thể - Quan Hệ (ERD)} \\
+    Xác định các \textit{thực thể}, \textit{thuộc tính} và \textit{mối quan hệ} giữa chúng.
+    
+    \item \textbf{Chuẩn Hóa Dữ Liệu} \\
+    Áp dụng từ 1NF đến 3NF (hoặc 4NF) nhằm loại bỏ dư thừa, đảm bảo toàn vẹn và dễ bảo trì.
+    
+    \item \textbf{Tối Ưu Hóa Cho ML/DL} \\
+    Có thể \textit{phi chuẩn hóa} có chủ đích, tối ưu chỉ mục cho cột được truy vấn nhiều.
+    
+    \item \textbf{Triển Khai Schema Vật Lý} \\
+    Chuyển ERD và logic thiết kế thành lệnh DDL cụ thể.
+\end{enumerate}
+
+\section{Vì Sao Chuẩn Hóa CSDL Lại Quan Trọng?}
+
+Dữ liệu thô thường tồn tại nhiều vấn đề:
+\begin{itemize}
+    \item \textbf{Dư thừa} dữ liệu
+    \item \textbf{Dị thường} khi thao tác
+    \item \textbf{Thuộc tính đa trị} không tách riêng
+    \item \textbf{Dữ liệu hỗn tạp} (có cấu trúc và phi cấu trúc)
+    \item \textbf{Không nhất quán} về định dạng và đơn vị
+\end{itemize}
+
+\textbf{Chuẩn hoá} giúp:
+\begin{itemize}
+    \item Dữ liệu sạch, nhất quán, sẵn sàng cho feature engineering.
+    \item Truy vấn nhanh khi đánh chỉ mục hợp lý.
+    \item Bảo trì và mở rộng dễ dàng.
+    \item Đảm bảo pipeline huấn luyện DL hoạt động ổn định.
+\end{itemize}
+
+\section{ERD --- Công Cụ Cốt Lõi Trong Thiết Kế CSDL}
+
+\subsection*{Các thành phần chính trong ERD:}
+\begin{itemize}
+    \item \textbf{Thực Thể (Entities):} \textit{User, Post, Comment, Image}, \ldots
+    \item \textbf{Thuộc Tính (Attributes):} 
+    \begin{itemize}
+        \item Khóa chính (Primary Key)
+        \item Khóa ngoại (Foreign Key)
+        \item Thuộc tính tổng hợp / đa trị
+    \end{itemize}
+    \item \textbf{Mối Quan Hệ (Relationships):} 1:1, 1:N, N:M
+    \item \textbf{Tham Gia (Participation):} Total hoặc Partial
+\end{itemize}
+
+Hình dưới đây minh họa sơ đồ thực thể - quan hệ (ERD) của hệ thống quản lý nội dung đơn giản hóa, bao gồm năm thực thể chính: Users, Posts, Comments, Media, và ToxicityLabels. Sơ đồ thể hiện các mối quan hệ chính giữa các thực thể này, như người dùng có thể tạo bài viết (Posts), bình luận (Comments) và tải lên nội dung đa phương tiện (Media). Đồng thời, các thực thể nội dung như bài viết, bình luận và phương tiện có thể được gán nhãn độc hại (ToxicityLabels) nhằm phục vụ cho các tác vụ kiểm duyệt hoặc phân tích nội dung.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.6\linewidth]{projects/SQL/image/PIC 03.jpg}
+    \caption{Sơ đồ thực thể - quan hệ (ERD)}
+    \label{fig:enter-label}
+\end{figure}
+
+\section{Chuẩn Hóa CSDL --- Các Mức Quan Trọng}
+
+\begin{longtable}{|p{3cm}|p{10cm}|}
+\hline
+\textbf{Cấp độ} & \textbf{Ý nghĩa chính} \\
+\hline
+1NF & Không lặp cột, giá trị nguyên tử \\
+\hline
+2NF & Phụ thuộc hoàn toàn vào khóa chính \\
+\hline
+3NF & Không phụ thuộc bắc cầu \\
+\hline
+BCNF & Siêu khóa là điều kiện cho mọi phụ thuộc hàm \\
+\hline
+4NF & Không có phụ thuộc đa trị không tầm thường \\
+\hline
+5NF & Phép phân rã không mất mát \\
+\hline
+\end{longtable}
+
+\textit{Ghi chú:} Hầu hết ứng dụng DL cần đến 3NF hoặc BCNF là đủ; 4NF/5NF dành cho hệ thống cực phức tạp.
+
+\section{Tối Ưu Cho ML/DL: Khi Chuẩn Hóa Chưa Đủ}
+
+\subsection*{Phi Chuẩn Hóa (Denormalization)}
+\begin{itemize}
+    \item Tạo bảng đặc trưng (\textit{feature table}) giảm JOIN.
+    \item Tổng hợp dữ liệu trước khi huấn luyện.
+\end{itemize}
+\textbf{Ưu điểm:} Truy vấn nhanh. \\
+\textbf{Rủi ro:} Dễ dư thừa, khó cập nhật --- cần ETL/ELT tốt.
+
+\subsection*{Chiến Lược Đánh Chỉ Mục (Indexing)}
+\begin{itemize}
+    \item Index các cột: Primary Key, Foreign Key, các cột thường dùng trong \texttt{WHERE}, \texttt{GROUP BY}.
+    \item Cân nhắc chi phí: Tăng tốc đọc nhưng làm chậm ghi, tốn bộ nhớ.
+\end{itemize}
+
+\section{Bài Học Cốt Lõi}
+
+\begin{enumerate}
+    \item Hiểu rõ bài toán.
+    \item Luôn chuẩn hóa trước khi phi chuẩn hóa.
+    \item Đánh đổi toàn vẹn và hiệu năng là tất yếu.
+    \item Tối ưu hóa dựa trên pattern truy vấn của pipeline ML/DL.
+    \item Chuẩn bị khả năng mở rộng, bảo trì.
+    \item Dữ liệu thời gian cần được xử lý riêng.
+    \item Đảm bảo bảo mật và quản trị dữ liệu.
+    \item Luôn tài liệu hóa chi tiết.
+\end{enumerate}
+
+\section{Kết Luận}
+
+Thiết kế CSDL cho ứng dụng Deep Learning không chỉ là vấn đề kỹ thuật mà còn là nghệ thuật cân bằng giữa tính toàn vẹn dữ liệu, hiệu suất hệ thống và yêu cầu của pipeline học máy. Một CSDL tốt là nền tảng vững chắc giúp mô hình DL học đúng đặc trưng, tăng khả năng tổng quát hóa và tránh rủi ro từ dữ liệu sai lệch.
+
+\begin{quote}
+    \textit{Hãy đầu tư đúng mức cho thiết kế CSDL --- vì một mô hình DL tốt luôn bắt đầu từ dữ liệu đúng.}
+\end{quote}

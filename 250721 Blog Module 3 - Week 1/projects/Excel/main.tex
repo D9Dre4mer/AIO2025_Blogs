@@ -1,0 +1,172 @@
+\begin{center}
+    \Large\textbf{Kết Hợp Python và Excel Trong Phân Tích Dữ Liệu: Từ Cơ Bản Đến Ứng Dụng Nâng Cao}
+\end{center}
+
+\begin{center}
+    \Large\textit{Đàm Nguyên Khánh}
+\end{center}
+
+\section{Mở đầu}
+Phân tích dữ liệu (\textit{Data Analysis – DA}) đã trở thành kỹ năng quan trọng trong nhiều lĩnh vực — từ kinh doanh, tài chính đến y tế, giáo dục và sản xuất.  
+Mục tiêu không chỉ là thu thập dữ liệu, mà còn biến dữ liệu thành thông tin có giá trị để hỗ trợ ra quyết định nhanh chóng và chính xác.
+
+Hai công cụ phổ biến nhất hiện nay:
+\begin{itemize}
+    \item \textbf{Excel}: Dễ dùng, trực quan, quen thuộc với người dùng văn phòng.
+    \item \textbf{Python}: Linh hoạt, mạnh mẽ, phù hợp với xử lý dữ liệu lớn và tự động hóa.
+\end{itemize}
+
+Điểm đột phá là việc Microsoft tích hợp \textbf{Python trực tiếp vào Excel}, cho phép người dùng vừa tận dụng giao diện quen thuộc của Excel vừa khai thác sức mạnh lập trình.
+
+\begin{table}[H]
+\centering
+\small
+\caption{So sánh nhanh Excel và Python trong phân tích dữ liệu}
+\begin{tabular}{p{3.2cm} p{5.2cm} p{5.2cm}}
+\toprule
+\textbf{Tiêu chí} & \textbf{Excel} & \textbf{Python} \\
+\midrule
+Mục tiêu điển hình & Phân tích mô tả nhanh, báo cáo, nhập liệu thủ công & Tự động hóa, xử lý dữ liệu lớn, phân tích nâng cao/ML \\
+Trải nghiệm người dùng & Giao diện trực quan, thao tác kéo–thả & Lập trình (script, notebook), cần kỹ năng code \\
+Quy mô dữ liệu & Tốt với bảng nhỏ–trung bình; dễ chậm khi rất lớn & Tốt với dữ liệu lớn (pandas, Dask, Spark) \\
+Tự động hóa & Hạn chế (VBA/Power Query/Power Automate) & Mạnh (script, scheduler, CI/CD) \\
+Tái lập/kết quả lặp lại & Dễ lệch do thao tác tay & Tái lập cao qua mã nguồn và môi trường \\
+Biểu đồ & Nhanh, đẹp, đủ dùng cho báo cáo & Linh hoạt, tùy biến cao (matplotlib, plotly, seaborn) \\
+Phân tích nâng cao & Hạn chế (thống kê cơ bản, add-in) & Đầy đủ: thống kê, ML, NLP, CV (scikit-learn, statsmodels, PyTorch) \\
+Làm việc hàng loạt & Không tối ưu nhiều file/folder & Mạnh (batch, pipeline, luồng ETL) \\
+Tích hợp dữ liệu & Chủ yếu file, ODBC, Power Query & Rộng: file, DB, API, message queue, cloud \\
+Hợp tác & Phổ biến trong doanh nghiệp, dễ chia sẻ file & Quản lý phiên bản tốt (Git), hợp tác qua repo \\
+Bảo trì & Khó kiểm soát thay đổi thủ công & Dễ bảo trì qua version control, test \\
+Phụ thuộc môi trường & Cần giấy phép Microsoft 365/Excel & Cần Python + thư viện; chạy mọi nền tảng \\
+Chi phí & Giấy phép phần mềm & Mã nguồn mở (phần lớn miễn phí) \\
+Độ dốc học tập & Thấp–trung bình & Trung bình–cao (nhưng mở rộng mạnh) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Tổng quan về Excel và Python}
+
+\subsection{Ưu điểm của Excel}
+\begin{itemize}
+    \item Công thức tính toán sẵn có (\texttt{SUM}, \texttt{AVERAGE}, \texttt{IF}, \texttt{VLOOKUP}).
+    \item Tạo biểu đồ nhanh chóng (cột, tròn, đường, kết hợp...).
+    \item Pivot Table mạnh mẽ để tổng hợp và phân tích dữ liệu.
+    \item Phổ biến trong doanh nghiệp, dễ chia sẻ và chỉnh sửa.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\linewidth]{projects/Excel/Image/create-excel-chart-slicer.png}
+\caption{Minh họa Pivot Table và biểu đồ trong Excel}
+\end{figure}
+
+\subsection{Ưu điểm của Python}
+\begin{itemize}
+    \item Xử lý dữ liệu lớn hiệu quả với thư viện \texttt{pandas}.
+    \item Tự động hóa toàn bộ quy trình phân tích.
+    \item Hỗ trợ từ thống kê cơ bản đến Machine Learning (\texttt{scikit-learn}, \texttt{statsmodels}).
+    \item Kết nối đa dạng nguồn dữ liệu: Excel, SQL, API, JSON, CSV,...
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\linewidth]{projects/Excel/Image/Python data.jpg}
+\caption{Hệ sinh thái thư viện Python cho phân tích dữ liệu}
+\end{figure}
+
+\subsection{Hạn chế khi chỉ dùng một công cụ}
+\begin{tabular}{p{6cm} p{6cm}}
+\toprule
+\textbf{Excel} & \textbf{Python} \\
+\midrule
+Khó xử lý dữ liệu lớn, hạn chế phân tích nâng cao & Cần kỹ năng lập trình \\
+Khó tự động hóa quy trình phức tạp & Thiếu giao diện nhập liệu trực quan \\
+Dễ treo khi dữ liệu vượt giới hạn & Cần môi trường lập trình, quản lý thư viện \\
+\bottomrule
+\end{tabular}
+
+\section{Python trực tiếp trong Excel}
+Từ năm 2023, Excel 365 hỗ trợ hàm \texttt{=PY()} cho phép:
+\begin{itemize}
+    \item Viết mã Python ngay trong ô Excel.
+    \item Sử dụng thư viện như \texttt{pandas}, \texttt{matplotlib}.
+    \item Kết hợp trực tiếp với dữ liệu bảng tính.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\linewidth]{projects/Excel/Image/Python trong excel.png}
+\caption{Giao diện Python trong Excel}
+\end{figure}
+
+\subsection{Thực hành với Iris Dataset}
+\begin{enumerate}
+    \item Tải dữ liệu Iris, import vào Excel, đặt tên bảng \texttt{IrisDataset}.
+    \item Mô tả dữ liệu:
+\begin{verbatim}
+df = xl("IrisDataset[#All]", headers=True)
+df.describe()
+\end{verbatim}
+    \item Vẽ biểu đồ phân tán:
+\begin{verbatim}
+import matplotlib.pyplot as plt
+plt.scatter(df["SepalLengthCm"], df["SepalWidthCm"])
+plt.xlabel("SepalLengthCm")
+plt.ylabel("SepalWidthCm")
+plt.title("Sepal length and width analysis")
+\end{verbatim}
+    \item Tạo ma trận tương quan:
+\begin{verbatim}
+df.corr(numeric_only=True)
+\end{verbatim}
+\end{enumerate}
+
+\section{Lập trình Python xử lý file Excel bên ngoài}
+
+\subsection{Tạo file Excel từ CSV với openpyxl}
+\begin{itemize}
+    \item Đọc CSV bằng \texttt{pandas}.
+    \item Ghi dữ liệu vào Excel.
+    \item Định dạng tiêu đề (màu nền, in đậm).
+\end{itemize}
+
+\subsection{Xử lý dữ liệu có sẵn}
+\begin{itemize}
+    \item Thêm cột \texttt{SOAmount Level}, phân loại High/Medium.
+    \item Tô màu theo điều kiện.
+    \item Xóa dòng có giá trị thấp.
+\end{itemize}
+
+\subsection{Biểu đồ và định dạng nâng cao}
+\begin{itemize}
+    \item Thêm dòng \texttt{TOTAL} và công thức SUM.
+    \item Tạo biểu đồ cột (\texttt{BarChart}).
+    \item Thêm viền và căn giữa dữ liệu.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\linewidth]{projects/Excel/Image/Python Excel 2.png}
+\caption{File Excel cuối cùng với biểu đồ và định dạng}
+\end{figure}
+
+\section{So sánh nhanh hai hướng tiếp cận}
+\begin{tabular}{p{4cm} p{5cm} p{5cm}}
+\toprule
+\textbf{Tiêu chí} & \textbf{Python trong Excel} & \textbf{Python độc lập} \\
+\midrule
+Môi trường & Trong Excel & Script bên ngoài \\
+Trực quan & Cao & Thấp hơn \\
+Tự động hóa & Hạn chế & Mạnh mẽ \\
+Xử lý hàng loạt & Không tối ưu & Rất tốt \\
+Phụ thuộc & Cần Microsoft 365 & Chỉ cần Python \\
+\bottomrule
+\end{tabular}
+
+\section{Kết luận}
+Sự kết hợp Python + Excel tạo nên giải pháp linh hoạt:
+\begin{itemize}
+    \item \textbf{Python trong Excel}: Phân tích nhanh, trực quan.
+    \item \textbf{Python độc lập}: Tối ưu cho quy trình lớn, tự động hóa mạnh.
+\end{itemize}
+Ứng dụng đúng cách giúp tiết kiệm thời gian, giảm lỗi và mở rộng quy mô phân tích dữ liệu.

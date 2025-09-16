@@ -1,0 +1,308 @@
+\begin{center}
+    \LARGE{Probability in AI}
+\end{center}
+\begin{center}
+    \large{\textit{Dao Lam Hoang}}
+\end{center}
+
+% \vspace{0.1cm}
+\section{Các khái niệm cơ bản}
+\subsection{Khái niệm}
+\begin{itemize}
+    \item \textbf{Phép thử:} Việc thực hiện một tập hợp các điều kiện cơ bản để quan sát một hiện tượng nhất định.\\
+    \textit{Ví dụ:} Tung một con xúc xắc.
+
+    \item \textbf{Không gian mẫu:} Tập hợp tất cả các kết quả có thể xảy ra.\\
+    \textit{Ví dụ:} $\{1, 2, 3, 4, 5, 6\}$ là không gian mẫu khi tung xúc xắc.
+
+    \item \textbf{Biến cố:} Là một tập con của không gian mẫu.\\
+    \textit{Ví dụ:} Biến cố “ra số chẵn” là tập $\{2, 4, 6\}$.
+\end{itemize}
+\subsection{Biến cố}
+\begin{itemize}
+
+    \item \textbf{Biến cố:} Là một tập con của không gian mẫu, đại diện cho một hoặc nhiều kết quả mong muốn.  
+    \textit{Ví dụ:} Biến cố \( A \) là "tung xúc xắc được số chẵn" thì:  
+    \[
+    A = \{2, 4, 6\}
+    \]
+
+    \item \textbf{Biến cố rỗng (\( \varnothing \)):} Là biến cố không chứa phần tử nào, tức là không thể xảy ra.  
+    \textit{Ví dụ:} Biến cố \( B \) là "tung xúc xắc được số 8" thì:  
+    \[
+    B = \varnothing
+    \]
+
+    \item \textbf{Giao của hai biến cố (\( A \cap B \)):} Là biến cố xảy ra khi cả hai biến cố \( A \) và \( B \) cùng xảy ra.  
+    \textit{Ví dụ:}  
+    \( A = \{2, 4, 6\} \): số chẵn  
+    \( B = \{4, 5, 6\} \): số lớn hơn 3  
+    \[
+    A \cap B = \{4, 6\}
+    \]
+
+    \item \textbf{Hợp của hai biến cố (\( A \cup B \)):} Là biến cố xảy ra khi ít nhất một trong hai biến cố \( A \) hoặc \( B \) xảy ra.  
+    \textit{Ví dụ:}  
+    \( A = \{1, 2, 3\} \), \( B = \{3, 4, 5\} \)  
+    \[
+    A \cup B = \{1, 2, 3, 4, 5\}
+    \]
+
+    \item \textbf{Hai biến cố xung khắc:} Là hai biến cố không thể xảy ra đồng thời, nghĩa là \( A \cap B = \varnothing \).  
+    \textit{Ví dụ:}  
+    \( A = \{1, 2\} \): số nhỏ hơn 3  
+    \( B = \{4, 5, 6\} \): số lớn hơn 3  
+    \[
+    A \cap B = \varnothing
+    \]
+
+    \item \textbf{Biến cố đối (\( \overline{A} \)):} Là biến cố gồm tất cả các phần tử trong không gian mẫu mà không thuộc \( A \).  
+    \textit{Ví dụ:}  
+    Không gian mẫu \( \Omega = \{1, 2, 3, 4, 5, 6\} \)  
+    \( A = \{1, 2, 3\} \)  
+    \[
+    \overline{A} = \{4, 5, 6\}
+    \]
+
+    \item \textbf{Biến cố độc lập:} Hai biến cố \( A \) và \( B \) được gọi là độc lập nếu:  
+    \[
+    P(A \cap B) = P(A) \cdot P(B)
+    \]  
+    \textit{Ví dụ:} Tung hai con xúc xắc.  
+    - \( A \): "con thứ nhất ra số chẵn" \( \Rightarrow P(A) = \frac{3}{6} = \frac{1}{2} \)  
+    - \( B \): "con thứ hai ra số 5" \( \Rightarrow P(B) = \frac{1}{6} \)  
+    Vì hai xúc xắc độc lập:  
+    \[
+    P(A \cap B) = P(A) \cdot P(B) = \frac{1}{2} \cdot \frac{1}{6} = \frac{1}{12}
+    \]
+
+\end{itemize}
+
+
+
+
+
+\section{Xác suất và các tính chất cơ bản}
+\subsection{Khái niệm xác suất}
+\begin{tcolorbox}[title= ,coltitle =black,fonttitle=\large\bfseries, colback=green!5!white,colframe=green!75!black]
+Xác suất của một biến cố là khả năng xảy ra của biến cố đó.  
+Ký hiệu: \( P(A) \), với \( A \) là một biến cố. \\
+Các tính chất cơ bản:
+\begin{itemize}
+    \item \( 0 \leq P(A) \leq 1 \)
+    \item \( P(\Omega) = 1 \) (biến cố chắc chắn)
+    \item \( P(\varnothing) = 0 \) (biến cố không thể xảy ra)
+\end{itemize}
+\end{tcolorbox}
+
+
+\subsection{Xác suất cổ điển}
+\begin{tcolorbox}[title= ,coltitle =black,fonttitle=\large\bfseries, colback=green!5!white,colframe=green!75!black]
+Nếu một thí nghiệm có \( n \) kết quả đồng khả năng xảy ra, và biến cố \( A \) có \( m \) kết quả thuận lợi, thì:
+\[
+P(A) = \frac{m}{n}
+\]
+\end{tcolorbox}
+
+\textbf{Ví dụ:} Tung một con xúc xắc, không gian mẫu: \( \Omega = \{1, 2, 3, 4, 5, 6\} \).  
+Biến cố \( A \): "ra số chẵn" \( = \{2, 4, 6\} \Rightarrow m = 3, n = 6 \)  
+\[
+P(A) = \frac{3}{6} = \frac{1}{2}
+\]
+
+\subsection{Xác suất có điều kiện}
+\begin{tcolorbox}[title= ,coltitle =black,fonttitle=\large\bfseries, colback=green!5!white,colframe=green!75!black]
+Xác suất biến cố \( A \) xảy ra với điều kiện \( B \) đã xảy ra:
+\[
+P(A|B) = \frac{P(A \cap B)}{P(B)} \quad \text{với } P(B) > 0
+\]
+\end{tcolorbox}
+\textbf{Ví dụ:}  
+\( A = \{2, 4, 6\} \): "ra số chẵn"  
+\( B = \{4, 5, 6\} \): "ra số lớn hơn 3"  
+\[
+A \cap B = \{4, 6\}, \quad P(A \cap B) = \frac{2}{6}, \quad P(B) = \frac{3}{6}
+\]
+\[
+P(A|B) = \frac{\frac{2}{6}}{\frac{3}{6}} = \frac{2}{3}
+\]
+
+\subsection{Các phép tính trong xác suất}
+
+
+\subsubsection{Quy tắc cộng (Additive Rule)}
+\begin{tcolorbox}[title= ,coltitle =black,fonttitle=\large\bfseries, colback=green!5!white,colframe=green!75!black]
+Nếu \( A \) và \( B \) là hai biến cố bất kỳ, thì:
+\[
+P(A \cup B) = P(A) + P(B) - P(A \cap B)
+\]
+
+\textbf{Trường hợp đặc biệt:} Nếu \( A \cap B = \varnothing \) (hai biến cố xung khắc), thì:
+\[
+P(A \cup B) = P(A) + P(B)
+\]
+\end{tcolorbox}
+\textbf{Ví dụ:} Một lớp học có 20 học sinh nam và 15 học sinh nữ. Chọn ngẫu nhiên một học sinh.
+
+Gọi \( A \): "chọn được học sinh nam"  
+Gọi \( B \): "chọn được học sinh nữ"  
+
+Vì mỗi học sinh thuộc chỉ một giới tính, nên \( A \cap B = \varnothing \), và:
+\[
+P(A) = \frac{20}{35}, \quad P(B) = \frac{15}{35}
+\]
+\[
+P(A \cup B) = P(A) + P(B) = \frac{20 + 15}{35} = 1
+\]
+
+
+\subsubsection{Quy tắc nhân (Multiplicative Rule)}
+\begin{tcolorbox}[title= ,coltitle =black,fonttitle=\large\bfseries, colback=green!5!white,colframe=green!75!black]
+\begin{itemize}
+    \item \textbf{Quy tắc tích tổng quát:}
+    \[
+    P(A_1, A_2, \ldots, A_n) = P(A_1) \cdot P(A_2|A_1) \cdot P(A_3|A_1, A_2) \cdots P(A_n|A_1, A_2, \ldots, A_{n-1})
+    \]
+
+    \item \textbf{Công thức xác suất giao khi biết xác suất có điều kiện:}
+    \[
+    P(A \cap B) = P(A|B) \cdot P(B)
+    \]
+
+    \item \textbf{Nếu \( A \) và \( B \) độc lập, thì:}
+    \[
+    P(A \cap B) = P(A) \cdot P(B)
+    \]
+\end{itemize}
+\end{tcolorbox}
+
+\textbf{Ví dụ:} Một hộp có 3 bi đỏ và 2 bi xanh. Lấy lần lượt 2 viên bi không hoàn lại.
+
+Gọi:
+- \( A \): "bi đầu là đỏ"
+- \( B \): "bi thứ hai là đỏ"
+
+Ta có:
+\[
+P(A) = \frac{3}{5}, \quad P(B|A) = \frac{2}{4}
+\Rightarrow P(A \cap B) = P(A) \cdot P(B|A) = \frac{3}{5} \cdot \frac{2}{4} = \frac{3}{10}
+\]
+
+
+\section{Định lý xác suất toàn phần và Định lý Bayes}
+
+\subsection{Định lý xác suất toàn phần}
+\begin{tcolorbox}[title= ,coltitle =black,fonttitle=\large\bfseries, colback=green!5!white,colframe=green!75!black]
+Giả sử không gian mẫu \( \Omega \) được chia thành các biến cố \( B_1, B_2, \ldots, B_n \) sao cho:
+\begin{itemize}
+  \item \( B_i \cap B_j = \varnothing \quad \text{với } i \ne j \) (các biến cố không giao nhau),
+  \item \( \bigcup_{i=1}^n B_i = \Omega \) (phủ toàn bộ không gian mẫu),
+  \item \( P(B_i) > 0 \quad \text{với mọi } i \).
+\end{itemize}
+
+Khi đó, với mọi biến cố \( A \subset \Omega \), ta có công thức:
+\[
+P(A) = \sum_{i=1}^{n} P(B_i) \cdot P(A \mid B_i)
+\]
+\end{tcolorbox}
+\textbf{Ví dụ:} Có ba hộp bi:
+\begin{itemize}
+    \item Hộp 1: 2 bi đỏ, 3 bi xanh
+    \item Hộp 2: 4 bi đỏ, 1 bi xanh
+    \item Hộp 3: 3 bi đỏ, 3 bi xanh
+\end{itemize}
+Chọn ngẫu nhiên một hộp (xác suất chọn mỗi hộp là \( \frac{1}{3} \)), sau đó lấy ngẫu nhiên 1 viên bi từ hộp đó.
+
+Tính xác suất lấy được bi đỏ.
+
+Gọi:
+\begin{itemize}
+    \item \( B_1, B_2, B_3 \): chọn hộp 1, 2, 3 tương ứng
+    \item \( A \): biến cố "lấy được bi đỏ"
+\end{itemize}
+
+Ta có:
+\[
+P(A) = \sum_{i=1}^3 P(B_i) \cdot P(A \mid B_i)
+= \frac{1}{3} \cdot \frac{2}{5}
++ \frac{1}{3} \cdot \frac{4}{5}
++ \frac{1}{3} \cdot \frac{3}{6}
+= \frac{1}{3} \left( \frac{2}{5} + \frac{4}{5} + \frac{1}{2} \right)
+= \frac{1}{3} \cdot \left( \frac{6}{5} + \frac{1}{2} \right)
+= \frac{1}{3} \cdot \frac{17}{10}
+= \frac{17}{30}
+\]
+
+\subsection{Định lý Bayes}
+\begin{tcolorbox}[title= ,coltitle =black,fonttitle=\large\bfseries, colback=green!5!white,colframe=green!75!black]
+Nếu \( B_1, B_2, \ldots, B_n \) không giao nhau, và phủ toàn bộ \( \Omega \), với \( P(B_i) > 0 \), và \( A \) là biến cố có \( P(A) > 0 \), thì xác suất có điều kiện của \( B_k \) khi biết \( A \) được tính bởi:
+
+\[
+P(B_k \mid A) = \frac{P(B_k) \cdot P(A \mid B_k)}{\sum_{i=1}^{n} P(B_i) \cdot P(A \mid B_i)}
+\]
+\end{tcolorbox}
+
+\textbf{Ví dụ:} Tiếp tục từ ví dụ trên, giả sử ta đã rút được một viên bi đỏ. Tính xác suất viên bi đó đến từ hộp 2.
+
+Ta cần tính \( P(B_2 \mid A) \), với:
+\[
+P(B_2 \mid A) = \frac{P(B_2) \cdot P(A \mid B_2)}{P(A)}
+= \frac{\frac{1}{3} \cdot \frac{4}{5}}{\frac{17}{30}}
+= \frac{\frac{4}{15}}{\frac{17}{30}}
+= \frac{4}{15} \cdot \frac{30}{17}
+= \frac{120}{255}
+= \frac{8}{17}
+\]
+
+
+
+\section{Simple Classification}
+
+\subsection{Định Lý Bayes với một feature}
+\begin{tcolorbox}[title= ,coltitle =black,fonttitle=\large\bfseries, colback=green!5!white,colframe=green!75!black]
+Giả sử ta muốn tính xác suất của một lớp \( C = c \) dựa trên một đặc trưng đầu vào \( X = x \). Khi đó, theo định lý Bayes:
+
+\[
+P(C = c \mid X = x) = \frac{P(X = x \mid C = c) \cdot P(C = c)}{P(X = x)}
+\]
+
+
+Ví dụ với hai lớp:
+\[
+P(C = c_1 \mid X = x) = ?, \quad P(C = c_2 \mid X = x) = ?
+\]
+\end{tcolorbox}
+
+\subsection{Ví dụ: Kết quả học tập}
+
+Giả sử ta có dữ liệu xác suất về việc học sinh có học hay không và kết quả thi:
+
+\begin{align*}
+P(res = pass \mid stud = yes) &= \frac{P(stud = yes \mid res = pass) \cdot P(res = pass)}{P(stud = yes)} \\
+P(res = fail \mid stud = yes) &= \frac{P(stud = yes \mid res = fail) \cdot P(res = fail)}{P(stud = yes)}
+\end{align*}
+
+\subsection{Mã Python minh họa}
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+# Giả sử dữ liệu xác suất đã biết:
+P_stud_given_pass = 0.8
+P_pass = 0.6
+P_stud_given_fail = 0.3
+P_fail = 0.4
+P_stud = P_stud_given_pass * P_pass + P_stud_given_fail * P_fail
+
+# Áp dụng định lý Bayes:
+P_pass_given_stud = (P_stud_given_pass * P_pass) / P_stud
+P_fail_given_stud = (P_stud_given_fail * P_fail) / P_stud
+
+print("P(pass | stud = yes):", round(P_pass_given_stud, 3))
+print("P(fail | stud = yes):", round(P_fail_given_stud, 3))
+\end{minted}
+
+\textbf{Kết quả:}  
+Nếu sinh viên học (\texttt{stud = yes}), thì:
+\[
+P(pass \mid stud = yes) \approx 0.8, \quad P(fail \mid stud = yes) \approx 0.2
+\]
+

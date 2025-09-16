@@ -1,0 +1,361 @@
+
+\begin{center}
+    \Large\textbf{Pandas Cơ Bản – Từ Lý Thuyết Đến Ứng Dụng Thực Tế}
+\end{center}
+
+\begin{center}
+    \Large\textit{Đàm Nguyên Khánh}
+\end{center}
+
+\section{Giới thiệu về Pandas}
+Pandas là một thư viện mã nguồn mở của Python, xây dựng dựa trên \textbf{NumPy}, cung cấp các cấu trúc dữ liệu mạnh mẽ và công cụ phân tích dữ liệu thuận tiện.  
+Nó được dùng rộng rãi trong khoa học dữ liệu (\textit{Data Science}), phân tích dữ liệu (\textit{Data Analysis}) và xử lý dữ liệu thời gian thực.
+
+\textbf{Quy trình phân tích dữ liệu} thường gồm:
+\begin{enumerate}
+    \item Thu thập dữ liệu (\textit{Collecting})
+    \item Làm sạch dữ liệu (\textit{Cleaning})
+    \item Chuyển đổi dữ liệu (\textit{Transforming})
+    \item Phân tích và mô hình hóa (\textit{Modeling})
+    \item Kết luận \& ra quyết định (\textit{Decision-making})
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{projects/BasicPandas/Image/DA.png}
+    \caption{Sơ đồ quy trình phân tích dữ liệu gồm 5 bước: Thu thập, Làm sạch, Chuyển đổi, Mô hình hóa, và Ra quyết định.}
+    \label{fig:data-analysis-process}
+\end{figure}
+
+
+% =======================
+\section{Cấu trúc dữ liệu trong Pandas}
+\subsection{Series}
+\begin{itemize}
+    \item \textbf{Series} là mảng một chiều (1D array) có nhãn (\textit{index}) cho từng phần tử.
+    \item Có thể chứa bất kỳ kiểu dữ liệu: số, chuỗi, giá trị boolean, object...
+    \item Tương tự như một cột trong bảng Excel.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{projects/BasicPandas/Image/Series.png}
+    \caption{Bảng Series: 1 cột với index và value.}
+    \label{fig:series-example}
+\end{figure}
+
+
+\subsection{DataFrame}
+\begin{itemize}
+    \item \textbf{DataFrame} là cấu trúc hai chiều (2D table) gồm nhiều Series ghép lại.
+    \item Mỗi cột có thể chứa kiểu dữ liệu khác nhau.
+    \item Tương tự như bảng Excel hoặc SQL table.
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{projects/BasicPandas/Image/dataframe.png}
+    \caption{Bảng DataFrame: Nhiều cột (Name, Gender, Age) và chỉ số hàng.}
+    \label{fig:dataframe-example}
+\end{figure}
+
+% =======================
+\section{Các thao tác cơ bản với DataFrame}
+\subsection{Đọc và ghi dữ liệu}
+
+\begin{minted}[fontsize=\small,breaklines]{python}
+import pandas as pd              # 1. Import thư viện pandas và đặt bí danh (alias) là 'pd'
+                                  #    - pandas: thư viện xử lý dữ liệu dạng bảng (DataFrame, Series)
+                                  #    - alias 'pd' giúp viết code ngắn gọn hơn
+
+# Đọc CSV
+df = pd.read_csv("pokemon.csv")   # 2. Đọc dữ liệu từ file CSV và lưu vào biến df (DataFrame)
+                                  #    - "pokemon.csv": đường dẫn hoặc tên file cần đọc
+                                  #    - pd.read_csv: hàm của pandas để đọc file CSV
+                                  #    - df (DataFrame): cấu trúc dữ liệu 2 chiều, giống bảng Excel
+
+# Ghi CSV
+df.to_csv("output.csv", index=False)  # 3. Ghi dữ liệu từ df ra file CSV mới
+                                      #    - "output.csv": tên file xuất ra
+                                      #    - index=False: không ghi cột chỉ số (index) vào file CSV
+                                      #    - Nếu không có index=False, pandas sẽ tự thêm cột index vào file
+
+# Ghi Excel
+df.to_excel("output.xlsx", index=False)  # 4. Ghi dữ liệu ra file Excel (.xlsx)
+                                         #    - Yêu cầu cài thêm thư viện hỗ trợ (ví dụ: openpyxl hoặc xlsxwriter)
+                                         #    - index=False: không xuất cột index
+\end{minted}
+
+\noindent\textbf{Giải thích thêm:}
+\begin{itemize}
+    \item \texttt{pd.read\_csv()} là hàm phổ biến nhất trong Pandas để đọc dữ liệu từ tệp CSV.
+    \item Khi lưu dữ liệu bằng \texttt{to\_csv()} hoặc \texttt{to\_excel()}, tham số \texttt{index=False} thường được dùng để tránh xuất cột chỉ số vì nhiều trường hợp không cần thiết cho phân tích.
+    \item Các hàm này có thể nhận nhiều tham số bổ sung, ví dụ:
+    \begin{itemize}
+        \item \texttt{sep=";"}: dùng khi file CSV phân cách bằng dấu chấm phẩy.
+        \item \texttt{encoding="utf-8"} hoặc \texttt{"utf-8-sig"}: tránh lỗi font tiếng Việt.
+        \item \texttt{sheet\_name="Data"} (với Excel): đặt tên sheet khi xuất file.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Xem thông tin dữ liệu}
+
+\begin{minted}[fontsize=\small,breaklines]{python}
+df.head(5)       # 1. Hiển thị 5 dòng đầu tiên của DataFrame 'df'
+                 #    - Mặc định: df.head() sẽ hiển thị 5 dòng nếu không truyền tham số
+                 #    - Tham số: số nguyên n => df.head(n) hiển thị n dòng đầu
+
+df.tail(5)       # 2. Hiển thị 5 dòng cuối cùng của DataFrame 'df'
+                 #    - Mặc định: df.tail() cũng hiển thị 5 dòng nếu không truyền tham số
+                 #    - Thường dùng để kiểm tra dữ liệu cuối cùng hoặc đảm bảo việc đọc file đầy đủ
+
+df.describe()    # 3. Thống kê nhanh các giá trị số trong DataFrame
+                 #    - Bao gồm: count (số lượng), mean (trung bình), std (độ lệch chuẩn),
+                 #      min, max, và các phân vị (25%, 50%, 75%)
+                 #    - Chỉ áp dụng mặc định cho cột dạng số, nếu muốn áp dụng cho mọi cột:
+                 #      df.describe(include='all')
+
+df.info()        # 4. Thông tin tổng quát về DataFrame
+                 #    - Số dòng, số cột, tên cột
+                 #    - Kiểu dữ liệu của từng cột (int64, float64, object...)
+                 #    - Số giá trị không null của mỗi cột
+                 #    - Dùng để kiểm tra dữ liệu bị thiếu (missing values)
+\end{minted}
+
+\noindent\textbf{Giải thích thêm:}
+\begin{itemize}
+    \item \texttt{df.head()} và \texttt{df.tail()} rất hữu ích khi dữ liệu có hàng nghìn dòng, giúp xem nhanh một phần dữ liệu mà không in toàn bộ.
+    \item \texttt{df.describe()} hỗ trợ cả dữ liệu dạng ngày tháng nếu dùng \texttt{include=[np.datetime64]}.
+    \item \texttt{df.info()} là công cụ chẩn đoán nhanh cấu trúc dữ liệu, đặc biệt quan trọng trước khi bắt đầu tiền xử lý.
+\end{itemize}
+
+\subsection{Lựa chọn cột và hàng}
+
+\begin{minted}[fontsize=\small,breaklines]{python}
+df['Name']                   # 1. Chọn một cột duy nhất "Name"
+                             #    - Kết quả: một Pandas Series
+                             #    - Cú pháp: df['tên_cột']
+
+df[['Name', 'Type 1']]       # 2. Chọn nhiều cột "Name" và "Type 1"
+                             #    - Kết quả: một Pandas DataFrame
+                             #    - Cú pháp: df[['cột1', 'cột2', ...]]
+                             #    - Lưu ý: cần đặt danh sách tên cột trong một list []
+
+df.iloc[0:5]                 # 3. Chọn các hàng theo vị trí index (dạng số nguyên)
+                             #    - .iloc: truy cập dữ liệu dựa trên chỉ số hàng/cột
+                             #    - 0:5 nghĩa là chọn từ hàng 0 đến hàng 4 (Python cắt trước giới hạn cuối)
+                             #    - Mặc định lấy tất cả cột
+
+df.loc[0:5, 'Name']          # 4. Chọn dữ liệu theo nhãn (label) của index
+                             #    - .loc: truy cập theo tên (label) của index và tên cột
+                             #    - 0:5 ở đây bao gồm cả hàng 5 (khác với .iloc)
+                             #    - 'Name': chỉ lấy cột "Name"
+                             #    - Kết quả: Series gồm các giá trị ở cột Name từ hàng 0 tới hàng 5
+\end{minted}
+
+\noindent\textbf{Giải thích thêm:}
+\begin{itemize}
+    \item Khi dùng \texttt{df['Name']} kết quả là một \textbf{Series}, còn \texttt{df[['Name']]} vẫn là \textbf{DataFrame}.
+    \item \textbf{\texttt{.iloc}} (integer-location) chỉ dùng chỉ số nguyên (0, 1, 2, \dots).
+    \item \textbf{\texttt{.loc}} (label-location) cho phép truy cập theo tên hàng và tên cột.
+    \item Với \texttt{.loc[start:end]} thì cả \texttt{end} vẫn được bao gồm, khác với \texttt{.iloc[start:end]}.
+\end{itemize}
+
+\subsection{Thêm và xóa cột}
+
+\begin{minted}[fontsize=\small,breaklines]{python}
+df.drop('Type 2', axis=1, inplace=True)  
+# 1. Xóa cột "Type 2"
+#    - df.drop(): hàm dùng để xóa hàng hoặc cột khỏi DataFrame
+#    - 'Type 2': tên cột cần xóa
+#    - axis=1: chỉ định xóa theo chiều cột (axis=0 là chiều hàng)
+#    - inplace=True: thay đổi trực tiếp trên DataFrame gốc (nếu False sẽ trả về bản sao)
+
+df['Power'] = df['Attack'] + df['Defense']  
+# 2. Thêm cột mới "Power"
+#    - df['Power']: tên cột mới, nếu chưa tồn tại sẽ được tạo
+#    - df['Attack'] + df['Defense']: phép cộng từng phần tử (element-wise) của hai cột
+#    - Kết quả: cột Power chứa tổng Attack và Defense cho từng hàng
+\end{minted}
+
+\noindent\textbf{Giải thích thêm:}
+\begin{itemize}
+    \item \texttt{axis} trong Pandas:
+    \begin{itemize}
+        \item \texttt{axis=0}: thao tác theo chiều dọc (hàng).
+        \item \texttt{axis=1}: thao tác theo chiều ngang (cột).
+    \end{itemize}
+    \item Khi thêm cột mới, giá trị có thể được tính từ các cột khác hoặc gán cố định.
+    \item Nên cẩn thận với \texttt{inplace=True} vì sẽ thay đổi trực tiếp dữ liệu gốc, không thể hoàn tác nếu chưa lưu.
+\end{itemize}
+
+\subsection{Sắp xếp và lọc dữ liệu}
+
+\begin{minted}[fontsize=\small,breaklines]{python}
+df.sort_values('Attack', ascending=False)      
+# 1. Sắp xếp DataFrame theo cột "Attack" giảm dần
+#    - df.sort_values(): hàm sắp xếp theo giá trị của một hoặc nhiều cột
+#    - 'Attack': tên cột dùng để sắp xếp
+#    - ascending=False: sắp xếp giảm dần (True: tăng dần)
+#    - Có thể sắp xếp nhiều cột:
+#      df.sort_values(['Type 1', 'Attack'], ascending=[True, False])
+
+df[df['Type 1'] == 'Fire']                     
+# 2. Lọc dữ liệu theo điều kiện logic
+#    - df['Type 1'] == 'Fire': tạo một Series kiểu boolean (True/False)
+#    - df[...] : chỉ giữ lại những hàng mà điều kiện trong [...] là True
+#    - Kết quả: DataFrame chỉ chứa các Pokémon hệ "Fire"
+
+df[df['Name'].str.contains('^Pi[a-z]*')]       
+# 3. Lọc dữ liệu bằng biểu thức chính quy (Regex)
+#    - df['Name'].str.contains(): kiểm tra chuỗi trong cột Name có khớp pattern không
+#    - '^Pi[a-z]*':
+#         ^   : bắt đầu chuỗi
+#         Pi  : ký tự 'Pi'
+#         [a-z]* : 0 hoặc nhiều ký tự thường từ a đến z
+#    - Kết quả: các Pokémon có tên bắt đầu bằng "Pi", ví dụ: Pikachu, Pidgey
+#    - Thêm tham số case=False nếu muốn không phân biệt hoa thường
+\end{minted}
+
+\noindent\textbf{Giải thích thêm:}
+\begin{itemize}
+    \item Sắp xếp dữ liệu giúp tìm giá trị lớn nhất/nhỏ nhất nhanh chóng.
+    \item Lọc điều kiện trong Pandas thường kết hợp nhiều điều kiện:
+    \begin{minted}[fontsize=\small,breaklines]{python}
+df[(df['Type 1'] == 'Fire') & (df['Attack'] > 70)]
+    \end{minted}
+    \item Regex cho phép tìm kiếm linh hoạt, rất hữu ích khi dữ liệu chứa tên hoặc chuỗi phức tạp.
+\end{itemize}
+
+
+\subsection{Nhóm dữ liệu (GroupBy)}
+
+\begin{minted}[fontsize=\small,breaklines]{python}
+df.groupby('Type 1')['Attack'].mean()
+# 1. df.groupby('Type 1'):
+#       - Nhóm các hàng trong DataFrame theo giá trị của cột "Type 1".
+#       - Mỗi nhóm sẽ chứa tất cả Pokémon có cùng hệ (ví dụ: Fire, Water, Grass...).
+#
+# 2. ['Attack']:
+#       - Sau khi nhóm, chỉ chọn cột "Attack" để tính toán.
+#
+# 3. .mean():
+#       - Tính giá trị trung bình (mean) của Attack cho từng nhóm.
+#
+# Kết quả: Một Pandas Series với:
+#       - Index: tên từng nhóm (các giá trị trong "Type 1")
+#       - Value: Attack trung bình của nhóm đó
+\end{minted}
+
+\noindent\textbf{Ví dụ:}
+\begin{minted}[fontsize=\small,breaklines]{text}
+Type 1
+Bug       55.23
+Electric  76.50
+Fire      82.33
+Grass     65.40
+Water     70.12
+Name: Attack, dtype: float64
+\end{minted}
+
+\noindent\textbf{Giải thích thêm:}
+\begin{itemize}
+    \item \texttt{groupby} có thể áp dụng nhiều hàm thống kê khác nhau:
+    \begin{minted}[fontsize=\small,breaklines]{python}
+df.groupby('Type 1')['Attack'].max()    # Lấy giá trị Attack lớn nhất
+df.groupby('Type 1')['Attack'].min()    # Lấy giá trị Attack nhỏ nhất
+df.groupby('Type 1')['Attack'].sum()    # Tổng Attack theo nhóm
+    \end{minted}
+    \item Có thể nhóm theo nhiều cột:
+    \begin{minted}[fontsize=\small,breaklines]{python}
+df.groupby(['Type 1', 'Type 2'])['Attack'].mean()
+    \end{minted}
+    \item Nếu muốn kết quả là DataFrame thay vì Series, dùng \texttt{reset\_index()}:
+    \begin{minted}[fontsize=\small,breaklines]{python}
+df.groupby('Type 1')['Attack'].mean().reset_index()
+    \end{minted}
+\end{itemize}
+
+% =======================
+\section{Ứng dụng thực tế}
+\subsection{Phân tích dữ liệu Pokémon}
+\begin{itemize}
+    \item Đọc file CSV Pokémon.
+    \item Xem các chỉ số quan trọng (\texttt{HP}, \texttt{Attack}, \texttt{Defense}…).
+    \item Lọc các Pokémon Legendary.
+    \item Sắp xếp theo tổng chỉ số (\texttt{Total}).
+\end{itemize}
+
+\subsection{Phân tích dữ liệu thời gian (Time Series)}
+Dataset: \textbf{Daily Minimum Temperatures}.
+\begin{enumerate}
+    \item Đọc dữ liệu thời gian.
+    \item Đặt cột \texttt{Date} làm index.
+    \item Trích xuất \textbf{năm}, \textbf{tháng}, \textbf{ngày trong tuần}.
+    \item Lọc dữ liệu theo khoảng thời gian.
+    \item Trực quan hóa nhiệt độ theo thời gian.
+\end{enumerate}
+
+\subsection{Resampling \& Seasonality}
+\begin{itemize}
+    \item \textbf{Resampling}: Chuyển đổi tần suất dữ liệu (ngày → tuần hoặc tháng).
+    \item \textbf{Downsampling}: Giảm tần suất (ví dụ: trung bình nhiệt độ theo tháng).
+    \item \textbf{Upsampling}: Tăng tần suất (thêm ngày bị thiếu, dùng \texttt{ffill()} để điền).
+\end{itemize}
+
+% =======================
+\section{Kết luận}
+Pandas là thư viện nền tảng cho mọi dự án phân tích dữ liệu trong Python.  
+Hiểu rõ Series, DataFrame, và các thao tác cơ bản sẽ giúp bạn:
+\begin{itemize}
+    \item Làm sạch dữ liệu nhanh chóng.
+    \item Chuẩn bị dữ liệu cho Machine Learning.
+    \item Trực quan hóa và báo cáo hiệu quả.
+\end{itemize}
+
+\noindent\textbf{Mindmap tổng kết kiến thức Pandas}
+
+\begin{verbatim}
+Pandas
+│
+├── 1. Cấu trúc dữ liệu
+│     ├── Series
+│     └── DataFrame
+│
+├── 2. Các thao tác cơ bản
+│     ├── Đọc / Ghi dữ liệu
+│     │     ├── read_csv, read_excel
+│     │     └── to_csv, to_excel
+│     ├── Xem thông tin
+│     │     ├── head, tail
+│     │     ├── describe
+│     │     └── info
+│     ├── Lựa chọn dữ liệu
+│     │     ├── Chọn cột: df['col'], df[['col1','col2']]
+│     │     ├── Chọn hàng: iloc, loc
+│     │     └── Điều kiện lọc
+│     ├── Thêm / Xóa cột
+│     │     ├── drop(axis=1)
+│     │     └── Gán cột mới từ phép tính
+│     ├── Sắp xếp / Lọc
+│     │     ├── sort_values
+│     │     └── Điều kiện + Regex
+│     └── GroupBy
+│           ├── mean, max, min, sum
+│           └── groupby nhiều cột
+│
+├── 3. Ứng dụng
+│     ├── Phân tích Pokémon Dataset
+│     │     ├── Lọc Legendary
+│     │     └── Thống kê Attack, Defense
+│     └── Phân tích Time Series
+│           ├── Chuyển đổi index thành DateTime
+│           ├── Trích xuất ngày, tháng, năm
+│           ├── Resampling
+│           └── Seasonality
+│
+└── 4. Kết luận
+      ├── Pandas là nền tảng xử lý dữ liệu trong Python
+      ├── Thành thạo các thao tác cơ bản trước khi ML
+      └── Kết hợp với NumPy, Matplotlib để mạnh hơn
+\end{verbatim}
+

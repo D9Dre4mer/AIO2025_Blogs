@@ -1,0 +1,242 @@
+\begin{center}
+    \LARGE{Trực quan hóa và phân tích dữ liệu với Pandas}
+\end{center}
+\begin{center}
+    \large{\textit{Dao Lam Hoang}}
+\end{center}
+
+\section*{Giới thiệu}
+Pandas là một thư viện Python mạnh mẽ và phổ biến trong lĩnh vực phân tích dữ liệu, cung cấp các cấu trúc dữ liệu linh hoạt như \texttt{Series} và \texttt{DataFrame}. Với Pandas, người dùng có thể thao tác, làm sạch, và biến đổi dữ liệu một cách nhanh chóng, đồng thời kết hợp với các thư viện trực quan hóa như Matplotlib hay Seaborn để phân tích và truyền tải thông tin trực quan hơn.  
+
+Tài liệu này tập trung vào việc minh họa các thao tác cơ bản và quan trọng nhất với Pandas, bao gồm:
+\begin{itemize}
+    \item Làm việc với \texttt{Series} và các hàm thường dùng.
+    \item Quản lý dữ liệu thiếu và xử lý dữ liệu dạng bảng với \texttt{DataFrame}.
+    \item Thực hiện các thao tác nối, lọc, sắp xếp và truy xuất dữ liệu.
+    \item Trực quan hóa dữ liệu để hỗ trợ quá trình phân tích.
+\end{itemize}
+Thông qua các ví dụ cụ thể và hình ảnh minh họa, người đọc có thể dễ dàng nắm bắt cách ứng dụng Pandas trong các tình huống thực tế.
+
+\section{Pandas Series}
+\subsection{Bắt đầu với Series}
+
+\subsubsection*{Tạo một Series}
+\begin{figure}[h]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \begin{minted}[fontsize=\small]{python}
+import pandas as pd
+
+data = pd.Series([5, 7, 5, 1, 6], name='num_dropped')
+        \end{minted}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{projects/PandasV/Image/createserire.png}
+    \end{minipage}
+\end{figure}
+
+\subsubsection*{Lấy hàng từ Series}
+\begin{figure}[h]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \begin{minted}[fontsize=\small]{python}
+# Lấy từ dòng 2 đến 3 (bao gồm 3)
+result = data.loc[2:3]
+
+# Lấy dòng 2 (không bao gồm dòng 3)
+result = data[2]
+
+# Lấy những giá trị giữa 3 và 6
+result = data[data.between(3,6)]
+
+# Lấy những giá trị lớn hơn 5
+result = data[data > 5]
+        \end{minted}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{projects/PandasV/Image/getrow.png}
+    \end{minipage}
+\end{figure}
+
+\subsubsection*{Xoá hàng}
+\begin{figure}[h]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \begin{minted}[fontsize=\small]{python}
+# Xoá phần tử có chỉ số 2
+result = data.drop(2)
+
+# Xoá phần tử có chỉ số 2 và 4
+result = data.drop([2, 4])
+        \end{minted}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{projects/PandasV/Image/droprow.png}
+    \end{minipage}
+\end{figure}
+
+\subsubsection*{Chèn hàng}
+\begin{figure}[h]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \begin{minted}[fontsize=\small]{python}
+# Thêm giá trị 9 vào chỉ số 2.5
+data[2.5] = 9
+
+# Sắp xếp lại chỉ số
+data.sort_index(inplace=True)
+
+# Đặt lại chỉ số mới
+data.reset_index(drop=True, inplace=True)
+        \end{minted}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=1.3\textwidth]{projects/PandasV/Image/insertrow.png}
+    \end{minipage}
+\end{figure}
+
+\subsection{Một số hàm thường dùng trong Series}
+\subsubsection*{Hàm thống kê}
+\begin{minted}[fontsize=\small]{python}
+data.min()     # -> 1
+data.max()     # -> 7
+data.sum()     # -> 24
+data.mean()    # -> 4.8
+data.std()     # -> 2.28
+data.var()     # -> 5.2
+data.idxmax()  # -> 1
+data.argmax()  # -> 1
+\end{minted}
+
+\subsubsection*{Cộng hai Series}
+\begin{figure}[h]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \begin{minted}[fontsize=\small]{python}
+center1 = pd.Series([12, 23, 31, 11, 9],
+                   index=['C++', 'Golang', 'Java', 'Python', 'Swift'],
+                   name='num_registered')
+
+center2 = pd.Series([42, 18, 44, 49, 27],
+                   index=['C++', 'Golang', 'Java', 'Python', 'Swift'],
+                   name='num_registered')
+
+total = center1 + center2
+        \end{minted}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=1.4\textwidth]{projects/PandasV/Image/addserie.png}
+    \end{minipage}
+\end{figure}
+
+
+\subsubsection*{Xử lý giá trị thiếu}
+\begin{figure}[h]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \begin{minted}[fontsize=\small]{python}
+import numpy as np
+
+data = pd.Series([1, 6, 3, 8, np.nan, 7, np.nan, 2],
+                 name='num_dropped')
+
+# Loại bỏ giá trị NaN
+data.dropna()
+
+# Thay thế NaN bằng 1.0
+data.fillna(1.0)
+
+# Nội suy giá trị
+data.interpolate()
+        \end{minted}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=1.2\textwidth]{projects/PandasV/Image/nanserie.png}
+    \end{minipage}
+\end{figure}
+
+\section{DataFrame}
+\subsection*{Một số thao tác cơ bản}
+
+\subsubsection*{Tạo DataFrame từ file}
+\begin{minted}[fontsize=\small]{python}
+df = pd.read_csv('advertising.csv')
+print(df)
+\end{minted}
+
+\subsubsection*{Sắp xếp dữ liệu}
+\begin{minted}[fontsize=\small]{python}
+# Sắp xếp theo cột Sales
+df.sort_values('Sales')
+
+# Sắp xếp theo nhiều cột
+df.sort_values(['Radio', 'Newspaper', 'Sales'])
+\end{minted}
+
+\subsubsection*{Xoá dòng trong DataFrame}
+\begin{minted}[fontsize=\small]{python}
+# Xoá dòng có chỉ số 1
+df.drop(1, axis=0)
+
+# Xoá nhiều dòng
+df.drop([1, 2, 3], axis=0)
+\end{minted}
+
+\subsubsection*{Lấy dữ liệu từ DataFrame}
+\begin{minted}[fontsize=\small]{python}
+# Lấy cột
+df['Radio']
+df[['Radio', 'Sales']]
+\end{minted}
+
+\subsection*{Sử dụng loc và iloc}
+\begin{itemize}
+    \item \textbf{loc:} Dùng để truy cập theo nhãn (label).
+    \item \textbf{iloc:} Dùng để truy cập theo vị trí (index).
+\end{itemize}
+
+\begin{minted}[fontsize=\small]{python}
+df.loc[['E', 'G'], :]
+\end{minted}
+
+\subsection*{Nối nhiều DataFrame}
+\begin{minted}[fontsize=\small]{python}
+df_1 = pd.read_csv('ads_1.csv')
+df_2 = pd.read_csv('ads_2.csv')
+
+df_3 = pd.concat([df_1, df_2], ignore_index=True)
+\end{minted}
+
+\section{Trực quan hóa dữ liệu}
+\begin{minted}[fontsize=\small]{python}
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+data = pd.read_csv('iris.csv')
+\end{minted}
+
+\includegraphics[width=\textwidth]{projects/PandasV/Image/visualization.png}
+
+\section*{Kết luận}
+Qua các ví dụ và hướng dẫn trong tài liệu, ta có thể thấy rằng Pandas đóng vai trò quan trọng trong quy trình phân tích dữ liệu — từ khâu tiền xử lý, quản lý dữ liệu, cho đến trực quan hóa. Sự kết hợp giữa cú pháp dễ đọc, tốc độ xử lý nhanh và khả năng tương tác tốt với các thư viện Python khác giúp Pandas trở thành công cụ không thể thiếu đối với nhà phân tích dữ liệu và nhà khoa học dữ liệu.  
+
+Việc nắm vững các thao tác cơ bản như tạo \texttt{Series}, \texttt{DataFrame}, xử lý dữ liệu thiếu, sắp xếp và lọc dữ liệu sẽ tạo nền tảng vững chắc để bạn tiếp tục khai thác các tính năng nâng cao như \texttt{groupby}, \texttt{merge}, hoặc áp dụng các kỹ thuật phân tích thống kê và học máy trên dữ liệu đã chuẩn bị.

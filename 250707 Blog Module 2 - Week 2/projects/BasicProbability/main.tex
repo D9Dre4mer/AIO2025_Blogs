@@ -1,0 +1,222 @@
+
+\begin{center}
+    \Large\textbf{Xác suất Cơ bản}
+\end{center}
+
+\begin{center}
+    \Large\textit{Bùi Đức Xuân}
+\end{center}
+
+\subsection*{\textbf{1. Giới Thiệu Về Xác Suất}}
+Xác suất được định nghĩa là một thước đo về khả năng xảy ra của một sự kiện [1, 2].
+
+\subsubsection*{\textbf{1.1. Thí Nghiệm và Sự Kiện}}
+\begin{itemize}
+    \item \textbf{Thí nghiệm (Experiment)}: Việc thực hiện một tập hợp các điều kiện cơ bản để quan sát một hiện tượng nhất định.
+    \item \textbf{Kết quả (Outcome)}: Một kết quả của một thí nghiệm.
+    \item \textbf{Không gian mẫu (Sample Space - S)}: Tập hợp tất cả các kết quả có thể xảy ra của một thí nghiệm.
+    \begin{itemize}
+        \item Ví dụ: Tung một đồng xu có không gian mẫu $S = \{\text{heads, tails}\}$.
+        \item Ví dụ: Gieo một con xúc xắc có không gian mẫu $S = \{1, 2, 3, 4, 5, 6\}$.
+    \end{itemize}
+    \item \textbf{Sự kiện (Event)}: Một tập con của không gian mẫu.
+\end{itemize}
+
+\subsubsection*{\textbf{1.2. Mối Quan Hệ Giữa Các Sự Kiện}}
+Giả sử A và B là hai sự kiện trong cùng một thí nghiệm.
+\begin{itemize}
+    \item \textbf{Kéo theo (Implication)}: "Sự kiện A kéo theo sự kiện B" có nghĩa là nếu sự kiện A xảy ra, thì sự kiện B cũng xảy ra. Ký hiệu $A \Rightarrow B$, tương đương với $A \subseteq B$.
+    \item \textbf{Tương đương (Equivalent)}: "Sự kiện A bằng sự kiện B" có nghĩa là nếu $A \Rightarrow B$ và $B \Rightarrow A$. Ký hiệu $A \Leftrightarrow B$.
+\end{itemize}
+
+\subsubsection*{\textbf{1.3. Các Phép Toán Trên Sự Kiện}}
+\begin{itemize}
+    \item \textbf{Giao của các sự kiện (Intersection of events - $A \cap B$)}: Tập hợp các kết quả chung của A và B.
+    \begin{itemize}
+        \item Ví dụ: Trong thí nghiệm gieo một con xúc xắc.
+        \item Sự kiện A: "số gieo được là số chẵn" $\Rightarrow A = \{2, 4, 6\}$ [4, 5].
+        \item Sự kiện B: "số gieo được chia hết cho 3" $\Rightarrow B = \{3, 6\}$ [4, 5].
+        \item Giao của A và B là $A \cap B = \{6\}$.
+    \end{itemize}
+    \item \textbf{Hợp của các sự kiện (Union of events - $A \cup B$)}: Tập hợp tất cả các kết quả có trong A hoặc B (hoặc cả hai).
+    \begin{itemize}
+        \item Ví dụ: Với A và B như trên [5, 6].
+        \item Hợp của A và B là $A \cup B = \{2, 3, 4, 6\}$.
+    \end{itemize}
+    \item \textbf{Phần bù (Complements - $A'$ hoặc $A^c$)}: Tập hợp tất cả các kết quả trong không gian mẫu S mà không phải là phần tử của A [2]. Nó tương ứng với việc phủ định bất kỳ mô tả nào bằng lời của sự kiện A [2]. $A' \cup A = \Omega$.
+\end{itemize}
+
+\subsection*{\textbf{2. Định Nghĩa Xác Suất}}
+Xác suất là thước đo mức độ có thể xảy ra của một sự kiện.
+
+\subsubsection*{\textbf{2.1. Xác Suất Cổ Điển (Classical Probability)}}
+Được tính bằng tỷ lệ giữa số kết quả thuận lợi cho một sự kiện trên tổng số kết quả có thể xảy ra.
+\begin{equation*}
+    P(A) = \frac{\text{số kết quả thuận lợi}}{\text{tổng số kết quả có thể xảy ra}} = \frac{n(A)}{n(\Omega)} \quad 
+\end{equation*}
+\begin{itemize}
+    \item Ví dụ: Xác suất gieo được số chẵn trên một con xúc xắc công bằng.
+    \item Không gian mẫu có 6 mặt, $n(\Omega) = 6$.
+    \item A: "số chẵn" $\Rightarrow A = \{2, 4, 6\} \Rightarrow n(A) = 3$.
+    \item $P(A) = 3/6 = 0.5$.
+\end{itemize}
+
+\subsubsection*{\textbf{2.2. Xác Suất Hình Học (Geometric Probability)}}
+Dựa trên tỷ lệ giữa độ đo (chiều dài, diện tích) của miền thuận lợi và độ đo của không gian mẫu [7, 8].
+\begin{equation*}
+    P(A) = \frac{\text{độ đo miền A}}{\text{độ đo miền }\Omega} \quad [7, 8]
+\end{equation*}
+\begin{itemize}
+    \item Ví dụ 1D: Một số thực X ngẫu nhiên giữa 0 và 3. Xác suất X gần 0 hơn là gần 1 [7]. Miền thuận lợi là $X \in [0, 0.5]$, tổng miền là $[4]$. $P(A) = \frac{0.5}{3} = 1/6$.
+    \item Ví dụ 2D: Một phi tiêu được ném vào một bảng phi tiêu hình tròn, hạ cánh ngẫu nhiên trên diện tích bảng. Xác suất nó rơi gần tâm hơn là gần cạnh [8]. Trong trường hợp này, độ đo là diện tích. Nếu bán kính của miền "gần tâm" là $r_1$ và bán kính của toàn bộ bảng là $r_2$, thì $P(A) = \frac{\pi r_1^2}{\pi r_2^2}$.
+\end{itemize}
+
+\subsection*{\textbf{3. Các Quy Tắc của Xác Suất}}
+
+\subsubsection*{\textbf{3.1. Quy Tắc Cộng (Addition Rule)}}
+\begin{itemize}
+    \item \textbf{Đối với các sự kiện xung khắc (Mutually exclusive events)}: Nếu A và B không thể xảy ra cùng lúc (nghĩa là $A \cap B = \emptyset$).
+    \begin{equation*}
+        P(A+B) = P(A) + P(B) \quad 
+    \end{equation*}
+    \item Ví dụ: Gieo một con xúc xắc công bằng. Xác suất để A = $\{1, 5\}$ [9]. Các sự kiện $\{1\}, \dots, \{6\}$ là rời rạc [10]. $P(\{1\}) = P(\{5\}) = 1/6$ [10]. Vì $\{1\}$ và $\{5\}$ là rời rạc, $P(A) = P(\{1, 5\}) = P(\{1\}) + P(\{5\}) = 1/6 + 1/6 = 2/6 = 1/3$.
+    \item \textbf{Tổng quát}: Đối với bất kỳ hai sự kiện A và B nào [9].
+    \begin{equation*}
+        P(A+B) = P(A) + P(B) - P(AB) \quad
+    \end{equation*}
+\end{itemize}
+
+\subsubsection*{\textbf{3.2. Xác Suất của Phần Bù (Complement of an event)}}
+Đối với bất kỳ sự kiện A nào [10]:
+\begin{equation*}
+    P(A^c) = 1 - P(A) \quad
+\end{equation*}
+\begin{itemize}
+    \item Ví dụ: Tìm xác suất khi gieo xúc xắc, chúng ta nhận được một số khác 1 và 6 [10].
+    \item Gọi A: "Nhận được số 1 hoặc 6" $\Rightarrow A = \{1, 6\}$.
+    \item $P(A) = P(\{1\}) + P(\{6\}) = 1/6 + 1/6 = 2/6 = 1/3$.
+    \item Xác suất nhận được số khác 1 và 6 là $P(A^c) = 1 - P(A) = 1 - 1/3 = 2/3$.
+\end{itemize}
+
+\subsubsection*{\textbf{3.3. Xác Suất Có Điều Kiện (Conditional Probability)}}
+Xác suất để A xảy ra \textbf{với điều kiện} B đã xảy ra.
+\begin{equation*}
+    P(A|B) = \frac{P(A \cap B)}{P(B)} \quad
+\end{equation*}
+\begin{itemize}
+    \item Ví dụ: Một con xúc xắc công bằng được gieo [11]. Không gian mẫu $S = \{1, 2, 3, 4, 5, 6\}$.
+    \item A: "gieo được số năm" $\Rightarrow A = \{5\} \Rightarrow P(A) = 1/6$.
+    \item B: "gieo được số lẻ" $\Rightarrow B = \{1, 3, 5\} \Rightarrow P(B) = 3/6 = 1/2$.
+    \item $A \cap B = \{5\} \Rightarrow P(A \cap B) = 1/6$.
+    \item a) Tìm xác suất gieo được số năm, \textbf{biết rằng} nó là số lẻ.
+    \begin{equation*}
+        P(A|B) = \frac{P(A \cap B)}{P(B)} = \frac{1/6}{1/2} = 1/3 \quad [12]
+    \end{equation*}
+    \item b) Tìm xác suất gieo được số lẻ, \textbf{biết rằng} nó là số năm.
+    \begin{equation*}
+        P(B|A) = \frac{P(B \cap A)}{P(A)} = \frac{P(A \cap B)}{P(A)} = \frac{1/6}{1/6} = 1 \quad 
+    \end{equation*}
+\end{itemize}
+
+\subsubsection*{\textbf{3.4. Quy Tắc Nhân (Multiplication Rule)}}
+\begin{equation*}
+    P(AB) = P(A) \cdot P(B|A) = P(B) \cdot P(A|B) \quad
+\end{equation*}
+Mở rộng cho nhiều sự kiện [13]:
+\begin{equation*}
+    P(A_1 A_2 \dots A_n) = P(A_1) \cdot P(A_2|A_1) \cdot P(A_3|A_1 A_2) \dots P(A_n|A_1 A_2 \dots A_{n-1}) \quad
+\end{equation*}
+\begin{itemize}
+    \item Ví dụ: Trong một nhà máy có 100 sản phẩm, trong đó có 5 sản phẩm lỗi. Chọn ngẫu nhiên 3 sản phẩm. Xác suất không có sản phẩm nào bị lỗi.
+    \item Gọi $A_i$ là sự kiện sản phẩm thứ $i$ được chọn không bị lỗi, với $i=1, 2, 3$.
+    \item $P(A_1) = 95/100$.
+    \item $P(A_2|A_1) = 94/99$ (vì đã chọn 1 sản phẩm không lỗi).
+    \item $P(A_3|A_1 A_2) = 93/98$ (vì đã chọn 2 sản phẩm không lỗi).
+    \item $P(A_1 A_2 A_3) = \frac{95}{100} \cdot \frac{94}{99} \cdot \frac{93}{98} \approx 0.8560$.
+\end{itemize}
+
+\subsection*{\textbf{4. Định Lý Xác Suất Toàn Phần (Total Probability Theorem)}}
+Định lý này áp dụng khi kết quả của giai đoạn 2 phụ thuộc vào kết quả của giai đoạn 1 [16]. Các kết quả của giai đoạn 1 được chia thành $n$ tập $A_i$, mỗi tập chứa một số kết quả có cùng ảnh hưởng đến xác suất xảy ra của H.
+
+\subsubsection*{\textbf{4.1. Hệ Thống Đầy Đủ Các Sự Kiện}}
+Các sự kiện $A_1, A_2, \dots, A_n$ của một thử nghiệm được gọi là hệ thống đầy đủ nếu:
+\begin{itemize}
+    \item $A_i \cap A_j = \emptyset, \forall i \neq j$ (các sự kiện xung khắc).
+    \item $\sum_{i=1}^{n} A_i = A_1 + A_2 + \dots + A_n = \Omega$ (tổng của chúng bao phủ toàn bộ không gian mẫu).
+    \item $P(A_1) + P(A_2) + \dots + P(A_n) = 1$ (tổng xác suất bằng 1).
+\end{itemize}
+
+\subsubsection*{\textbf{4.2. Công Thức}}
+Nếu $A_1, A_2, \dots, A_n$ là một hệ thống đầy đủ các sự kiện và H là bất kỳ sự kiện nào xảy ra chỉ khi một trong các sự kiện $A_1, A_2, \dots, A_n$ xảy ra [17].
+\begin{equation*}
+    P(H) = \sum_{i=1}^{n} P(A_i) \cdot P(H|A_i) \quad
+\end{equation*}
+
+\subsubsection*{\textbf{4.3. Ví Dụ}}
+\begin{itemize}
+    \item \textbf{Phát hiện tiện ích (Widget Detection)}: Công ty M cung cấp 80\% tiện ích cho một cửa hàng ô tô và chỉ 1\% sản phẩm của họ bị lỗi. Công ty N cung cấp 20\% tiện ích còn lại và 3\% sản phẩm của họ bị lỗi. Nếu một khách hàng mua ngẫu nhiên một tiện ích, xác suất nó bị lỗi là bao nhiêu [18]?
+    \begin{itemize}
+        \item H: "Tiện ích bị lỗi".
+        \item $A_M$: "Tiện ích đến từ công ty M", $A_N$: "Tiện ích đến từ công ty N".
+        \item $A_M$ và $A_N$ tạo thành một hệ thống đầy đủ các sự kiện.
+        \item $P(A_M) = 0.8$, $P(A_N) = 0.2$.
+        \item $P(H|A_M) = 0.01$, $P(H|A_N) = 0.03$.
+        \item $P(H) = P(H|A_M) \cdot P(A_M) + P(H|A_N) \cdot P(A_N) = 0.01 \cdot 0.8 + 0.03 \cdot 0.2 = 0.014$.
+    \end{itemize}
+    \item \textbf{Chọn bi}: Có ba túi, mỗi túi 100 viên bi. Túi 1: 75 đỏ, 25 xanh; Túi 2: 60 đỏ, 40 xanh; Túi 3: 45 đỏ, 55 xanh. Chọn ngẫu nhiên một túi và sau đó chọn ngẫu nhiên một viên bi từ túi đã chọn. Xác suất viên bi được chọn là màu đỏ [19, 20]?
+    \begin{itemize}
+        \item R: "viên bi được chọn là màu đỏ".
+        \item $B_i$: "tôi chọn Túi $i$".
+        \item $B_1, B_2, B_3$ tạo thành một hệ thống đầy đủ các sự kiện.
+        \item $P(B_1) = 1/3, P(B_2) = 1/3, P(B_3) = 1/3$.
+        \item $P(R|B_1) = 0.75, P(R|B_2) = 0.60, P(R|B_3) = 0.45$.
+        \item $P(R) = P(R|B_1) \cdot P(B_1) + P(R|B_2) \cdot P(B_2) + P(R|B_3) \cdot P(B_3) = 0.75 \cdot 1/3 + 0.60 \cdot 1/3 + 0.45 \cdot 1/3 = 0.60$.
+    \end{itemize}
+\end{itemize}
+
+\subsection*{\textbf{5. Định Lý Bayes (Bayes' Rule)}}
+Định lý Bayes được sử dụng để tính xác suất của một nguyên nhân ($A_i$) xảy ra, dựa trên việc quan sát một kết quả (H).
+
+\subsubsection*{\textbf{5.1. Các Thành Phần của Công Thức Bayes}}
+\begin{itemize}
+    \item \textbf{Hậu nghiệm (Posterior)}: $P(c|X)$ - Xác suất của "c" là đúng, với điều kiện "X" là đúng.
+    \item \textbf{Khả năng (Likelihood)}: $P(X|c)$ - Xác suất của "X" là đúng, với điều kiện "c" là đúng.
+    \item \textbf{Tiên nghiệm (Prior)}: $P(c)$ - Xác suất của "c" là đúng. Đây là kiến thức ban đầu.
+    \item \textbf{Chuẩn hóa/Lề (Marginalization)}: $P(X)$ - Xác suất của "X" là đúng.
+\end{itemize}
+
+\subsubsection*{\textbf{5.2. Công Thức}}
+Nếu $A_1, A_2, \dots, A_n$ là một hệ thống đầy đủ các sự kiện và H là bất kỳ sự kiện nào với $P(H) \neq 0$:
+\begin{equation*}
+    P(A_i|H) = \frac{P(A_i) \cdot P(H|A_i)}{P(H)} = \frac{P(A_i) \cdot P(H|A_i)}{\sum_{j=1}^{n} P(A_j) \cdot P(H|A_j)}, \quad i = 1, 2, \dots, n \quad 
+\end{equation*}
+
+\subsubsection*{\textbf{5.3. Ví Dụ}}
+\begin{itemize}
+    \item \textbf{Chọn bi (Tiếp theo)}: Giả sử chúng ta quan sát thấy viên bi được chọn là màu đỏ. Xác suất Túi 1 đã được chọn là bao nhiêu [22, 23]?
+    \begin{itemize}
+        \item Từ ví dụ trước, $P(R) = 0.60$.
+        \item $P(B_1) = 1/3$, $P(R|B_1) = 0.75$.
+        \item Áp dụng Định lý Bayes:
+        \begin{equation*}
+            P(B_1|R) = \frac{P(R|B_1) \cdot P(B_1)}{P(R)} = \frac{0.75 \cdot 1/3}{0.60} = \frac{0.25}{0.60} = \frac{5}{12} \quad [23, 24]
+        \end{equation*}
+    \end{itemize}
+    \item \textbf{Phát hiện Email Spam}: Giả sử từ 'offer' xuất hiện trong 80\% email spam và 10\% email mong muốn. Nếu 30\% email nhận được là spam và bạn nhận được một email mới chứa từ 'offer', xác suất email đó là spam là bao nhiêu?
+    \begin{itemize}
+        \item Gọi $A_1$: "Email là Spam", $A_2$: "Email không phải Spam" (hoặc Email mong muốn). $A_1, A_2$ là một hệ thống đầy đủ các sự kiện.
+        \item H: "Email chứa từ 'offer'".
+        \item $P(H|A_1) = 0.8$ (từ 'offer' trong spam).
+        \item $P(A_1) = 0.3$ (30\% email là spam).
+        \item $P(A_2) = 1 - P(A_1) = 0.7$ (70\% email không phải spam).
+        \item $P(H|A_2) = 0.1$ (từ 'offer' trong email mong muốn).
+        \item Tính $P(H)$ bằng Định lý Xác suất Toàn phần:
+        \begin{equation*}
+            P(H) = P(A_1) \cdot P(H|A_1) + P(A_2) \cdot P(H|A_2) = 0.3 \cdot 0.8 + 0.7 \cdot 0.1 = 0.24 + 0.07 = 0.31 \quad 
+        \end{equation*}
+        \item Áp dụng Định lý Bayes để tìm $P(A_1|H)$:
+        \begin{equation*}
+            P(A_1|H) = \frac{P(H|A_1) \cdot P(A_1)}{P(H)} = \frac{0.8 \cdot 0.3}{0.31} = \frac{0.24}{0.31} \approx 0.774 \quad 
+        \end{equation*}
+    \end{itemize}
+\end{itemize}

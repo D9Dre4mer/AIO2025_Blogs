@@ -1,0 +1,452 @@
+\begin{center}
+    \Large\textbf{List trong Python: Từ Cơ Bản đến Nâng Cao}
+\end{center}
+
+\begin{center}
+    \Large\textit{Phạm Quốc An}
+\end{center}
+
+\section{Giới thiệu về List - "Thùng chứa" Đa năng của Python}
+
+\subsection{Cấu trúc dữ liệu là gì và List nằm ở đâu?}
+
+Trong khoa học máy tính, cấu trúc dữ liệu là một phương thức lưu trữ và tổ chức dữ liệu trên máy tính sao cho nó có thể được truy cập và cập nhật một cách hiệu quả. Việc lựa chọn một cấu trúc dữ liệu phù hợp là nền tảng để xây dựng các thuật toán hiệu quả, quyết định đến tốc độ và khả năng mở rộng của một chương trình.
+Python cung cấp một hệ sinh thái phong phú các cấu trúc dữ liệu, được phân thành hai nhóm chính: các cấu trúc có sẵn (Built-in) và các cấu trúc do người dùng định nghĩa (User-Defined). Các cấu trúc có sẵn là những công cụ đã được tích hợp sẵn vào ngôn ngữ, sẵn sàng để sử dụng ngay lập tức. Trong số này, List, Dictionary, Tuple, và Set là những cấu trúc phổ biến và mạnh mẽ nhất. Ngược lại, các cấu trúc như Stack, Queue, Tree, Linked List, hay Graph thường được người dùng tự xây dựng để giải quyết các bài toán chuyên biệt.
+Trong hệ sinh thái này, List nổi bật như một trong những cấu trúc dữ liệu cơ bản, linh hoạt và được sử dụng rộng rãi nhất. Nó đóng vai trò là "thùng chứa" (container) đa năng, là điểm khởi đầu lý tưởng cho bất kỳ ai bắt đầu học về cấu trúc dữ liệu trong Python và là nền tảng để hiểu các cấu trúc phức tạp hơn sau này.
+
+\subsection{Các Đặc Tính Cốt Lõi của List}
+
+List trong Python được định nghĩa đơn giản là một "container có thể chứa các phần tử". Tuy nhiên, sức mạnh thực sự của nó nằm ở những đặc tính cốt lõi sau:
+\begin{itemize}
+    \item \textbf{Có thứ tự (Ordered):} Các phần tử trong list duy trì một thứ tự cụ thể. Khi bạn thêm một phần tử mới, nó sẽ được đặt ở một vị trí xác định (thường là cuối cùng), và thứ tự này sẽ không thay đổi trừ khi bạn chủ động can thiệp.
+    \item \textbf{Cho phép phần tử trùng lặp (Duplicated):} Một list có thể chứa nhiều phần tử có cùng một giá trị tại các vị trí khác nhau.
+    \item \textbf{Không đồng nhất (Heterogeneous):} Đây là một trong những đặc tính linh hoạt nhất của list. Nó có thể chứa các phần tử thuộc nhiều kiểu dữ liệu khác nhau trong cùng một cấu trúc, ví dụ: một số nguyên, một chuỗi ký tự, một giá trị boolean, và thậm chí một list khác. Ví dụ: \texttt{mixed\_list = [1, "hello", True]}.
+    \item \textbf{Có thể truy cập qua chỉ mục (Indexable):} Mỗi phần tử trong list được gán một số thứ tự duy nhất gọi là chỉ mục (index), cho phép truy cập trực tiếp và nhanh chóng đến bất kỳ phần tử nào.
+    \item \textbf{Có thể thay đổi (Mutable):} Đây là một đặc tính then chốt. "Mutable" có nghĩa là bạn có thể thay đổi nội dung của list sau khi nó đã được tạo ra—bạn có thể thêm, xóa, hoặc cập nhật các phần tử mà không cần phải tạo ra một list mới hoàn toàn.
+\end{itemize}
+Tính không đồng nhất và có thể thay đổi mang lại sự linh hoạt to lớn nhưng cũng đi kèm với những lưu ý quan trọng. Khả năng chứa nhiều kiểu dữ liệu giúp list trở thành công cụ lý tưởng để lưu trữ dữ liệu không có cấu trúc hoặc đa dạng, thường gặp trong các tác vụ kịch bản (scripting) và khám phá dữ liệu. Tuy nhiên, tính "mutable" là một con dao hai lưỡi. Nó cho phép sửa đổi tại chỗ (in-place) hiệu quả, nhưng cũng có thể gây ra các lỗi tinh vi được gọi là "tác dụng phụ" (side effects). Việc hiểu rõ đặc tính này là chìa khóa để viết mã an toàn và dễ đoán hơn.
+
+\subsection{Khởi tạo List: Từ Đơn giản đến Phức tạp}
+Việc tạo ra một list trong Python cực kỳ đơn giản và trực quan. Cú pháp cơ bản là đặt các phần tử bên trong cặp dấu ngoặc vuông \texttt{[]}, phân tách bởi dấu phẩy.
+\begin{itemize}
+    \item \textbf{List rỗng:} Hữu ích khi bạn muốn khởi tạo một container và thêm các phần tử vào sau này.
+    \begin{lstlisting}[language=Python]
+empty_list = []
+    \end{lstlisting}
+    \item \textbf{List chứa các phần tử cụ thể:}
+    \begin{lstlisting}[language=Python]
+# Danh sach cac so tu nhien nho hon 10
+my_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] 
+# Danh sach cac loai hoa qua
+shopping_list = ['tao', 'chuoi', 'cherries', 'dau', 'man']
+    \end{lstlisting}
+    \item \textbf{List chứa các kiểu dữ liệu hỗn hợp:}
+    \begin{lstlisting}[language=Python]
+mixed_list = [1, 'Python', True, 3.14]
+    \end{lstlisting}
+    \item \textbf{List lồng nhau (Nested List):} Một list có thể chứa một list khác làm phần tử, tạo ra cấu trúc dữ liệu đa chiều.
+    \begin{lstlisting}[language=Python]
+n_list = ["Happy", [2, 0, 1, 5]]
+    \end{lstlisting}
+\end{itemize}
+Cú pháp đơn giản này che giấu một sức mạnh to lớn. Đặc biệt, ví dụ về list lồng nhau là một sự giới thiệu sớm về khái niệm list 2 chiều (ma trận), một chủ đề sẽ được khám phá sâu hơn trong Phần 6 của tài liệu này.
+
+\section{Các Thao tác Cơ bản với List 1 Chiều (1D List)}
+\subsection{Truy cập Phần tử: Sức mạnh của Chỉ mục}
+Mỗi phần tử trong list được định vị bởi một chỉ mục. Python hỗ trợ hai loại chỉ mục:
+\begin{itemize}
+    \item \textbf{Chỉ mục xuôi (Forward Index):} Bắt đầu từ 0 cho phần tử đầu tiên.
+    \begin{lstlisting}[language=Python]
+data = [4, 5, 7, 8, 9]
+print(data[0])  # Output: 4
+print(data[2])  # Output: 7
+    \end{lstlisting}
+    \item \textbf{Chỉ mục ngược (Backward Index):} Bắt đầu từ -1 cho phần tử cuối cùng.
+    \begin{lstlisting}[language=Python]
+data = [4, 5, 7, 8, 9]
+print(data[-1]) # Output: 9 (phan tu cuoi cung)
+print(data[-3]) # Output: 7
+    \end{lstlisting}
+\end{itemize}
+
+\subsection{Kỹ thuật Cắt List (Slicing): Trích xuất Dữ liệu Chuyên nghiệp}
+Slicing là một kỹ thuật mạnh mẽ cho phép bạn trích xuất một phần của list để tạo ra một list mới. Cú pháp đầy đủ là \texttt{list[start:end:step]}.
+Ví dụ minh họa với \texttt{data = [4, 5, 7, 8, 9, 2, 1]}:
+\begin{itemize}
+    \item \texttt{data[:3]} $\rightarrow$ \texttt{[4, 5, 7]} (từ đầu đến chỉ mục 2).
+    \item \texttt{data[2:4]} $\rightarrow$ \texttt{[7, 8]} (từ chỉ mục 2 đến 3).
+    \item \texttt{data[3:]} $\rightarrow$ \texttt{[8, 9, 2, 1]} (từ chỉ mục 3 đến cuối).
+    \item \texttt{data[::2]} $\rightarrow$ \texttt{[4, 7, 9, 1]} (lấy các phần tử ở vị trí chẵn).
+    \item Slicing cũng có thể kết hợp chỉ mục âm: \texttt{data[1:-3]} $\rightarrow$ \texttt{[5, 7, 8]}.
+\end{itemize}
+Một chi tiết quan trọng là slicing luôn tạo ra một list mới, hay còn gọi là một \textbf{bản sao nông (shallow copy)}.
+
+\subsection{Các Toán tử Cơ bản: \texttt{+} và \texttt{*}}
+\begin{itemize}
+    \item \textbf{Toán tử \texttt{+} (Nối list):} Dùng để nối hai list lại với nhau.
+    \begin{lstlisting}[language=Python]
+data1 = [1, 2, 3]
+data2 = [4, 5, 6]
+data = data1 + data2
+print(data) # Output: [1, 2, 3, 4, 5, 6]
+    \end{lstlisting}
+    \item \textbf{Toán tử \texttt{*} (Lặp lại list):} Dùng để tạo một list mới bằng cách lặp lại các phần tử.
+    \begin{lstlisting}[language=Python]
+data = [1, 2, 3]
+data_m = data * 3
+print(data_m) # Output: [1, 2, 3, 1, 2, 3, 1, 2, 3]
+    \end{lstlisting}
+\end{itemize}
+Cả hai toán tử này đều không sửa đổi các list ban đầu; chúng luôn tạo ra một list mới.
+
+\subsection{Cập nhật Phần tử: Tính Mutable trong Thực tế}
+Bạn có thể thay đổi giá trị của một phần tử tại một chỉ mục cụ thể bằng cách sử dụng phép gán \texttt{=}.
+\begin{lstlisting}[language=Python]
+data = [4, 5, 7, 8, 9]
+# Thay doi phan tu tai chi muc 1 tu 5 thanh 4
+data[1] = 4
+print(data) # Output: [4, 4, 7, 8, 9]
+\end{lstlisting}
+
+\section{Làm chủ các Phương thức (Methods) của List}
+\subsection{Thêm Phần tử: Phân tích so sánh \texttt{.append()}, \texttt{.insert()}, và \texttt{.extend()}}
+\begin{description}
+    \item[\texttt{.append(element)}] Thêm một phần tử duy nhất vào cuối list.
+    \begin{lstlisting}[language=Python]
+data = [1, 2, 3]
+data.append(4)
+print(data) # Output: [1, 2, 3, 4]
+    \end{lstlisting}
+    \item[\texttt{.insert(index, element)}] Chèn một phần tử vào một vị trí cụ thể.
+    \begin{lstlisting}[language=Python]
+data = [1, 2, 3]
+data.insert(0, 4) # Chen so 4 vao dau list
+print(data) # Output: [4, 1, 2, 3]
+    \end{lstlisting}
+    \item[\texttt{.extend(iterable)}] Nối các phần tử từ một đối tượng có thể lặp (iterable) khác vào cuối list.
+    \begin{lstlisting}[language=Python]
+data = [1, 2, 3]
+data.extend([4, 5])
+print(data) # Output: [1, 2, 3, 4, 5]
+# So sanh voi append
+data.append([6, 7])
+print(data) # Output: [1, 2, 3, 4, 5, [6, 7]]
+    \end{lstlisting}
+\end{description}
+
+\subsection{Xóa Phần tử: \texttt{.remove()}, \texttt{.pop()}, \texttt{del}, và \texttt{.clear()}}
+\begin{description}
+    \item[\texttt{.remove(value)}] Xóa lần xuất hiện đầu tiên của một giá trị.
+    \begin{lstlisting}[language=Python]
+data = [1, 2, 7, 2, 8]
+data.remove(2) # Chi xoa so 2 dau tien
+print(data) # Output: [1, 7, 2, 8]
+    \end{lstlisting}
+    \item[\texttt{.pop(index)}] Xóa và trả về phần tử tại một chỉ mục. Mặc định là phần tử cuối.
+    \begin{lstlisting}[language=Python]
+data = [4, 5, 7, 8, 9]
+removed_element = data.pop(2) # Xoa phan tu tai chi muc 2
+print(data) # Output: [4, 5, 8, 9]
+print(removed_element) # Output: 7
+    \end{lstlisting}
+    \item[\texttt{del}] Là một từ khóa, có thể xóa một phần tử hoặc một lát cắt.
+    \begin{lstlisting}[language=Python]
+data = [4, 5, 7, 8, 9]
+del data[1:3] # Xoa cac phan tu tai chi muc 1 va 2
+print(data) # Output: [4, 8, 9]
+    \end{lstlisting}
+    \item[\texttt{.clear()}] Xóa tất cả các phần tử khỏi list.
+    \begin{lstlisting}[language=Python]
+data = [1, 2, 3]
+data.clear()
+print(data) # Output: []
+    \end{lstlisting}
+\end{description}
+
+\subsection{Sắp xếp và Đảo ngược: Thao tác tại chỗ với \texttt{.sort()} và \texttt{.reverse()}}
+\begin{description}
+    \item[\texttt{.sort()}] Sắp xếp các phần tử của list tại chỗ (in-place).
+    \begin{lstlisting}[language=Python]
+data = [6, 1, 7, 3, 5]
+data.sort()
+print(data) # Output: [1, 3, 5, 6, 7]
+data.sort(reverse=True)
+print(data) # Output: [7, 6, 5, 3, 1]
+    \end{lstlisting}
+    \item[\texttt{.reverse()}] Đảo ngược thứ tự các phần tử của list tại chỗ.
+    \begin{lstlisting}[language=Python]
+data = [1, 2, 3, 4]
+data.reverse()
+print(data) # Output: [4, 3, 2, 1]
+    \end{lstlisting}
+\end{description}
+\textbf{Lưu ý quan trọng:} Các phương thức thao tác tại chỗ như \texttt{.sort()} và \texttt{.reverse()} đều trả về \texttt{None}.
+
+\subsection{Truy vấn và Tiện ích: \texttt{.index()}, \texttt{.count()}, và \texttt{.copy()}}
+\begin{description}
+    \item[\texttt{.index(value)}] Trả về chỉ mục của lần xuất hiện đầu tiên của một giá trị.
+    \begin{lstlisting}[language=Python]
+data = [4, 5, 7, 8, 9, 7]
+print(data.index(9)) # Output: 4
+    \end{lstlisting}
+    \item[\texttt{.count(value)}] Đếm số lần một giá trị xuất hiện.
+    \begin{lstlisting}[language=Python]
+data = [4, 5, 7, 8, 9, 7]
+print(data.count(7)) # Output: 2
+    \end{lstlisting}
+    \item[\texttt{.copy()}] Tạo ra một bản sao nông (shallow copy) của list.
+    \begin{lstlisting}[language=Python]
+data = [1, 2, 3]
+a_copy = data.copy()
+print(a_copy) # Output: [1, 2, 3]
+    \end{lstlisting}
+\end{description}
+
+\begin{table}[htbp]
+    \centering
+    \caption{Tóm tắt các phương thức của List}
+    \label{tab:list_methods}
+    \begin{tabular}{|l|p{6.5cm}|c|}
+        \hline
+        \textbf{Phương thức} & \textbf{Mô tả} & \textbf{\makecell{Thao tác tại chỗ \\ (In-Place)?}} \\
+        \hline
+        \texttt{.append(x)} & Thêm phần tử x vào cuối list. & Có \\
+        \hline
+        \texttt{.insert(i, x)} & Chèn phần tử x vào vị trí i. & Có \\
+        \hline
+        \texttt{.extend(iterable)} & Nối các phần tử từ iterable vào cuối list. & Có \\
+        \hline
+        \texttt{.remove(x)} & Xóa lần xuất hiện đầu tiên của giá trị x. & Có \\
+        \hline
+        \texttt{.pop(i)} & Xóa và trả về phần tử ở vị trí i (mặc định là cuối). & Có \\
+        \hline
+        \texttt{.clear()} & Xóa tất cả các phần tử khỏi list. & Có \\
+        \hline
+        \texttt{.sort()} & Sắp xếp các phần tử của list. & Có \\
+        \hline
+        \texttt{.reverse()} & Đảo ngược thứ tự các phần tử của list. & Có \\
+        \hline
+        \texttt{.index(x)} & Trả về chỉ mục của lần xuất hiện đầu tiên của x. & Không \\
+        \hline
+        \texttt{.count(x)} & Đếm số lần x xuất hiện. & Không \\
+        \hline
+        \texttt{.copy()} & Trả về một bản sao nông (shallow copy) của list. & Không \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\section{Tận dụng các Hàm Tích hợp (Built-in Functions) của Python}
+\subsection{Phương thức (Method) và Hàm (Function): Một Sự Khác biệt Quan trọng}
+\begin{itemize}
+    \item \textbf{Phương thức (Method)} là các hành động được thực hiện bởi một đối tượng cụ thể (ví dụ: \texttt{data.sort()}). Chúng thường \textit{thay đổi trạng thái của đối tượng đó tại chỗ} và thường trả về \texttt{None}.
+    \item \textbf{Hàm (Function)} là các công cụ đa dụng, nhận một hoặc nhiều đối tượng làm đầu vào (ví dụ: \texttt{sorted(data)}). Chúng thường \textit{không thay đổi đối tượng ban đầu} mà thay vào đó trả về một \textit{đối tượng mới}.
+\end{itemize}
+
+\subsection{Các Hàm Thiết yếu: \texttt{len()}, \texttt{min()}, \texttt{max()}, và \texttt{sum()}}
+\begin{itemize}
+    \item \texttt{len(list)}: Trả về số lượng phần tử.
+    \item \texttt{min(list)} và \texttt{max(list)}: Trả về phần tử nhỏ nhất và lớn nhất.
+    \item \texttt{sum(list)}: Tính tổng tất cả các phần tử (phải là số).
+\end{itemize}
+
+\subsection{Các Trợ lý Lặp Nâng cao: \texttt{zip()}, \texttt{enumerate()}, và \texttt{reversed()}}
+\begin{description}
+    \item[\texttt{zip(l1, l2,...)}] Ghép các phần tử từ nhiều list thành các cặp.
+    \begin{lstlisting}[language=Python]
+l1 = [1, 2, 3]
+l2 = [5, 6, 7]
+for v1, v2 in zip(l1, l2):
+    print(v1, v2)
+# Output:
+# 1 5
+# 2 6
+# 3 7
+    \end{lstlisting}
+    \item[\texttt{enumerate(list)}] Trả về các cặp (chỉ số, giá trị).
+    \begin{lstlisting}[language=Python]
+data = [6, 1, 7]
+for index, value in enumerate(data):
+    print(index, value)
+# Output:
+# 0 6
+# 1 1
+# 2 7
+    \end{lstlisting}
+    \item[\texttt{reversed(list)}] Trả về một iterator đảo ngược mà không thay đổi list gốc.
+\end{description}
+\textbf{Lưu ý:} \texttt{zip} và \texttt{reversed} trả về \textit{iterators}, không phải list, giúp tiết kiệm bộ nhớ.
+
+\section{Kỹ thuật Nâng cao: List Comprehension}
+\subsection{Cú pháp "Pythonic": Viết Code Hiệu quả và Dễ đọc}
+So sánh việc viết hàm \texttt{square} để bình phương các phần tử:
+\begin{itemize}
+    \item \textbf{Cách truyền thống (vòng lặp for):}
+    \begin{lstlisting}[language=Python]
+def square(data):
+    result = []
+    for value in data:
+        result.append(value*value)
+    return result
+    \end{lstlisting}
+    \item \textbf{Sử dụng List Comprehension:}
+    \begin{lstlisting}[language=Python]
+def square(data):
+    return [value*value for value in data]
+    \end{lstlisting}
+\end{itemize}
+
+\subsection{Kết hợp Logic: Lọc với \texttt{if} và Rẽ nhánh với \texttt{if-else}}
+\begin{itemize}
+    \item \textbf{Lọc với \texttt{if}:}
+    \begin{lstlisting}[language=Python]
+data = [1, 5, -4, 3, -2]
+# Chi lay cac so duong
+positive_numbers = [x for x in data if x > 0]
+print(positive_numbers) # Output: [1, 5, 3]
+    \end{lstlisting}
+    \item \textbf{Rẽ nhánh với \texttt{if-else} (Biểu thức tam phân):}
+    \begin{lstlisting}[language=Python]
+data = [1, 5, -4, 3, -2]
+# Thay the so am bang 0
+processed_data = [x if x > 0 else 0 for x in data]
+print(processed_data) # Output: [1, 5, 0, 3, 0]
+    \end{lstlisting}
+\end{itemize}
+
+\subsection{Ứng dụng Thực tế: Áp dụng các Hàm Toán học}
+\begin{itemize}
+    \item \textbf{Áp dụng hàm Sigmoid:} Hàm kích hoạt Sigmoid, $ \sigma(x)=\frac{1}{1+e^{-x}} $, thường được sử dụng trong các mạng nơ-ron.
+    \begin{lstlisting}[language=Python]
+import math
+def sigmoid(x):
+    return 1 / (1 + math.exp(-x))
+data = [1, 5, -4, 3, -2]
+sigmoid_values = [sigmoid(x) for x in data]
+# sigmoid_values will be [0.731..., 0.993..., 0.017..., 0.952..., 0.119...]
+    \end{lstlisting}
+    \item \textbf{Áp dụng hàm ReLU (Rectified Linear Unit):} Một hàm kích hoạt phổ biến khác, $ \text{ReLU}(x) = \max(0, x) $.
+    \begin{lstlisting}[language=Python]
+data = [1, 5, -4, 3, -2]
+relu_values = [x if x > 0 else 0 for x in data]
+print(relu_values) # Output: [1, 5, 0, 3, 0]
+    \end{lstlisting}
+\end{itemize}
+
+\section{Làm việc với List 2 Chiều (Ma trận)}
+\subsection{Từ Ý tưởng đến Khởi tạo: Ma trận trong Python}
+List 2D là một cách tự nhiên để mô hình hóa nhiều vấn đề trong thế giới thực.
+\begin{lstlisting}[language=Python]
+# Ma tran 3x3
+m = [[1, 2, 3],
+     [4, 5, 6],
+     [7, 8, 9]]
+\end{lstlisting}
+Để truy cập một phần tử, bạn cần sử dụng hai chỉ mục: \texttt{m[r][c]}, trong đó \texttt{r} là chỉ mục của hàng (row) và \texttt{c} là chỉ mục của cột (column).
+\begin{lstlisting}[language=Python]
+# Truy cap phan tu o hang 1, cot 2 (gia tri 6)
+element = m[1][2]
+print(element) # Output: 6
+# Truy cap phan tu o hang 2, cot 0 (gia tri 7)
+element = m[2][0]
+print(element) # Output: 7
+\end{lstlisting}
+
+\subsection{Duyệt và Thao tác: Truy cập và Cập nhật Phần tử}
+Để duyệt qua tất cả các phần tử của một ma trận, cách tiếp cận phổ biến nhất là sử dụng các vòng lặp \texttt{for} lồng nhau.
+\begin{itemize}
+    \item \textbf{Cách 1: Duyệt qua các hàng và phần tử}
+    \begin{lstlisting}[language=Python]
+m = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+for row in m:
+    for element in row:
+        print(element, end=' ')
+    print() # Xuong dong sau moi hang
+    \end{lstlisting}
+    \item \textbf{Cách 2: Duyệt qua chỉ số hàng và cột}
+    \begin{lstlisting}[language=Python]
+m = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+num_rows = len(m)
+num_cols = len(m[0]) # Gia su ma tran khong rong
+for r in range(num_rows):
+    for c in range(num_cols):
+        print(m[r][c], end=' ')
+    print()
+    \end{lstlisting}
+\end{itemize}
+Việc cập nhật một phần tử cũng đơn giản như truy cập nó: \texttt{matrix[r][c] = new\_value}.
+\begin{lstlisting}[language=Python]
+m = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+# Cap nhat phan tu o trung tam ma tran
+m[1][1] = 0
+print(m) # Output: [[1, 2, 3], [4, 0, 6], [7, 8, 9]]
+\end{lstlisting}
+
+\subsection{Case Study: Tích Hadamard (Phép nhân theo từng Phần tử)}
+Tích Hadamard là một phép toán trên hai ma trận có cùng kích thước.
+\[
+\begin{bmatrix} 3 & 5 & 7 \\ 4 & 9 & 8 \end{bmatrix} \odot \begin{bmatrix} 1 & 6 & 3 \\ 0 & 2 & 9 \end{bmatrix} = \begin{bmatrix} 3 \times 1 & 5 \times 6 & 7 \times 3 \\ 4 \times 0 & 9 \times 2 & 8 \times 9 \end{bmatrix} = \begin{bmatrix} 3 & 30 & 21 \\ 0 & 18 & 72 \end{bmatrix}
+\]
+\begin{lstlisting}[language=Python]
+# Tao 2 ma tran dau vao
+G = [[3, 5, 7], [4, 9, 8]]
+H = [[1, 6, 3], [0, 2, 9]]
+num_rows = len(G)
+num_cols = len(G[0])
+
+# Khoi tao ma tran ket qua voi kich thuoc phu hop
+N = [[None] * num_cols for _ in range(num_rows)]
+
+# Thuc hien Tich Hadamard
+for r in range(num_rows):
+    for c in range(num_cols):
+        N[r][c] = G[r][c] * H[r][c]
+
+# In ket qua
+for row in N:
+    print(row)
+# Output:
+# [3, 30, 21]
+# [0, 18, 72]
+\end{lstlisting}
+
+\section{Giải quyết Vấn đề với List - Phân tích Thuật toán}
+\subsection{Các Thuật toán Nền tảng}
+\begin{itemize}
+    \item \textbf{Tìm kiếm tuyến tính (Linear Search):} Duyệt qua list từ đầu đến cuối để tìm một phần tử. Độ phức tạp thời gian là $O(n)$.
+    \item \textbf{Thuật toán sắp xếp tự chế:} Lặp đi lặp lại việc tìm phần tử nhỏ nhất, thêm vào list mới và xóa khỏi list cũ. Thuật toán này không hiệu quả, có độ phức tạp $O(n^2)$.
+\end{itemize}
+
+\subsection{Bài toán "Two Sum": So sánh các Hướng tiếp cận}
+Cho một list các số nguyên và một số \texttt{target}, hãy tìm chỉ số của hai số trong list có tổng bằng \texttt{target}.
+\begin{itemize}
+    \item \textbf{Giải pháp Brute-force ($O(n^2)$):} Sử dụng hai vòng lặp lồng nhau để duyệt qua tất cả các cặp số.
+    \begin{lstlisting}[language=Python]
+def twoSum_bruteforce(nums, target):
+    n = len(nums)
+    for i in range(n):
+        for j in range(i + 1, n):
+            if nums[i] + nums[j] == target:
+                return [i, j]
+    \end{lstlisting}
+    \item \textbf{Giải pháp Tối ưu ($O(n)$):} Sử dụng một hash map (dictionary) để lưu trữ các số đã duyệt qua và chỉ mục của chúng.
+    \begin{lstlisting}[language=Python]
+def two_sum_optimized(data, target):
+    num_indices = {}
+    for i, num in enumerate(data):
+        complement = target - num
+        if complement in num_indices:
+            return [num_indices[complement], i]
+        num_indices[num] = i
+    \end{lstlisting}
+\end{itemize}
+Đây là một minh chứng kinh điển cho khái niệm \textit{đánh đổi không gian-thời gian (space-time tradeoff)}.
+
+\subsection{Case Study Nâng cao: Mảng Tích lũy (Integral Array) cho Truy vấn Tổng Nhanh}
+Đây là một kỹ thuật "đầu tư" thời gian tính toán trả trước để làm cho các hoạt động trong tương lai nhanh hơn.
+Giả sử chúng ta có một list $f(x)$ và cần trả lời nhiều truy vấn tính tổng trong một khoảng $[a, b]$.
+Chúng ta tạo một mảng tích lũy $F(x)$ trong đó $F(x)$ là tổng của tất cả các phần tử từ đầu đến vị trí $x$.
+\[ F(x)=\sum_{i=0}^{x}f(i) \]
+Mảng này có thể được xây dựng trong thời gian $O(n)$ bằng công thức đệ quy: $F(x) = f(x) + F(x-1)$.
+Sau khi có mảng $F$, tổng của bất kỳ khoảng $[a, b]$ nào có thể được tính trong thời gian hằng số $O(1)$ bằng công thức:
+\[ \sum_{x=a}^{b}f(x)=F(b)-F(a-1) \]
+Tổng thời gian cho cách tiếp cận này là $O(n+k)$ cho $k$ truy vấn, tốt hơn đáng kể so với $O(k \times n)$ của cách làm thông thường.

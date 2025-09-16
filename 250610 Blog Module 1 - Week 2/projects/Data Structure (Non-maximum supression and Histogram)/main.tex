@@ -1,0 +1,149 @@
+\begin{center}
+    \LARGE{List, Tuple, Set \& Dictionary – điểm tựa vững chắc cho mọi hành trình Python}
+\end{center}
+\begin{center}
+    \large{\textit{Vũ Thái Sơn}}
+\end{center}
+
+% blog.tex — Nội dung giữ nguyên
+
+\section*{List, Tuple, Set \& Dictionary – điểm tựa vững chắc cho mọi hành trình Python}
+
+\emph{(Một phiên bản rút gọn, thân thiện cho cả “newbie” lẫn coder lão luyện)}
+
+\bigskip
+
+\section{Khởi động nhanh – vì sao phải quan tâm đến 4 ``nhân vật'' này?}
+
+Trong thế giới Python, \textbf{List}, \textbf{Tuple}, \textbf{Set} và \textbf{Dictionary} giống như \textbf{tủ quần áo}, \textbf{vali khóa số}, \textbf{hộp Lego} và \textbf{từ điển tra cứu}. Mỗi ``đồ vật'' cất dữ liệu theo cách riêng, giúp ta chọn đúng dụng cụ cho đúng việc:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llll}
+\toprule
+\textbf{Tên} & \textbf{Có thứ tự?} & \textbf{Thay đổi được?} & \textbf{Cú pháp tạo nhanh} \\
+\midrule
+List  & ✔ & ✔ & {[\,]} hoặc \code{list()} \\
+Tuple & ✔ & ✗ & (\,) hoặc \code{tuple()} \\
+Set   & ✗ (un-ordered) & ✔ & \{\,\} hoặc \code{set()} \\
+Dict  & ✗ (key order 3.7+) & ✔ & \{key: value\} hoặc \code{dict()} \\
+\bottomrule
+\end{tabular}
+\caption{(Bảng trên dựa trên tổng kết slide bài giảng)}
+\end{table}
+
+\section{List – Danh sách ``co giãn''}
+
+\begin{itemize}
+\item \textbf{Thao tác chính}: thêm (\code{append}/\code{extend}), xoá (\code{pop}, \code{remove}), cắt lát (\code{lst[start:stop:step]}).
+\item \textbf{Ví dụ đời thường}: danh sách bạn cần gọi điện hôm nay. Khi có thêm người, chỉ việc \code{contacts.append("Hà")}.
+\item \textbf{Mẹo nhanh}: List comprehension biến 10 dòng \code{for} thành 1 dòng gọn gàng:
+\end{itemize}
+
+\begin{minted}{python}
+squares = [x**2 for x in range(10)]
+\end{minted}
+
+\section{Tuple – Két sắt ``niêm phong''}
+
+\begin{itemize}
+\item \textbf{Tinh thần}: dữ liệu \emph{bất biến} (immutable) ⇒ chống chỉnh sửa vô ý.
+\item \textbf{Ứng dụng}: trả về nhiều giá trị từ hàm mà không sợ bị “hack” sau khi return.
+\end{itemize}
+
+\begin{minted}{python}
+def get_student():
+    return ("An", 20, "Data Science")
+name, age, major = get_student()  # tuple unpacking
+\end{minted}
+
+\noindent\textbf{Mẹo}: thêm dấu phẩy để tạo \emph{1-element tuple}: \code{solo = (42,)}
+
+\section{Set – Tập hợp ``không trùng lặp''}
+
+\begin{itemize}
+\item \textbf{Đặc điểm}: bỏ qua phần tử trùng, tốc độ tra cứu trung bình \(\mathcal{O}(1)\).
+\item \textbf{Toán tử}: \code{|} (union), \code{\&} (intersection), \code{-} (difference), \code{\^} (symmetric difference).
+\end{itemize}
+
+\begin{minted}{python}
+orders = ["phở", "bún", "phở", "cơm", "bún"]
+unique_menu = set(orders)   # {'phở', 'bún', 'cơm'}
+\end{minted}
+
+\noindent\textbf{Chú ý}: phần tử bên trong set phải \emph{hashable} (immutable). Do đó, không thể đặt \code{list} vào \code{set} – Python sẽ báo lỗi \code{TypeError} vì danh sách có thể thay đổi và không có hash ổn định\footnote{\url{https://docs.python.org/3/reference/datamodel.html}}.
+
+\section{Dictionary – Tra cứu ``một phát ăn ngay''}
+
+\begin{itemize}
+\item \textbf{Cú pháp}: \code{\{khóa: giá\_trị\}} – khóa phải hashable (ví dụ chuỗi, số, tuple).
+\item \textbf{Các ``chiêu'' hay dùng}:
+  \begin{itemize}
+  \item \code{get(key, default)} – tránh \code{KeyError}.
+  \item \code{dict1.update(dict2)} – gộp từ điển.
+  \item \code{pop(key)}/\code{popitem()} – lấy ra và xoá.
+  \item Comprehension: \code{\{k: v**2 for k, v in numbers.items()\}}.
+  \end{itemize}
+\item \textbf{Ví dụ đời thường}: map ``Tên → SĐT'': \code{phonebook["Lan"]}.
+\end{itemize}
+
+\section{Minh hoạ nhanh – chiếm bộ nhớ ra sao?}
+
+Biểu đồ dưới cho thấy cùng 5 phần tử (1→5), mỗi cấu trúc \emph{ngốn RAM} khác nhau (đo bằng \code{sys.getsizeof}). Bạn sẽ thấy \code{tuple} gọn nhẹ hơn \code{list}, còn \code{set} và \code{dict} phải hy sinh bộ nhớ để đổi lấy tốc độ tra cứu:
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.7\linewidth]{projects/Data Structure (Non-maximum supression and Histogram)/image/memory_usage.png}
+\caption{Bộ nhớ sử dụng của bốn cấu trúc với 5 phần tử}
+\end{figure}
+\FloatBarrier
+
+\section{Góc đào sâu – \code{copy()} \& ``cú lừa'' shallow vs deep}
+
+\subsection{Chuyện gì xảy ra?}
+
+\begin{minted}{python}
+import copy
+basket = [["apple", "banana"], ["coffee"]]
+basket_copy = basket.copy()          # shallow
+basket_deep = copy.deepcopy(basket)  # deep
+
+basket_copy[0].append("cherry")
+print(basket)        # [['apple', 'banana', 'cherry'], ['coffee']]
+print(basket_deep)   # [['apple', 'banana'], ['coffee']]
+\end{minted}
+
+\subsection{ Kết nối với mutable/immutable}
+
+\begin{itemize}
+\item \textbf{List}: mutable ⇒ thay đổi được tại chỗ, dẫn tới “hiệu ứng dây chuyền” khi shallow copy.
+\item \textbf{Tuple}: immutable ⇒ an toàn, không sợ bị chỉnh từ xa.
+\item \textbf{Set}: chính bản thân set mutable, nhưng \emph{phần tử} bên trong phải immutable – hàm băm \code{\_\_hash\_\_} không đổi.
+\end{itemize}
+
+\textbf{Quy tắc bỏ túi}
+
+\begin{itemize}
+\item Nếu cấu trúc \emph{không lồng} (1 tầng), \code{copy()} thường đủ.
+\item Dưới 2 tầng, hoặc chứa list/dict bên trong, hãy dùng \code{deepcopy()} hoặc tự tay duyệt \& sao.
+\item Tránh nhồi object mutable vào nơi đòi hỏi hash (key dict, item set).
+\end{itemize}
+
+\section{Kết lời – chọn đúng ``vũ khí'' cho đúng trận}
+
+\begin{itemize}
+\item \textbf{Cần thứ tự + thay đổi linh hoạt} → \code{list}.
+\item \textbf{Cần bảo vệ dữ liệu khỏi chỉnh sửa} → \code{tuple}.
+\item \textbf{Cần loại bỏ trùng lặp, làm toán tập hợp} → \code{set}.
+\item \textbf{Cần ánh xạ khóa-giá trị, tra cứu cực nhanh} → \code{dict}.
+\end{itemize}
+
+Hãy luyện ``võ công'' bằng ví dụ nhỏ mỗi ngày. Khi thân quen, bạn sẽ tự tin ghép chúng thành những hệ thống lớn hơn: từ \textbf{spam filter} với \code{set} (bộ từ vựng) đến \textbf{Non‑Maximum Suppression} trong thị giác máy tính (dùng \code{list} + \code{tuple}).
+
+\section*{Tài liệu tham khảo ngắn gọn}
+
+\begin{itemize}
+\item Python docs: Built-in Types, copy module: \url{https://docs.python.org/3/library/stdtypes.html}; \url{https://docs.python.org/3/library/copy.html}
+\item RealPython: Mutable vs Immutable explainer: \url{https://realpython.com/python-mutable-vs-immutable-types/}
+\end{itemize}
+

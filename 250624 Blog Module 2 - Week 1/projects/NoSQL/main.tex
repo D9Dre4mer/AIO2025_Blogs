@@ -1,0 +1,191 @@
+
+\begin{center}
+    \Large\textbf{NoSQL và MongoDB}
+\end{center}
+
+\begin{center}
+    \Large\textit{Bùi Đức Xuân}
+\end{center}
+
+\section{Giới Thiệu}
+Chào mừng các bạn đến với blog học tập của mình! Hôm nay, chúng ta sẽ cùng nhau khám phá một chủ đề cực kỳ thú vị và quan trọng trong ngành Công nghệ thông tin: \textbf{Cơ sở dữ liệu NoSQL} và cụ thể là \textbf{MongoDB}.
+
+\section{Cơ Sở Dữ Liệu Là Gì? NoSQL Khác Biệt Ra Sao?}
+
+\begin{itemize}
+    \item \textbf{Dữ liệu} là tập hợp thông tin: số, văn bản, hoặc phương tiện khác.
+    \item \textbf{Cơ sở dữ liệu} là tập hợp có cấu trúc, có thể truy cập, khôi phục và cập nhật.
+    \item \textbf{Hệ quản trị cơ sở dữ liệu (DBMS)}: phần mềm tổ chức, kiểm soát truy cập và thao tác trên dữ liệu.
+    \item \textbf{SQL} lưu trữ theo dạng bảng (quan hệ). Ví dụ:
+    
+\begin{lstlisting}[language=SQL]
+Student: studentID, studentName
+Mark: studentID, subjectID, mark
+\end{lstlisting}
+
+    \item \textbf{NoSQL} (Not Only SQL): lưu trữ phi-bảng, thường là cặp \texttt{"key":"value"}.
+\end{itemize}
+
+\section{Các Loại Cơ Sở Dữ Liệu NoSQL Phổ Biến}
+
+\begin{enumerate}
+    \item \textbf{Key-Value Store}:
+    \begin{itemize}
+        \item Bảng băm đơn giản: truy cập qua khóa chính.
+        \item Ví dụ: \texttt{Key: "Name", Value: "Thai"}
+    \end{itemize}
+    
+    \item \textbf{Graph Database}:
+    \begin{itemize}
+        \item Dữ liệu lưu dưới dạng \textit{node}, \textit{edge}, \textit{attribute}.
+        \item Ví dụ: \texttt{Thai --Is\_Friend\_With--> Anh}
+    \end{itemize}
+    
+    \item \textbf{Document Database}:
+    \begin{itemize}
+        \item Dữ liệu dạng XML, JSON, BSON.
+        \item Mỗi document định danh bởi một khóa duy nhất.
+    \end{itemize}
+\end{enumerate}
+
+\section{MongoDB – Document Database Tiêu Biểu}
+
+\subsection*{Cấu trúc dữ liệu trong MongoDB}
+\begin{itemize}
+    \item Lưu trữ \texttt{field-value} trong \textbf{documents}.
+    \item Các documents nằm trong \textbf{collections}, collections nằm trong \textbf{database}.
+    \item Định dạng chính: \textbf{JSON}.
+    \item Mỗi document có \texttt{\_id} là định danh duy nhất.
+    \item Hỗ trợ:
+    \begin{itemize}
+        \item \textbf{Nested Documents}
+        \item \textbf{Arrays}
+        \item Cấu trúc linh hoạt (đa hình)
+    \end{itemize}
+\end{itemize}
+
+\subsection*{Hệ sinh thái MongoDB}
+\begin{itemize}
+    \item Phiên bản: Community, Enterprise, Atlas (cloud).
+    \item Công cụ hỗ trợ: Shell, Drivers, Compass, BI Connectors.
+\end{itemize}
+
+\section{Cài Đặt MongoDB}
+\begin{itemize}
+    \item \textbf{MongoDB Atlas}: tạo Free Cluster.
+    \item \textbf{Mongo Shell \& Tools}: thao tác dòng lệnh.
+    \item \textbf{MongoDB Compass}: giao diện GUI.
+\end{itemize}
+
+\section{Ngôn Ngữ Truy Vấn MongoDB (MQL)}
+
+\subsection*{1. Tạo/Xóa Database và Collection}
+\begin{lstlisting}
+show dbs
+use database_name
+db.dropDatabase()
+show collections
+db.createCollection('collection_name')
+db.collection_name.drop()
+\end{lstlisting}
+
+\subsection*{2. Chèn Dữ Liệu}
+\begin{lstlisting}
+db.student.insert({"name":"Thai"})
+db.student.insert([{"name":"Thai"}, {"age":20}])
+\end{lstlisting}
+
+\subsection*{3. Nhập/Xuất Dữ Liệu}
+\begin{lstlisting}
+mongoexport --uri="<uri>" --collection=<collection_name> --out=<file>
+mongoimport --uri="<uri>" --collection=<collection_name> --file=<file>
+\end{lstlisting}
+
+\subsection*{4. Tìm Kiếm}
+\begin{lstlisting}
+db.student.findOne({"name":"Anh"})
+db.student.find({"name":"Anh", "age":20})
+\end{lstlisting}
+
+\subsection*{5. Toán Tử So Sánh}
+\begin{itemize}
+    \item \$eq, \$ne, \$lt, \$lte, \$gt, \$gte, \$in, \$nin
+\end{itemize}
+\begin{lstlisting}
+db.student.find({"salary": {$lt: 50000}})
+\end{lstlisting}
+
+\subsection*{6. Toán Tử Logic}
+\begin{lstlisting}
+db.students.find({
+  $and: [{ "age" : 20 }, { "mark" : { $gt: 8.0 } }]
+})
+\end{lstlisting}
+
+\subsection*{7. \$expr}
+\begin{lstlisting}
+db.routes.find({$expr: {$eq:["$src_airport","$dst_airport"]}})
+\end{lstlisting}
+
+\subsection*{8. Toán Tử \$exists và \$type}
+\begin{lstlisting}
+db.companies.find({"ipo":{$exists:true}})
+db.companies.find({"homepage_url":{$type:2}})
+\end{lstlisting}
+
+\subsection*{9. Cursor Methods}
+\begin{lstlisting}
+.count(), .limit(X), .skip(X), .sort({field:1/-1}), .size()
+\end{lstlisting}
+
+\subsection*{10. Projection}
+\begin{lstlisting}
+db.grades.find({}, {"student_id":1,"class_id":1, "_id":0})
+\end{lstlisting}
+
+\subsection*{11. Truy Vấn Embedded Documents}
+\begin{lstlisting}
+db.inspections.find({"address.zip":11385})
+\end{lstlisting}
+
+\subsection*{12. Truy Vấn Mảng}
+\begin{lstlisting}
+$all, $size, $elemMatch
+
+db.students.find({ skills: { $all: ["math", "english"] } })
+db.students.find({ hobbies: { $size: 2 } })
+db.grades.find({"scores": {$elemMatch:{"type":"exam","score":{$gt:80}}}})
+\end{lstlisting}
+
+\subsection*{13. Xóa Dữ Liệu}
+\begin{lstlisting}
+db.student.deleteOne({"name":"Anh"})
+db.student.deleteMany({"name":"Anh"})
+\end{lstlisting}
+
+\subsection*{14. Cập Nhật Dữ Liệu}
+\begin{lstlisting}
+db.student.updateOne({"name":"Thai"}, {$set:{"name":"Anh"}})
+\end{lstlisting}
+
+\subsection*{15. Toán Tử Cập Nhật}
+\begin{lstlisting}
+$set, $unset, $rename, $inc, $push
+
+db.student.updateMany({"name":"Hoa"}, {$set:{"address":"HCM"}})
+db.student.updateMany({}, {$unset:{"address":""}})
+db.student.updateMany({}, {$rename:{"hobbies_list":"hobbies"}})
+db.student.updateMany({"age":20}, {$inc:{"age":1}})
+db.student.updateMany({"name":"Hoa"}, {$push:{"address":"Ha Noi"}})
+\end{lstlisting}
+
+\section{Tổng Kết}
+
+\begin{itemize}
+    \item \textbf{NoSQL} không chỉ là "No Relational" mà còn là "Not Only SQL".
+    \item Có nhiều loại: \textit{Key-value, Graph, Document}.
+    \item \textbf{MongoDB} là đại diện nổi bật của Document Database, với cấu trúc linh hoạt và dễ mở rộng.
+    \item Hệ thống truy vấn MQL mạnh mẽ hỗ trợ đầy đủ thao tác CRUD và các toán tử nâng cao.
+\end{itemize}
+
+\bigskip

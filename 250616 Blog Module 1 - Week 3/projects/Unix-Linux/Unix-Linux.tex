@@ -1,0 +1,307 @@
+\begin{center}
+    \Large\textbf{Unix/Linux for Data Science}
+\end{center}
+
+\begin{center}
+    \Large\textit{Đàm Nguyên Khánh}
+\end{center}
+
+\vspace{1em}
+
+\section*{Giới thiệu}
+Trong lĩnh vực Khoa học Dữ liệu, kỹ năng sử dụng Unix/Linux là một yếu tố then chốt giúp xử lý dữ liệu hiệu quả, tự động hóa quy trình và khai thác tập dữ liệu lớn. Tài liệu này tổng hợp nội dung buổi học ``\textit{Unix/Linux for Data Science}'' nhằm giúp bạn làm chủ command-line từ cơ bản đến nâng cao.
+
+\section{Tổng quan về Unix/Linux}
+\subsection*{Linux là gì và tại sao cần thiết?}
+Linux là hệ điều hành mã nguồn mở phổ biến trong phân tích dữ liệu. Nó nổi bật với khả năng xử lý qua dòng lệnh, tự động hóa và tương thích với các công cụ phân tích hiện đại như Python, R, Hadoop, Spark.
+
+\subsection*{Các bản phân phối phổ biến}
+\begin{itemize}
+    \item \textbf{Ubuntu}: dễ sử dụng, cập nhật thường xuyên
+    \item \textbf{Debian}: ổn định cao, bảo mật tốt
+    \item \textbf{CentOS/RHEL}: dành cho doanh nghiệp
+    \item \textbf{WSL}: chạy Linux trong môi trường Windows
+\end{itemize}
+
+\subsection*{Triết lý Unix}
+\begin{itemize}
+  \item Mỗi chương trình làm một việc thật tốt
+  \item Kết nối nhiều chương trình nhỏ bằng dấu pipe \verb!|!
+  \item Mọi thứ đều là file: dữ liệu, thiết bị, tiến trình
+\end{itemize}
+
+\section{Các lệnh cơ bản trong Unix/Linux}
+\subsection*{Làm việc với thư mục và file}
+Dưới đây là các lệnh cơ bản trong dòng lệnh Linux kèm chú thích chi tiết, rất hữu ích cho người mới bắt đầu:
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+mkdir project/data
+\end{minted}
+\textbf{mkdir} (make directory): Tạo thư mục \texttt{project/data}. Nếu thư mục \texttt{project} đã tồn tại thì tạo thư mục con \texttt{data} bên trong. Nếu chưa có \texttt{project}, nên dùng tùy chọn \texttt{-p} để tạo đệ quy.
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+cd project/data
+\end{minted}
+\textbf{cd} (change directory): Di chuyển vào thư mục \texttt{project/data} để làm việc tại đó.
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+ls -la
+\end{minted}
+\textbf{ls} (list): Liệt kê toàn bộ nội dung trong thư mục hiện tại. Tuỳ chọn:
+\begin{itemize}
+  \item \texttt{-l}: hiển thị chi tiết (permissions, kích thước, thời gian,...)
+  \item \texttt{-a}: hiển thị cả các file ẩn (bắt đầu bằng dấu chấm)
+\end{itemize}
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+cp source.csv target.csv
+\end{minted}
+\textbf{cp} (copy): Sao chép file \texttt{source.csv} thành file mới tên \texttt{target.csv} trong cùng thư mục hoặc khác thư mục tùy đường dẫn.
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+mv old.csv new.csv
+\end{minted}
+\textbf{mv} (move/rename): Di chuyển hoặc đổi tên file. Trong ví dụ này là đổi tên \texttt{old.csv} thành \texttt{new.csv}. Nếu chỉ khác tên file thì thực chất là \textbf{rename}.
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+rm -rf temp/
+\end{minted}
+\textbf{rm} (remove): Xoá thư mục \texttt{temp/} và toàn bộ nội dung bên trong. Tuỳ chọn:
+\begin{itemize}
+  \item \texttt{-r}: xoá đệ quy (recursive)
+  \item \texttt{-f}: ép xoá mà không hỏi xác nhận (force)
+\end{itemize}
+\textbf{!!! Cảnh báo:} Câu lệnh này nguy hiểm nếu dùng sai — hãy kiểm tra kỹ tên thư mục trước khi xoá.
+
+\bigskip
+\noindent Những lệnh này thường được sử dụng để chuẩn bị thư mục làm việc, sao lưu dữ liệu, đổi tên hoặc dọn dẹp file không còn dùng.
+
+
+\subsection*{Tìm kiếm và xem dữ liệu}
+\begin{minted}[fontsize=\small, breaklines]{bash}
+grep "error" logfile.txt
+\end{minted}
+Tìm tất cả các dòng chứa từ khóa “error” trong file `logfile.txt`. Hữu ích khi lọc thông báo lỗi từ file log hệ thống hoặc mô hình.
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+find . -name "*.csv"
+\end{minted}
+Tìm toàn bộ các file có đuôi `.csv` trong thư mục hiện tại và tất cả các thư mục con.
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+head -n 10 data.csv
+\end{minted}
+Hiển thị 10 dòng đầu tiên của file `data.csv` — thường dùng để kiểm tra tiêu đề cột hoặc định dạng dữ liệu.
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+tail -n 20 data.csv
+\end{minted}
+Hiển thị 20 dòng cuối của file — hữu ích khi theo dõi log mới ghi hoặc kiểm tra bản ghi cuối.
+
+\subsection*{Thao tác văn bản và dữ liệu}
+\begin{minted}[fontsize=\small, breaklines]{bash}
+sort -k2 -n data.csv | uniq -c
+\end{minted}
+\begin{itemize}
+  \item `sort -k2 -n data.csv`: Sắp xếp file theo cột thứ 2.
+  \item `| uniq -c`: Đếm số dòng **liên tiếp** trùng nhau và hiển thị tần suất.
+  \item **Lưu ý**: Để đếm tần suất trên toàn file, cần sort trước như ví dụ trên.
+\end{itemize}
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+cut -d',' -f1,3 data.csv
+\end{minted}
+\begin{itemize}
+  \item `cut`: Trích xuất cột từ file có định dạng phân cách.
+  \item `-d','`: Chỉ định dấu phân cách là dấu phẩy.
+  \item `-f1,3`: Lấy cột số 1 và 3.
+  \item **Ứng dụng**: Trích xuất ID và thuộc tính quan trọng từ dataset nhiều cột.
+\end{itemize}
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+awk -F',' '{sum+=$2} END {print sum/NR}' scores.csv
+\end{minted}
+\begin{itemize}
+  \item \texttt{-F','}: Chỉ định dấu phân cách là dấu phẩy.
+  \item \texttt{sum+=\$2}: Cộng dồn giá trị ở cột thứ 2.
+  \item \texttt{END \{print sum/NR\}}: Khi đọc xong, in ra trung bình cộng (\texttt{NR} = số dòng).
+  \item \textbf{Ứng dụng}: Tính giá trị trung bình của một cột số (ví dụ điểm số, doanh thu).
+\end{itemize}
+
+\subsection*{Chỉnh sửa với vi/vim}
+\begin{minted}[fontsize=\small, breaklines]{bash}
+# Normal mode:
+# h,j,k,l: di chuyển
+# dd: xóa dòng; yy: sao chép dòng; p: dán
+#
+# Insert mode:
+# i,a,o: vào chế độ nhập
+#
+# Command mode:
+# :w    # lưu file
+# :q    # thoát (thêm ! nếu chưa lưu)
+# :wq   # lưu và thoát
+# :%s/text1/text2/g  # thay thế toàn bộ
+\end{minted}
+
+\subsection*{Biến môi trường và phân quyền}
+\begin{minted}[fontsize=\small, breaklines]{bash}
+export PYTHONPATH="$PYTHONPATH:/home/user/project"
+chmod 755 script.sh
+chown user:group dataset.csv
+\end{minted}
+  Thiết lập biến môi trường \texttt{PYTHONPATH} để thêm thư mục chứa mã nguồn Python của dự án. Điều này giúp Python có thể tìm thấy và import các module trong thư mục đó.
+  \begin{itemize}
+    \item \texttt{\$PYTHONPATH}: giữ nguyên giá trị cũ (nếu có).
+    \item \texttt{:/home/user/project}: thêm đường dẫn mới vào sau.
+  \end{itemize}
+
+\begin{description}[align=left,labelwidth=5.5cm]
+
+  \subsection*{chmod 755 script.sh}
+  \begin{minted}[fontsize=\small, breaklines]{bash}
+chmod 755 script.sh
+  \end{minted}
+  Thiết lập quyền truy cập cho file \texttt{script.sh}:
+  \begin{itemize}
+    \item \texttt{7 = rwx}: chủ sở hữu có toàn quyền đọc, ghi và thực thi.
+    \item \texttt{5 = r-x}: nhóm và người khác chỉ có quyền đọc và thực thi.
+    \item Thường dùng để cho phép chạy script.
+  \end{itemize}
+
+\subsection*{chown user:group dataset.csv}
+\begin{minted}[fontsize=\small, breaklines, escapeinside=||]{bash}
+chown user\:group dataset.csv
+\end{minted}
+  Chuyển quyền sở hữu file \texttt{dataset.csv} cho người dùng \texttt{user} và nhóm \texttt{group}. Hữu ích trong môi trường nhiều người dùng, đảm bảo chỉ người có quyền mới có thể sửa đổi file dữ liệu.
+
+\end{description}
+
+\section{Xử lý dữ liệu nâng cao}
+\begin{description}[align=left,labelwidth=6.5cm]
+
+    \subsection*{cat data.csv | grep "2023" | sort > filtered.csv}
+  \begin{minted}[fontsize=\small, breaklines]{bash}
+cat data.csv | grep "2023" | sort > filtered.csv
+  \end{minted}
+  \textbf{Pipeline 3 bước}:
+  \begin{itemize}
+    \item \texttt{cat data.csv}: hiển thị toàn bộ nội dung của file dữ liệu.
+    \item \texttt{| grep "2023"}: lọc những dòng chứa chuỗi “2023”.
+    \item \texttt{| sort}: sắp xếp các dòng được lọc theo thứ tự mặc định.
+    \item \texttt{> filtered.csv}: ghi kết quả vào file.
+  \end{itemize}
+  \textbf{Mục đích}: Tạo một file mới chỉ chứa các dòng liên quan đến năm 2023, đã được sắp xếp.
+
+    \subsection*{python script.py < input.txt > output.log 2> error.log}
+  \begin{minted}[fontsize=\small, breaklines]{bash}
+python script.py < input.txt > output.log 2> error.log
+  \end{minted}
+  \textbf{Chạy chương trình Python với nhập/xuất điều hướng}:
+  \begin{itemize}
+    \item \texttt{< input.txt}: đọc dữ liệu từ file.
+    \item \texttt{> output.log}: ghi kết quả vào file.
+    \item \texttt{2> error.log}: ghi lỗi ra file riêng.
+  \end{itemize}
+  \textbf{Mục đích}: Tách biệt đầu ra và lỗi để dễ kiểm tra.
+
+\end{description}
+
+\section{Công cụ filter mạnh mẽ}
+\begin{description}[align=left,labelwidth=6.5cm]
+
+    \subsection*{sed 's/old/new/g' file.txt}
+\begin{minted}[fontsize=\small, breaklines=true, breakanywhere=true, escapeinside=||]{bash}
+sed 's/old/new/g' file.txt
+\end{minted}
+
+  \textbf{sed} là công cụ xử lý văn bản theo dòng.
+  \begin{itemize}
+    \item \texttt{s/old/new/g}: thay thế toàn bộ chuỗi \texttt{old} bằng \texttt{new}.
+    \item \texttt{g}: viết tắt của “global”.
+  \end{itemize}
+
+    \subsection*{jq '.results[] | \{name, score\}' data.json}
+  \begin{minted}[fontsize=\small, breaklines]{bash}
+jq '.results[] | {name, score}' data.json
+  \end{minted}
+  \textbf{jq} là công cụ xử lý JSON:
+  \begin{itemize}
+    \item \texttt{.results[]}: lặp qua từng phần tử trong mảng.
+    \item \texttt{\{name, score\}}: trích xuất các trường.
+  \end{itemize}
+
+    \subsection*{xargs -P 4 -I \{\} python process.py --input \{\}}
+  \begin{minted}[fontsize=\small, breaklines]{bash}
+xargs -P 4 -I {} python process.py --input {}
+  \end{minted}
+  \textbf{xargs} dùng để xử lý song song:
+  \begin{itemize}
+    \item \texttt{-P 4}: chạy tối đa 4 tiến trình.
+    \item \texttt{-I \{\}}: thay thế từng dòng đầu vào.
+  \end{itemize}
+
+\end{description}
+
+\subsection*{Làm việc với file lớn và nén}
+\begin{description}[align=left,labelwidth=6.3cm]
+
+    \subsection*{split -l 10000 bigfile.csv part\_}
+  \begin{minted}[fontsize=\small, breaklines]{bash}
+split -l 10000 bigfile.csv part_
+  \end{minted}
+  \begin{itemize}
+    \item Mỗi file chứa 10.000 dòng.
+    \item Tiền tố: \texttt{part\_aa}, \texttt{part\_ab},...
+  \end{itemize}
+
+    \subsection*{tar -czvf archive.tar.gz data/}
+  \begin{minted}[fontsize=\small, breaklines]{bash}
+tar -czvf archive.tar.gz data/
+  \end{minted}
+  \begin{itemize}
+    \item \texttt{-c}: tạo mới
+    \item \texttt{-z}: nén bằng gzip
+    \item \texttt{-v}: hiển thị tiến trình
+    \item \texttt{-f}: chỉ định tên file
+  \end{itemize}
+
+    \subsection*{zcat log.gz | grep "ERROR"}
+  \begin{minted}[fontsize=\small, breaklines]{bash}
+zcat log.gz | grep "ERROR"
+  \end{minted}
+  \begin{itemize}
+    \item Phân tích file nén trực tiếp
+  \end{itemize}
+
+\end{description}
+
+\section{Tải dữ liệu từ Internet}
+\begin{description}[align=left,labelwidth=6.7cm]
+
+  \subsection*{wget -O data.csv https://url/to/file.csv}
+  \begin{minted}[fontsize=\small, breaklines]{bash}
+wget -O data.csv https://url/to/file.csv
+  \end{minted}
+  Dùng để tải file từ Internet.
+
+  \subsection*{curl -H "Authorization: Bearer TOKEN" https://api.com/data}
+  \begin{minted}[fontsize=\small, breaklines]{bash}
+curl -H "Authorization: Bearer TOKEN" https://api.com/data
+  \end{minted}
+  Gửi request HTTP có xác thực.
+
+\end{description}
+
+
+\section{Tài liệu tham khảo}
+\begin{itemize}
+    \item William Shotts, \textit{The Linux Command Line}
+    \item Jeroen Janssens, \textit{Data Science at the Command Line}
+    \item \url{https://linuxjourney.com}, \url{https://github.com/nguyenhads/linux_basic}
+\end{itemize}
+
+\vspace{2em}
+\begin{center}
+    \textit{"Command-line là vũ khí thầm lặng nhưng mạnh mẽ của một Data Scientist."}
+\end{center}

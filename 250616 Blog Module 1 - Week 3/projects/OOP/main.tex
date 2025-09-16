@@ -1,0 +1,536 @@
+
+\begin{center}
+    \Large\textbf{OOP: Lập trình hướng đối tượng trong một tuần}
+\end{center}
+
+\begin{center}
+    \Large\textit{Đàm Nguyên Khánh}
+\end{center}
+
+\section{Giới thiệu}
+
+Đây là bài tóm tắt với chủ đề \textbf{Lập trình Hướng đối tượng (OOP)} trong Python! Bài viết này sẽ giải thích từng khái niệm một cách dễ hiểu, kèm ví dụ minh họa cụ thể.
+
+\textbf{Tại sao OOP quan trọng?}
+
+\begin{itemize}
+    \item Mô hình hóa vấn đề để gần gũi thế giới thực: xe ô tô, nhân viên, sản phẩm... đều có thuộc tính (attribute) và hành động (method).
+    \item Tăng tính tái sử dụng mã: kế thừa (inheritance), mixin, delegation.
+    \item Dễ bảo trì và mở rộng: dễ thêm tính năng mới.
+\end{itemize}
+
+\section{OOP và lập trình thủ tục -- So sánh đơn giản}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.5cm}|>{\raggedright\arraybackslash}p{5cm}|>{\raggedright\arraybackslash}p{5cm}|}
+\hline
+\textbf{Tiêu chí} & \textbf{Lập trình thủ tục} & \textbf{Lập trình hướng đối tượng (OOP)} \\
+\hline
+Cấu trúc mã & Các hàm rời rạc, độc lập, ít liên kết & Gom nhóm mã trong \texttt{class} và \texttt{object} \\
+\hline
+Quản lý dữ liệu & Dễ sử dụng biến toàn cục, khó kiểm soát & Dữ liệu được đóng gói trong thuộc tính đối tượng (encapsulation) \\
+\hline
+Tái sử dụng & Thường copy/paste hoặc import thủ công & Kế thừa, mixin, composition, delegation giúp tái sử dụng linh hoạt \\
+\hline
+Bảo trì & Khó kiểm soát phụ thuộc, dễ phát sinh lỗi khi sửa đổi & Rõ ràng, phân tách theo nguyên tắc SOLID, dễ mở rộng và kiểm thử \\
+\hline
+\end{tabular}
+\caption{So sánh lập trình thủ tục và lập trình hướng đối tượng (OOP)}
+\end{table}
+
+\section{Class và Object -- Những khái niệm căn bản}
+
+\subsection{Class là gì?}
+
+\textbf{Class} (lớp) trong Python là một bản thiết kế (blueprint) dùng để mô tả đối tượng. Nó định nghĩa các thuộc tính (dữ liệu) và phương thức (hành vi) mà mọi đối tượng của lớp đó sẽ có.
+
+Một \textbf{thuộc tính} là thông tin mô tả trạng thái của đối tượng (ví dụ như hãng xe, model, năm sản xuất).
+
+Một \textbf{phương thức} là hành động mà đối tượng có thể thực hiện (ví dụ như chạy xe).
+
+Cú pháp định nghĩa một lớp trong Python:
+
+\begin{minted}{python}
+class Car:
+    """Lớp mô tả xe cơ bản"""
+    def __init__(self, brand, model, year):
+        # Phương thức khởi tạo (constructor)
+        # Gán giá trị thuộc tính khi khởi tạo object
+        self.brand = brand    # thuộc tính hãng xe
+        self.model = model    # thuộc tính kiểu xe
+        self.year = year      # thuộc tính năm sản xuất
+
+    def drive(self, speed):
+        # Phương thức drive, cho phép in ra tốc độ xe chạy
+        print(f"{self.brand} {self.model} chạy ở tốc độ {speed} km/h")
+\end{minted}
+
+\textbf{Giải thích}:
+\begin{itemize}
+    \item \texttt{\_\_init\_\_} là phương thức đặc biệt (constructor) giúp khởi tạo đối tượng.
+    \item \texttt{self} là tham chiếu đến chính đối tượng được tạo ra từ lớp này.
+    \item Các thuộc tính \texttt{brand}, \texttt{model}, \texttt{year} được gán giá trị từ tham số truyền vào.
+    \item Phương thức \texttt{drive} thực hiện hành động “chạy” xe và in thông tin ra màn hình.
+\end{itemize}
+
+\subsection{Object là gì?}
+
+\textbf{Object} (đối tượng) là một thể hiện cụ thể của lớp. Khi ta sử dụng lớp để tạo ra một biến, biến đó trở thành một object có các thuộc tính và phương thức riêng biệt.
+
+Ví dụ khởi tạo và sử dụng object:
+
+\begin{minted}{python}
+my_car = Car("Toyota", "Corolla", 2020)
+my_car.drive(60)
+\end{minted}
+
+\textbf{Giải thích}:
+\begin{itemize}
+    \item \texttt{my\_car} là object thuộc lớp \texttt{Car}.
+    \item Khi gọi \texttt{Car("Toyota", "Corolla", 2020)}, phương thức \texttt{\_\_init\_\_} sẽ chạy để gán giá trị cho các thuộc tính.
+    \item Lệnh \texttt{my\_car.drive(60)} gọi phương thức \texttt{drive} của object \texttt{my\_car} và in ra: \texttt{Toyota Corolla chạy ở tốc độ 60 km/h}.
+\end{itemize}
+
+\textbf{Lưu ý quan trọng}:
+\begin{itemize}
+    \item Từ khóa \texttt{self} luôn phải là tham số đầu tiên trong mọi phương thức của lớp.
+    \item Khi gọi phương thức từ object, Python tự động truyền chính object đó vào vị trí \texttt{self}.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{projects/OOP/image/Class Object.jpg}
+    \caption{Minh họa mối quan hệ giữa Lớp (Class) và Đối tượng (Object). 
+    Hình bên trái là bản thiết kế (class) xe chung; 
+    hình bên phải là các đối tượng cụ thể (Mercedes, BMW, Audi) được tạo ra từ class này.}
+    \label{fig:class_object}
+\end{figure}
+
+\section{Abstraction và Encapsulation}
+
+\subsection{Abstraction (Trừu tượng hóa)}
+
+\textbf{Trừu tượng hóa} (Abstraction) là quá trình ẩn đi những chi tiết phức tạp không cần thiết và chỉ cung cấp cho người dùng những gì quan trọng để sử dụng. Điều này giúp giảm bớt sự phụ thuộc vào cách cài đặt bên trong của đối tượng.
+
+Ví dụ đời thực: Khi bạn sử dụng điện thoại, bạn chỉ cần biết cách bấm số để gọi, mà không cần quan tâm đến các mạch điện tử hoạt động bên trong như thế nào.
+
+Trong lập trình, abstraction được thực hiện bằng cách định nghĩa các \textbf{phương thức công khai} (public methods) mà bên ngoài có thể gọi, nhưng không thể can thiệp vào chi tiết bên trong của đối tượng.
+
+\subsection{Encapsulation (Bao đóng)}
+
+\textbf{Bao đóng} (Encapsulation) là cơ chế giúp ẩn dữ liệu (thuộc tính) bên trong lớp, ngăn không cho truy cập hoặc thay đổi trực tiếp từ bên ngoài. Điều này đảm bảo tính toàn vẹn dữ liệu và kiểm soát cách dữ liệu được sử dụng.
+
+Python hỗ trợ bao đóng bằng cách sử dụng quy ước:
+\begin{itemize}
+    \item Một dấu gạch dưới (\_) để chỉ thuộc tính “protected” (nên tránh truy cập trực tiếp).
+    \item Hai dấu gạch dưới (\_\_) để chỉ thuộc tính “private” (ẩn hoàn toàn với bên ngoài lớp).
+\end{itemize}
+
+Ví dụ minh họa:
+
+\begin{minted}{python}
+class Account:
+    def __init__(self, owner, balance=0):
+        self.owner = owner          # Thuộc tính public
+        self.__balance = balance    # Thuộc tính private
+
+    def deposit(self, amount):
+        # Phương thức nạp tiền
+        if amount > 0:
+            self.__balance += amount
+
+    def withdraw(self, amount):
+        # Phương thức rút tiền
+        if 0 < amount <= self.__balance:
+            self.__balance -= amount
+        else:
+            print("Số dư không đủ!")
+
+    def get_balance(self):
+        # Phương thức truy xuất số dư (getter)
+        return self.__balance
+\end{minted}
+
+\textbf{Giải thích}:
+\begin{itemize}
+    \item \texttt{owner} là thuộc tính công khai (public), có thể truy cập trực tiếp từ bên ngoài.
+    \item \texttt{\_\_balance} là thuộc tính riêng tư (private), không thể truy cập hoặc thay đổi trực tiếp từ bên ngoài lớp.
+    \item Các phương thức \texttt{deposit()}, \texttt{withdraw()}, \texttt{get\_balance()} là các API công khai để thao tác hợp lệ lên \texttt{\_\_balance}.
+\end{itemize}
+
+\textbf{Lưu ý}: Nếu cố gắng truy cập \texttt{\_\_balance} từ bên ngoài bằng:
+\begin{minted}{python}
+acc = Account("Nam", 1000)
+print(acc.__balance)  # Lỗi: AttributeError
+\end{minted}
+Python sẽ báo lỗi vì thuộc tính này đã được bao đóng (encapsulated).
+
+\section{Inheritance -- Kế thừa và Mở rộng}
+
+\subsection{Kế thừa cơ bản}
+
+\textbf{Kế thừa} (Inheritance) là cơ chế cho phép một lớp con (\texttt{subclass}) kế thừa các thuộc tính và phương thức từ lớp cha (\texttt{superclass}). Điều này giúp tái sử dụng mã nguồn, giảm lặp mã và dễ mở rộng.
+
+Ví dụ:
+
+\begin{minted}{python}
+class Animal:
+    def __init__(self, name):
+        self.name = name  # thuộc tính chung cho mọi loài
+
+    def speak(self):
+        raise NotImplementedError("Lớp con phải cài đặt phương thức speak!")
+\end{minted}
+
+Lớp \texttt{Animal} là lớp cha (superclass), định nghĩa một thuộc tính chung \texttt{name} và phương thức \texttt{speak()} mang tính trừu tượng (abstraction) chưa cài đặt cụ thể. Các lớp con kế thừa sẽ cài đặt phương thức này.
+
+Lớp con cụ thể:
+
+\begin{minted}{python}
+class Dog(Animal):
+    def speak(self):
+        return f"{self.name} sủa: Woof!"
+\end{minted}
+
+Lớp \texttt{Dog} kế thừa \texttt{Animal} và ghi đè (override) phương thức \texttt{speak()}.
+
+\subsection{Ghi đè và Gọi lớp cha}
+
+Lớp con có thể mở rộng lớp cha bằng cách thêm thuộc tính mới hoặc phương thức mới. Nếu lớp con cần kế thừa hàm khởi tạo (\texttt{\_\_init\_\_}) của lớp cha, dùng từ khóa \texttt{super()} để gọi:
+
+\begin{minted}{python}
+class Cat(Animal):
+    def __init__(self, name, color):
+        super().__init__(name)  # gọi constructor lớp cha
+        self.color = color      # thuộc tính mới riêng cho Cat
+
+    def speak(self):
+        return f"{self.name} kêu: Meow!"
+\end{minted}
+
+\textbf{Giải thích}:
+\begin{itemize}
+    \item Phương thức \texttt{\_\_init\_\_} trong \texttt{Cat} kế thừa việc khởi tạo tên từ lớp cha \texttt{Animal}.
+    \item Thuộc tính \texttt{color} được thêm mới chỉ riêng cho lớp \texttt{Cat}.
+    \item Phương thức \texttt{speak()} được ghi đè (override) để cho ra âm thanh đặc trưng của mèo.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{projects/OOP/image/Animal Cat Dog.png}
+    \caption{Sơ đồ kế thừa giữa các lớp \texttt{Animal}, \texttt{Dog} và \texttt{Cat}. 
+    Lớp \texttt{Animal} là lớp cha chung, chứa thuộc tính \texttt{name}, \texttt{age} và phương thức \texttt{die()};
+    các lớp con \texttt{Dog} và \texttt{Cat} kế thừa từ lớp này và mở rộng với các phương thức đặc trưng như \texttt{bark()} và \texttt{meow()}.}
+    \label{fig:animal_inheritance}
+\end{figure}
+
+\section{Polymorphism -- Đa hình}
+
+\textbf{Đa hình} (Polymorphism) là khả năng cho phép nhiều đối tượng thuộc các lớp khác nhau có thể được xử lý thông qua một giao diện chung.
+
+Ví dụ:
+
+\begin{minted}{python}
+animals = [Dog("Bingo"), Cat("Mimi", "đen")]
+
+for a in animals:
+    print(a.speak())
+\end{minted}
+
+\textbf{Giải thích}:
+\begin{itemize}
+    \item Danh sách \texttt{animals} chứa các đối tượng thuộc các lớp con khác nhau (\texttt{Dog}, \texttt{Cat}).
+    \item Vòng lặp \texttt{for} gọi phương thức \texttt{speak()} của từng đối tượng mà không cần quan tâm đối tượng cụ thể thuộc lớp nào.
+    \item Đây chính là minh họa cho tính chất đa hình: cùng gọi \texttt{speak()}, nhưng mỗi đối tượng phản hồi khác nhau.
+\end{itemize}
+
+Kết quả khi chạy đoạn mã trên:
+\begin{verbatim}
+Bingo sủa: Woof!
+Mimi kêu: Meow!
+\end{verbatim}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{projects/OOP/image/Kêu.jpg}
+    \caption{ Minh họa đa hình: cùng một phương thức \texttt{speak()}, kết quả khác nhau tùy lớp. 
+    Mỗi đối tượng (con người, chim, mèo, chó) thực hiện hành động ``nói'' theo cách riêng biệt: Xin chào, Líu lo, Meo meo, Gâu gâu.}
+    \label{fig:polymorphism_example}
+\end{figure}
+
+Lập trình hướng đối tượng (OOP) không chỉ áp dụng cho mô hình hóa đối tượng mà còn rất hữu ích khi triển khai các cấu trúc dữ liệu phổ biến như Stack, Queue, Tree và Binary Search Tree (BST). Điều này giúp mã dễ tái sử dụng, mở rộng và kiểm soát dữ liệu hiệu quả.
+
+\subsection{Stack (Ngăn xếp - LIFO)}
+
+\textbf{Stack} (ngăn xếp) là cấu trúc dữ liệu tuân theo nguyên tắc \textbf{LIFO} (Last In, First Out) — phần tử được thêm vào sau cùng sẽ được lấy ra trước.
+
+\begin{minted}{python}
+class Stack:
+    def __init__(self):
+        self._items = []  # danh sách dùng để chứa phần tử
+
+    def push(self, x):
+        self._items.append(x)  # thêm phần tử vào đỉnh ngăn xếp
+
+    def pop(self):
+        # loại bỏ và trả về phần tử ở đỉnh nếu không rỗng
+        return self._items.pop() if self._items else None
+
+    def is_empty(self):
+        return not self._items  # kiểm tra ngăn xếp rỗng
+\end{minted}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{projects/OOP/image/Stack-ngan-xep-02.jpg}
+    \caption{Minh họa nguyên tắc LIFO của Stack (Push/Pop). 
+    Phần tử mới (C) được đưa vào đỉnh ngăn xếp (Push) và cũng sẽ được lấy ra đầu tiên (Pop). 
+    Đây là đặc trưng của cấu trúc dữ liệu Stack.}
+    \label{fig:stack_lifo}
+\end{figure}
+
+\subsection{Queue (Hàng đợi - FIFO)}
+
+\textbf{Queue} (hàng đợi) là cấu trúc dữ liệu tuân theo nguyên tắc \textbf{FIFO} (First In, First Out) — phần tử vào trước sẽ được lấy ra trước.
+
+\begin{minted}{python}
+from collections import deque
+
+class Queue:
+    def __init__(self):
+        self._data = deque()  # sử dụng deque để tối ưu hiệu suất
+
+    def enqueue(self, x):
+        self._data.append(x)  # thêm phần tử vào cuối hàng đợi
+
+    def dequeue(self):
+        return self._data.popleft() if self._data else None  # lấy phần tử đầu
+
+    def is_empty(self):
+        return not self._data  # kiểm tra hàng đợi rỗng
+\end{minted}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{projects/OOP/image/Queue-03.jpg}
+    \caption{Minh họa nguyên tắc FIFO của Queue (Enqueue/Dequeue). 
+    Phần tử mới (2) được đưa vào đầu hàng (Enqueue) và cũng sẽ được lấy ra đầu tiên (Dequeue). 
+    Đây là đặc trưng của cấu trúc dữ liệu Queue.}
+    \label{fig:Queue_fifo}
+\end{figure}
+
+\subsection{Tree (Cây) và Duyệt cây}
+
+\textbf{Tree} (cây) là cấu trúc dữ liệu phi tuyến, trong đó mỗi nút (node) có thể có nhiều nút con (children).
+
+\begin{minted}{python}
+class TreeNode:
+    def __init__(self, value):
+        self.value = value       # giá trị nút
+        self.children = []       # danh sách các nút con
+
+    def add_child(self, node):
+        self.children.append(node)  # thêm nút con
+\end{minted}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{projects/OOP/image/tree-data-structure.png}
+    \caption{Cấu trúc tổng quát của một cây.}
+    \label{fig:tree-data-structure}
+\end{figure}
+
+\subsubsection{Duyệt theo chiều sâu (Depth-First Search - DFS)}
+
+\textbf{DFS} là phương pháp duyệt cây bằng cách đi sâu vào từng nhánh trước khi quay lại các nhánh khác.
+
+\begin{minted}{python}
+def dfs(node):
+    if not node:
+        return
+    print(node.value)             # xử lý node hiện tại
+    for child in node.children:   # duyệt từng nút con
+        dfs(child)
+\end{minted}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{projects/OOP/image/Duyet-DFS-2.jpg}
+    \caption{Duyệt DFS trên cây} 
+    \label{fig:DFS}
+\end{figure}
+
+\subsubsection{Duyệt theo chiều rộng (Breadth-First Search - BFS)}
+
+\textbf{BFS} duyệt cây theo từng tầng (level), sử dụng queue để lưu trữ các node chờ xử lý.
+
+\begin{minted}{python}
+def bfs(root):
+    queue = [root]  # khởi tạo hàng đợi với node gốc
+    while queue:
+        node = queue.pop(0)  # lấy node đầu tiên
+        print(node.value)    # xử lý node hiện tại
+        queue.extend(node.children)  # thêm các node con vào queue
+\end{minted}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{projects/OOP/image/Duyeetjj-BFS.jpg}
+    \caption{Duyệt BFS trên cây} 
+    \label{fig:BFS}
+\end{figure}
+
+\subsection{Binary Search Tree (Cây Nhị phân Tìm kiếm - BST)}
+
+\textbf{BST} là cây nhị phân đặc biệt, mỗi node thỏa mãn:
+\begin{itemize}
+    \item Các node con bên trái chứa giá trị nhỏ hơn node hiện tại.
+    \item Các node con bên phải chứa giá trị lớn hơn node hiện tại.
+\end{itemize}
+
+\begin{minted}{python}
+class BSTNode:
+    def __init__(self, val):
+        self.val = val
+        self.left = None     # con trái
+        self.right = None    # con phải
+
+    def insert(self, key):
+        if key < self.val:
+            if self.left:
+                self.left.insert(key)  # đệ quy thêm vào cây con trái
+            else:
+                self.left = BSTNode(key)
+        else:
+            if self.right:
+                self.right.insert(key)  # đệ quy thêm vào cây con phải
+            else:
+                self.right = BSTNode(key)
+
+    def search(self, key):
+        if self.val == key:
+            return True
+        if key < self.val and self.left:
+            return self.left.search(key)  # tìm ở cây con trái
+        if key > self.val and self.right:
+            return self.right.search(key)  # tìm ở cây con phải
+        return False  # không tìm thấy
+\end{minted}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{projects/OOP/image/cafedev-binary-tree-coloring-game.png}
+    \caption{Cấu trúc Binary Search Tree} 
+    \label{fig:Binary Search Tree}
+\end{figure}
+
+\section{Magic Methods -- Toán tử đặc biệt}
+
+\textbf{Magic Methods} (phương thức đặc biệt, dãy \_\_dunder\_\_ methods) là những phương thức đặc biệt giúp lập trình viên tùy chỉnh hành vi mặc định của các toán tử và hàm dựng sẵn trong Python.
+
+Ví dụ:
+\begin{itemize}
+    \item \texttt{\_\_init\_\_}: Phương thức khởi tạo.
+    \item \texttt{\_\_repr\_\_}: Cách biểu diễn đối tượng khi in ra (repr).
+    \item \texttt{\_\_add\_\_}: Định nghĩa phép cộng giữa hai đối tượng.
+\end{itemize}
+
+\textbf{Ví dụ: Lớp Vector hỗ trợ phép cộng}:
+
+\begin{minted}{python}
+class Vector:
+    def __init__(self, x, y):
+        self.x, self.y = x, y  # gán giá trị tọa độ
+
+    def __add__(self, other):
+        # cộng hai vector bằng cách cộng từng thành phần
+        return Vector(self.x + other.x, self.y + other.y)
+
+    def __repr__(self):
+        # trả về chuỗi biểu diễn đối tượng
+        return f"Vector({self.x}, {self.y})"
+\end{minted}
+
+\textbf{Giải thích}:
+\begin{itemize}
+    \item \texttt{\_\_add\_\_}: Cho phép dùng toán tử \texttt{+} để cộng hai vector.
+    \item \texttt{\_\_repr\_\_}: Xác định cách in ra vector (dễ debug, dễ đọc).
+\end{itemize}
+
+Ví dụ sử dụng:
+\begin{minted}{python}
+v1 = Vector(1, 2)
+v2 = Vector(3, 4)
+print(v1 + v2)  # Kết quả: Vector(4, 6)
+\end{minted}
+
+\section{MRO và Metaclass}
+
+\subsection{MRO (Method Resolution Order)}
+
+MRO xác định thứ tự Python tìm kiếm các phương thức trong đa kế thừa. Có thể kiểm tra bằng:
+
+\begin{minted}{python}
+print(ClassName.mro())
+\end{minted}
+
+\textbf{Ví dụ}:
+\begin{minted}{python}
+class A: pass
+class B(A): pass
+print(B.mro())
+\end{minted}
+
+\subsection{Metaclass}
+
+\textbf{Metaclass} kiểm soát cách Python tạo lớp. Mặc định là \texttt{type}. Dùng metaclass có thể can thiệp hoặc tự động hóa quá trình tạo class.
+
+\begin{minted}{python}
+class Meta(type):
+    def __new__(cls, name, bases, attrs):
+        print(f"Tạo class {name}")
+        return super().__new__(cls, name, bases, attrs)
+
+class MyClass(metaclass=Meta):
+    pass
+\end{minted}
+
+\textbf{Giải thích}:
+\begin{itemize}
+    \item Metaclass thường dùng cho framework (như ORM, PyTorch) để tự động thêm thuộc tính, kiểm tra class khi định nghĩa.
+\end{itemize}
+
+\section{Ví dụ Thực tế: Custom Layer trong PyTorch}
+
+Khi xây dựng mô hình học sâu bằng PyTorch, chúng ta thường cần tự định nghĩa layer mới bằng cách kế thừa từ \texttt{torch.nn.Module}:
+
+\begin{minted}{python}
+import torch
+import torch.nn as nn
+
+class CustomReLU(nn.Module):
+    """Layer ReLU tùy chỉnh"""
+    def __init__(self):
+        super().__init__()  # khởi tạo lớp cha nn.Module
+
+    def forward(self, x):
+        # Hàm kích hoạt ReLU tự định nghĩa
+        return torch.max(x, torch.zeros_like(x))
+\end{minted}
+
+\textbf{Giải thích}:
+\begin{itemize}
+    \item \texttt{forward()}: Định nghĩa phép biến đổi đầu vào $x$.
+    \item \texttt{torch.max()}: Trả về giá trị lớn nhất giữa $x$ và 0, chính là chức năng của ReLU.
+    \item \texttt{super()\_\_init\_\_()}: Gọi constructor lớp cha \texttt{nn.Module} để đảm bảo layer hoạt động đúng khi tích hợp vào mô hình.
+\end{itemize}
+
+\section{Lời kết}
+
+Qua bài viết này, chúng ta đã đi qua gần như toàn bộ các khía cạnh nền tảng và quan trọng nhất của lập trình hướng đối tượng (OOP) trong Python. Từ các khái niệm cơ bản như \textbf{Class} và \textbf{Object}, đến bốn tính chất quan trọng: \textbf{Encapsulation} (bao đóng), \textbf{Abstraction} (trừu tượng hóa), \textbf{Inheritance} (kế thừa), \textbf{Polymorphism} (đa hình), cho đến việc áp dụng OOP trong các cấu trúc dữ liệu như \textbf{Stack}, \textbf{Queue}, \textbf{Tree}, \textbf{Binary Search Tree}.
+
+Bài viết cũng đã giới thiệu về \textbf{Magic Methods} giúp tuỳ chỉnh hành vi của đối tượng, \textbf{MRO} để hiểu thứ tự tìm kiếm phương thức trong đa kế thừa, \textbf{Metaclass} cho việc điều khiển việc tạo lớp, cũng như cách xây dựng một lớp tùy chỉnh (\texttt{Custom Layer}) trong thư viện học sâu PyTorch.
+
+\textbf{OOP không chỉ giúp mã nguồn rõ ràng, dễ bảo trì, dễ mở rộng mà còn là nền tảng quan trọng cho việc xây dựng các thư viện, framework lớn như PyTorch, Django, TensorFlow, v.v.}.
+

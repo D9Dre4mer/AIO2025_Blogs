@@ -1,0 +1,162 @@
+\begin{center}
+    \Large\textbf{\Huge Git \& GitHub for Version Control}
+\end{center}
+
+\begin{center}
+    \Large\textit{Bùi Đức Xuân}
+\end{center}
+
+\section{Quy trình làm việc Git cơ bản}
+
+\subsection{Khởi tạo và sao chép repository}
+\begin{minted}[linenos, fontsize=\small, bgcolor=gray!10]{bash}
+# Tạo repo mới
+mkdir my-project
+cd my-project
+git init
+
+# Clone repo từ GitHub
+git clone https://github.com/user/repo.git
+\end{minted}
+
+\subsection{Theo dõi và lưu thay đổi}
+\begin{minted}[linenos, fontsize=\small, bgcolor=gray!10]{bash}
+# Kiểm tra trạng thái file
+git status
+
+# Thêm file vào khu vực staging
+git add index.html
+
+# Commit với nội dung tiếng Việt
+git commit -m "Thêm giao diện trang chủ"
+\end{minted}
+
+\subsection{Sử dụng .gitignore}
+\begin{minted}[fontsize=\small]{text}
+node_modules/
+*.log
+.env
+\end{minted}
+
+\subsection{Xem lịch sử và hoàn tác thay đổi}
+\begin{minted}[linenos, fontsize=\small, bgcolor=gray!10]{bash}
+git log --oneline
+git restore file.txt
+git stash
+git stash pop
+git revert <commit>
+\end{minted}
+
+\subsection{Làm việc với remote}
+\begin{minted}[linenos, fontsize=\small, bgcolor=gray!10]{bash}
+git remote add origin https://github.com/user/repo.git
+git push -u origin main
+git pull origin main
+\end{minted}
+
+\subsection{Đánh dấu phiên bản (Tag)}
+\begin{minted}[linenos, fontsize=\small, bgcolor=gray!10]{bash}
+git tag -a v1.0 -m "Phát hành v1.0"
+git push origin v1.0
+\end{minted}
+
+\section{Quản lý nhánh và lịch sử}
+
+\subsection{Tạo, chuyển và gộp nhánh}
+\begin{minted}[linenos, fontsize=\small, bgcolor=gray!10]{bash}
+git checkout -b feature/login
+git checkout main
+git merge feature/login
+\end{minted}
+
+\subsection{Quản lý nhánh}
+\begin{minted}[linenos, fontsize=\small, bgcolor=gray!10]{bash}
+git branch -d feature/login
+git branch -m old-name new-name
+git push origin --delete feature/login
+\end{minted}
+
+\subsection{Rebase}
+\begin{minted}[linenos, fontsize=\small, bgcolor=gray!10]{bash}
+git checkout feature-x
+git rebase main
+git rebase -i HEAD~3
+\end{minted}
+
+\subsection{Các workflow phổ biến}
+\begin{itemize}
+  \item \textbf{GitFlow} – phân rõ nhánh phát triển, release, hotfix
+  \item \textbf{GitHub Flow} – đơn giản, phù hợp CI/CD
+  \item \textbf{Trunk-based} – làm việc trực tiếp trên main
+  \item \textbf{GitLab Flow} – kết hợp môi trường staging, production
+\end{itemize}
+
+\section{Cộng tác qua GitHub}
+
+\subsection{Thiết lập tài khoản và SSH Key}
+\begin{minted}[linenos, fontsize=\small, bgcolor=gray!10]{bash}
+ssh-keygen -t ed25519 -C "you@example.com"
+\end{minted}
+
+\subsection{Quy trình Fork \& Pull Request}
+\begin{minted}[linenos, fontsize=\small, bgcolor=gray!10]{bash}
+# Clone từ fork
+git clone https://github.com/youruser/forked-repo.git
+
+# Thêm remote gốc
+git remote add upstream https://github.com/original/repo.git
+
+# Tạo nhánh mới
+git checkout -b fix-bug
+
+# Commit và push
+git add .
+git commit -m "Sửa lỗi"
+git push origin fix-bug
+\end{minted}
+
+\subsection{Quản lý repository trên GitHub}
+Tạo các file quản lý:
+\begin{itemize}
+  \item \texttt{README.md}
+  \item \texttt{CONTRIBUTING.md}
+  \item \texttt{CODE\_OF\_CONDUCT.md}
+\end{itemize}
+
+Cấu hình bảo vệ nhánh tại mục \texttt{Settings > Branches}.
+
+\section{Tùy chỉnh và mở rộng Git}
+
+\subsection{Cấu hình nâng cao (.gitconfig)}
+\begin{minted}[fontsize=\small]{text}
+[user]
+  name = Your Name
+[alias]
+  st = status
+  cm = commit -m
+  co = checkout
+\end{minted}
+
+\subsection{Git Attributes (.gitattributes)}
+\begin{minted}[fontsize=\small]{text}
+*.sh text eol=lf
+*.png binary
+config.xml merge=ours
+\end{minted}
+
+\subsection{Git Hooks}
+\begin{minted}[linenos, fontsize=\small, bgcolor=gray!10]{bash}
+#!/bin/sh
+# Kiểm tra lint trước khi commit
+npm run lint || exit 1
+\end{minted}
+
+\subsection{Alias và script nâng cao}
+\begin{minted}[fontsize=\small]{text}
+[alias]
+  co = checkout
+  br = branch
+  cm = commit -m
+  l  = log --oneline --graph
+  sync = "!f() { git pull upstream $(git rev-parse --abbrev-ref HEAD); }; f"
+\end{minted}

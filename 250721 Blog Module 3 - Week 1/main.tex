@@ -1,0 +1,100 @@
+\documentclass[a4paper,12pt]{article}
+
+\input{preamble.tex} % Gọi preamble từ file riêng
+
+\begin{document}
+\fancyhead[L]{%
+    \includegraphics[height=1.2cm]{Logo/Logo.png}%
+    }
+\newpage
+
+\begin{center}
+    \vspace*{2em}
+    {\LARGE\bfseries Blog Tuần 1 – Module 3 \par}
+    \vspace{0.5em}
+    {\Huge\bfseries Khám Phá Pandas, Trực Quan Hóa Dữ Liệu và ETL Pipeline \par}
+    \vspace{1em}
+    {\Large\itshape Từ nền tảng xử lý dữ liệu đến ứng dụng thực tiễn \par}
+    \vspace{2em}
+    {\large\textbf{Tác giả:} GRID034} \\
+    \vspace{2em}
+    \hrule
+    \vspace{1.5em}
+\end{center}
+
+\noindent
+
+\noindent
+Tuần thứ nhất của Module 3 đưa ta vào một hành trình kiến thức đa dạng, kết hợp giữa lý thuyết nền tảng và ứng dụng thực tiễn. Nội dung Blog không chỉ giới thiệu các công cụ và kỹ thuật quan trọng trong phân tích dữ liệu, mà còn cung cấp các ví dụ minh họa trực quan và các tình huống thực tế giúp bạn áp dụng ngay vào công việc hoặc học tập. Từ việc làm chủ thư viện \textbf{Pandas}, lựa chọn biểu đồ trực quan phù hợp, xây dựng \textbf{ETL Pipeline} hiệu quả, cho tới kết hợp sức mạnh của \textbf{Python và Excel} – mọi phần đều được trình bày rõ ràng, dễ hiểu và bám sát thực tế.
+
+\vspace{1em}
+
+\noindent
+Các chủ đề nổi bật bao gồm:
+
+\vspace{1em}
+\begin{enumerate}
+    \item \textbf{Pandas – Từ lý thuyết đến ứng dụng thực tế}
+    \begin{itemize}
+        \item Giới thiệu \texttt{Series} và \texttt{DataFrame}, hai cấu trúc dữ liệu quan trọng.
+        \item Thao tác cơ bản: đọc/ghi dữ liệu, xem thông tin, chọn lọc, thêm/xóa, sắp xếp, lọc, nhóm dữ liệu.
+        \item Ứng dụng thực tế: phân tích dữ liệu Pokémon, xử lý dữ liệu thời gian, resampling và nhận diện seasonality.
+    \end{itemize}
+
+    \item \textbf{Trực quan hóa dữ liệu với Python}
+    \begin{itemize}
+        \item Giải thích khái niệm, vai trò, và nguyên tắc chọn biểu đồ phù hợp.
+        \item Các thư viện phổ biến: \texttt{Matplotlib}, \texttt{Seaborn}, \texttt{Plotly}.
+        \item Trường hợp nghiên cứu: Bộ dữ liệu \texttt{ETTh}, \texttt{Student Performance}, và \texttt{Iris} với nhiều loại biểu đồ (line chart, box plot, bar chart, donut chart, heatmap, scatter plot, bubble chart, pairplot, 3D visualization, word cloud).
+    \end{itemize}
+
+    \item \textbf{ETL Pipeline – Trái tim của dữ liệu thông minh}
+    \begin{itemize}
+        \item Quy trình \textbf{Extract – Transform – Load}.
+        \item Kỹ thuật trích xuất dữ liệu (full, incremental, CDC), xử lý lỗi như composite key collision.
+        \item Làm sạch và biến đổi dữ liệu, tạo cột mới, chuẩn hóa và tích hợp.
+        \item Tải dữ liệu vào \texttt{Data Warehouse} hoặc \texttt{Data Mart}, xử lý thay đổi theo thời gian với \textbf{SCD Type 1 \& 2}.
+    \end{itemize}
+
+    \item \textbf{Kết hợp Python và Excel trong phân tích dữ liệu}
+    \begin{itemize}
+        \item So sánh ưu – nhược điểm giữa Excel và Python.
+        \item Python trực tiếp trong Excel (hàm \texttt{=PY()}), áp dụng xử lý dữ liệu và vẽ biểu đồ ngay trong bảng tính.
+        \item Lập trình Python bên ngoài để tự động hóa Excel: tạo file từ CSV, thêm định dạng, biểu đồ, và xử lý hàng loạt.
+    \end{itemize}
+\end{enumerate}
+
+\vspace{1em}
+\noindent\textbf{ Giá trị nhận được sau khi đọc Blog}
+\begin{itemize}
+    \item Hiểu và sử dụng thành thạo Pandas để xử lý dữ liệu.
+    \item Lựa chọn biểu đồ trực quan phù hợp để truyền tải thông tin.
+    \item Xây dựng và tối ưu hóa ETL Pipeline cho phân tích dữ liệu chuyên sâu.
+    \item Kết hợp hiệu quả Python và Excel để tận dụng sức mạnh của cả hai công cụ.
+\end{itemize}
+
+
+\vspace{1em}
+\newpage
+
+\input{projects/BasicPandas/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\input{projects/PandasV/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\input{projects/VisualD/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\input{projects/ETL/Main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\input{projects/Excel/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\end{document}

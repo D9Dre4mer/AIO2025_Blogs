@@ -1,0 +1,421 @@
+\begin{center}
+    \Large\textbf{Hiểu và Ứng dụng Thuật Toán K-Means}
+\end{center}
+
+\begin{center}
+    \Large\textit{Đàm Nguyên Khánh}
+\end{center}
+
+\section{Giới thiệu}
+K-Means là một thuật toán \textbf{phân cụm} (\textit{clustering}) thuộc nhóm \textbf{học máy không giám sát} (\textit{unsupervised learning}). Mục tiêu là nhóm các điểm dữ liệu thành $K$ cụm sao cho các điểm trong cùng cụm \textit{tương tự nhau nhất} và \textit{khác biệt nhất với các cụm khác}.
+
+\textbf{Ứng dụng thực tế:}
+\begin{itemize}
+    \item Phân nhóm khách hàng (marketing)
+    \item Nén ảnh (image compression)
+    \item Phát hiện bất thường (anomaly detection)
+    \item Giảm nhiễu và tiền xử lý dữ liệu
+\end{itemize}
+
+\section{Bối cảnh và Động lực}
+Trong nhiều bài toán, dữ liệu \textbf{không được gắn nhãn}. Ví dụ: danh sách chi tiêu khách hàng nhưng không có thông tin nhóm.
+
+\textbf{Câu hỏi đặt ra:}
+\begin{itemize}
+    \item Làm sao phân nhóm khách hàng VIP và khách hàng thường?
+    \item Làm sao tìm ra cấu trúc ẩn trong dữ liệu?
+\end{itemize}
+
+\textit{Ví dụ}: Khách hàng có mức chi tiêu: 6, 8, 10, 12, 36, 40, 41 (\$).
+
+\begin{figure}[H]
+    \centering
+    % Đổi tên file để bỏ dấu/khoảng trắng, ví dụ scatter_chi_tieu.png
+    \includegraphics[width=0.85\textwidth]{projects/Kmean/Image/Scatter khách hàng.jpg}
+    \caption{Biểu đồ scatter/cột thể hiện dữ liệu chi tiêu khách hàng trước và sau khi phân cụm.}
+    \label{fig:scatter_chi_tieu}
+\end{figure}
+
+\noindent\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Diễn giải:}
+\begin{itemize}[leftmargin=1.6em]
+    \item \textbf{Biểu đồ trên}: Chi tiêu của khách hàng trước khi phân cụm, tất cả điểm có cùng màu vì chưa phân loại.
+    \item \textbf{Biểu đồ dưới}: Kết quả sau khi áp dụng K-Means với 2 cụm:
+    \begin{itemize}
+        \item \textcolor{blue}{\textbf{Cụm 1 (Thấp)}}: nhóm khách hàng chi tiêu thấp.
+        \item \textcolor{orange}{\textbf{Cụm 2 (Cao)}}: nhóm khách hàng chi tiêu cao.
+    \end{itemize}
+    \item Phân cụm giúp nhận diện nhóm khách hàng dựa trên hành vi chi tiêu, hỗ trợ phân tích và ra quyết định kinh doanh.
+\end{itemize}
+\end{minipage}
+
+
+\section{Nguyên lý hoạt động của K-Means}
+K-Means hoạt động theo \textbf{chu trình lặp}:
+\begin{enumerate}
+    \item Chọn số cụm $K$.
+    \item Khởi tạo ngẫu nhiên $K$ tâm cụm (centroids).
+    \item Gán mỗi điểm vào cụm có tâm gần nhất (khoảng cách Euclidean).
+    \item Tính lại tâm cụm mới.
+    \item Lặp lại cho đến khi hội tụ.
+\end{enumerate}
+
+\textbf{Khoảng cách Euclidean}:
+\[
+D(x, c) = \sqrt{\sum_{i=1}^{n} (x_i - c_i)^2}
+\]
+
+\section{Công thức tổng quát}
+\textbf{Bước gán cụm}:
+\[
+S_i^{(t)} = \{ x_j : \| x_j - c_i^{(t)} \|^2 \leq \| x_j - c_k^{(t)} \|^2 \}
+\]
+
+\textbf{Bước cập nhật tâm cụm}:
+\[
+c_i^{(t+1)} = \frac{1}{|S_i^{(t)}|} \sum_{x_j \in S_i^{(t)}} x_j
+\]
+
+\textbf{Tiêu chí tối ưu - WCSS}:
+\[
+WCSS = \sum_{i=1}^K \sum_{x \in S_i} \| x - c_i \|^2
+\]
+
+\section{Cài đặt K-Means với NumPy}
+\begin{enumerate}
+    \item Khởi tạo centroid.
+    \item Tính khoảng cách với broadcasting.
+    \item Gán nhãn bằng \texttt{np.argmin()}.
+    \item Cập nhật centroid bằng \texttt{np.mean()}.
+    \item Điều kiện dừng: \texttt{np.all(C == C\_new)}.
+\end{enumerate}
+
+\begin{minted}[fontsize=\small]{python}
+import numpy as np
+
+def pairwise_l2(X, C):
+    """
+    Tính ma trận khoảng cách Euclidean giữa mỗi điểm dữ liệu và mỗi centroid.
+    X: (n_samples, n_features)
+    C: (k, n_features)
+    Trả về: D có shape (n_samples, k) với D[i, j] = ||X[i] - C[j]||_2
+    """
+    # Broadcasting: (n,1,d) - (1,k,d) -> (n,k,d) rồi norm theo trục đặc trưng
+    return np.linalg.norm(X[:, None, :] - C[None, :, :], axis=2)
+
+def wcss(X, labels, C):
+    """
+    Within-Cluster Sum of Squares (WCSS): tổng bình phương khoảng cách
+    của điểm đến centroid của cụm mà điểm thuộc về.
+    """
+    total = 0.0
+    for j in range(C.shape[0]):
+        Xj = X[labels == j]
+        if len(Xj) > 0:
+            total += np.sum((Xj - C[j])**2)
+    return float(total)
+
+def init_kmeans_plus_plus(X, k, rng):
+    """
+    Khởi tạo k-means++: chọn ngẫu nhiên 1 tâm đầu,
+    sau đó chọn các tâm còn lại theo phân phối tỉ lệ với khoảng cách bình phương lớn nhất.
+    """
+    n = X.shape[0]
+    idx0 = rng.integers(0, n)
+    centers = [X[idx0]]
+    for _ in range(1, k):
+        D = pairwise_l2(X, np.vstack(centers))  # (n, m)
+        # Khoảng cách bình phương tới centroid gần nhất
+        d2 = np.min(D**2, axis=1)
+        probs = d2 / d2.sum()
+        next_idx = rng.choice(n, p=probs)
+        centers.append(X[next_idx])
+    return np.vstack(centers)
+
+def kmeans(X, k, max_iter=100, tol=1e-4, init="k-means++", random_state=42):
+    """
+    K-Means chuẩn với:
+      - init in {"random", "k-means++"}
+      - điều kiện dừng: ||C_new - C_old||_F <= tol * ||C_old||_F
+      - xử lý cụm rỗng bằng cách re-seed centroid từ điểm xa nhất
+    Trả về:
+      labels: (n,), centers: (k,d), history: dict chứa WCSS theo vòng lặp
+    """
+    rng = np.random.default_rng(random_state)
+    n, d = X.shape
+
+    # Khởi tạo centroids
+    if init == "k-means++":
+        C = init_kmeans_plus_plus(X, k, rng)
+    elif init == "random":
+        C = X[rng.choice(n, size=k, replace=False)]
+    else:
+        raise ValueError("init must be 'random' or 'k-means++'.")
+
+    hist_wcss = []
+    for it in range(max_iter):
+        # Bước gán cụm
+        D = pairwise_l2(X, C)              # (n, k)
+        labels = np.argmin(D, axis=1)      # (n,)
+
+        # Bước cập nhật centroid
+        C_new = C.copy()
+        for j in range(k):
+            Xj = X[labels == j]
+            if len(Xj) > 0:
+                C_new[j] = Xj.mean(axis=0)
+            else:
+                # Cụm rỗng: chọn lại centroid là điểm xa nhất so với mọi centroid hiện tại
+                far_idx = np.argmax(np.min(D**2, axis=1))
+                C_new[j] = X[far_idx]
+
+        # Theo dõi hội tụ bằng WCSS
+        current_wcss = wcss(X, labels, C_new)
+        hist_wcss.append(current_wcss)
+
+        # Điều kiện dừng theo chuẩn Frobenius tương đối
+        denom = max(np.linalg.norm(C), 1e-12)
+        delta = np.linalg.norm(C_new - C) / denom
+        C = C_new
+        if delta <= tol:
+            break
+
+    return labels, C, {"wcss": np.array(hist_wcss), "iters": it + 1}
+
+# ===== Ví dụ chạy nhanh =====
+if __name__ == "__main__":
+    # Dữ liệu 2 chiều (Age, Expenditure) từ ví dụ trong bài
+    X = np.array([
+        [18, 80],
+        [20, 90],
+        [22, 85],
+        [30, 50],
+        [34, 64],
+        [40, 60],
+        [60, 30],
+        [66, 40],
+        [70, 25]
+    ], dtype=float)
+
+    labels, centers, hist = kmeans(X, k=3, init="k-means++", random_state=7)
+    print("Centers:\n", centers)
+    print("Labels:", labels)
+    print("WCSS history:", hist["wcss"])
+    print("Iterations:", hist["iters"])
+\end{minted}
+
+\subsection*{Kết quả thực nghiệm}
+
+Sau khi chạy thuật toán K-Means với \(\mathbf{k = 3}\) trên tập dữ liệu khách hàng (Age, Expenditure), thu được kết quả như sau:
+
+\begin{table}[H]
+\centering
+\caption{Tâm cụm (Centers) sau khi hội tụ}
+\begin{tabular}{c|c|c}
+\hline
+\textbf{Cụm} & \textbf{Tuổi (Age)} & \textbf{Chi tiêu (Expenditure)} \\
+\hline
+0 & 65.33 & 31.67 \\
+1 & 20.00 & 85.00 \\
+2 & 34.67 & 58.00 \\
+\hline
+\end{tabular}
+\end{table}
+
+\noindent
+\textbf{Giải thích:}
+\begin{itemize}[leftmargin=1.8em]
+    \item \textbf{Cụm 0} (màu giả định: xanh): nhóm khách hàng lớn tuổi (khoảng 65 tuổi) với mức chi tiêu trung bình thấp (\(\approx 32\)).
+    \item \textbf{Cụm 1} (màu giả định: đỏ): nhóm khách hàng trẻ (20 tuổi) với mức chi tiêu cao (\(\approx 85\)).
+    \item \textbf{Cụm 2} (màu giả định: vàng): nhóm khách hàng trung niên (\(\approx 35\) tuổi) với chi tiêu trung bình khá (\(\approx 58\)).
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Nhãn cụm (Labels) của từng khách hàng}
+\begin{tabular}{c|c}
+\hline
+\textbf{Khách hàng (Index)} & \textbf{Cụm} \\
+\hline
+0 & 1 \\
+1 & 1 \\
+2 & 1 \\
+3 & 2 \\
+4 & 2 \\
+5 & 2 \\
+6 & 0 \\
+7 & 0 \\
+8 & 0 \\
+\hline
+\end{tabular}
+\end{table}
+
+\noindent
+\textbf{Giải thích:}  
+Các khách hàng \(\{0,1,2\}\) thuộc nhóm trẻ -- chi tiêu cao; \(\{3,4,5\}\) thuộc nhóm trung niên -- chi tiêu trung bình; \(\{6,7,8\}\) thuộc nhóm cao tuổi -- chi tiêu thấp.
+
+\subsubsection*{Lịch sử WCSS và số vòng lặp}
+\[
+\text{WCSS history} = [1232.93,\ 803.08,\ 380.00,\ 380.00]
+\]
+\[
+\text{Số vòng lặp (Iterations)} = 4
+\]
+
+\noindent
+\textbf{Giải thích:}
+\begin{itemize}[leftmargin=1.8em]
+    \item \textbf{WCSS} (\textit{Within-Cluster Sum of Squares}) giảm dần qua từng vòng lặp:
+    \[
+    1232.93 \to 803.08 \to 380.00
+    \]
+    Điều này chứng tỏ thuật toán đang cải thiện việc gom nhóm — các điểm ngày càng gần tâm cụm hơn.
+    \item Ở vòng lặp thứ 3 và 4, WCSS không thay đổi (\(380.00\)), nghĩa là thuật toán đã \textbf{hội tụ}.
+    \item Tổng số vòng lặp cần để hội tụ: \(4\) vòng.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+
+    \includegraphics[width=0.9\textwidth]{projects/Kmean/Image/Sơ đồ Broadcasting.png}
+    \caption{Minh hoạ quá trình \textbf{broadcasting} trong NumPy khi tính khoảng cách giữa dữ liệu và tâm cụm.}
+    \label{fig:broadcasting}
+\end{figure}
+
+
+\noindent\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Chú thích:}
+\[
+\textcolor{blue}{\mathbf{X[:,\mathrm{None},:]}} \to (n,1,d),\quad
+\textcolor{red}{\mathbf{C[\mathrm{None},:, :]}} \to (1,k,d)
+\]
+Khi trừ: \(\mathbf{X[:,\mathrm{None},:] - C[\mathrm{None},:, :]}\) \(\Rightarrow\) tensor \((n,k,d)\),  
+trong đó \(n\) là số điểm dữ liệu, \(k\) là số centroid, \(d\) là số chiều đặc trưng.  
+
+Ma trận khoảng cách thu được bằng 
+\(\texttt{np.linalg.norm}(\cdot, \texttt{axis=2}) \Rightarrow (n,k)\).
+\end{minipage}
+
+
+\begin{figure}[H]
+    \centering
+    % Đổi tên file ảnh để tránh lỗi
+    \includegraphics[width=0.55\textwidth]{projects/Kmean/Image/Đồ thị hội tụ.png}
+    \caption{Đồ thị biểu diễn quá trình hội tụ của thuật toán K-Means qua các vòng lặp.}
+    \label{fig:do_thi_hoi_tu}
+\end{figure}
+
+% Ghi chú chi tiết ngoài caption
+\noindent\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Chú thích:}
+\begin{itemize}[leftmargin=1.5em]
+    \item Trục hoành (x): Số vòng lặp \(t\).
+    \item Trục tung (y): Giá trị \( \mathrm{WCSS} \) (\textit{Within-Cluster Sum of Squares}).
+    \item WCSS giảm mạnh từ \(1232.93 \to 803.08 \to 380.00\) trong 3 vòng đầu, cho thấy các điểm dữ liệu dần được gán vào cụm tối ưu hơn.
+    \item Từ vòng 2 đến vòng 3, WCSS giữ nguyên ở \(380.00\), chứng tỏ thuật toán đã hội tụ và không còn cải thiện.
+\end{itemize}
+\end{minipage}
+
+
+\section{K-Means với dữ liệu ảnh và văn bản}
+\subsection{Ảnh}
+Mỗi ảnh được biểu diễn thành vector đặc trưng, K-Means nhóm pixel/embedding để nén hoặc phân loại.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{projects/Kmean/Image/BOW TFIDF.png}
+    \caption{Quy trình sử dụng \textit{Bag of Words} hoặc TF-IDF để biến văn bản thành vector và phân cụm.}
+    \label{fig:bow_tfidf_pipeline}
+\end{figure}
+
+\noindent\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Diễn giải:}
+\begin{itemize}[leftmargin=1.6em]
+    \item \textbf{Input Text}: dữ liệu văn bản gốc.
+    \item \textbf{Bag of Words (BoW)}: biểu diễn văn bản dựa trên tần suất xuất hiện của từ (word counts) mà không xét thứ tự từ.
+    \item \textbf{TF-IDF}: biểu diễn văn bản dựa trên tần suất xuất hiện và mức độ đặc trưng của từ trong tập tài liệu.
+    \item Cả hai phương pháp chuyển đổi văn bản thành \textbf{vector representation}.
+    \item Các vector này được đưa vào thuật toán \textbf{Clustering} để nhóm các văn bản tương tự nhau.
+\end{itemize}
+\end{minipage}
+
+
+\noindent\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Chú thích:}
+\begin{itemize}[leftmargin=1.5em]
+    \item Ma trận hiển thị sự xuất hiện (1) hoặc không xuất hiện (0) của các từ phổ biến trong mỗi câu.
+    \item Trục hoành: Các từ phổ biến (Frequent Words).
+    \item Trục tung: Các câu trong tập dữ liệu.
+    \item Ô màu xanh: từ xuất hiện trong câu, ô màu đỏ: từ không xuất hiện.
+\end{itemize}
+\end{minipage}
+
+
+\section{Ứng dụng nâng cao}
+\begin{itemize}
+    \item Phát hiện bất thường (viễn thông, IoT).
+    \item Tiền xử lý dữ liệu hình ảnh để giảm nhiễu.
+    \item Chọn siêu tham số.
+    \item Giảm số lớp để tăng mẫu huấn luyện.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{projects/Kmean/Image/Kmean application.png}
+    \caption{Sơ đồ ứng dụng K-Means trong pipeline AI.}
+    \label{fig:kmeans_pipeline_ai}
+\end{figure}
+
+\noindent\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Diễn giải nhanh:}
+\begin{itemize}[leftmargin=1.6em]
+    \item \textbf{Raw Data} $\rightarrow$ \textbf{Data Preprocessing}: làm sạch, chuẩn hoá/khử chuẩn hoá.
+    \item \textbf{Feature Engineering}: sinh \texttt{cluster\_id} từ K-Means để dùng như đặc trưng.
+    \item \textbf{K-Means Clustering}: gom các điểm tương tự vào $K$ cụm.
+    \item \textbf{Model Training}: dùng \texttt{cluster\_id} (và feature khác) huấn luyện mô hình dự đoán.
+    \item \textbf{Evaluation \& Deployment}: đánh giá bằng các \textit{metrics}, triển khai suy luận.
+    \item \textbf{Ví dụ}: phân khúc khách hàng (\textit{Customer Segmentation}).
+\end{itemize}
+\end{minipage}
+
+\section{Kết luận}
+K-Means là thuật toán \textbf{mạnh mẽ, đơn giản, dễ triển khai} nhưng có hạn chế:
+\begin{itemize}
+    \item Phải chọn K trước.
+    \item Nhạy cảm với giá trị khởi tạo.
+    \item Không phù hợp cho cụm không lồi hoặc kích thước khác nhau.
+\end{itemize}
+
+Trong thực tế, K-Means thường được kết hợp với K-Means++, PCA hoặc làm bước tiền xử lý cho deep learning.
+
+\begin{table}[H]
+\centering
+\caption{Ưu và nhược điểm của thuật toán K-Means}
+\label{tab:kmeans_pros_cons}
+\begin{tabular}{|p{0.45\linewidth}|p{0.45\linewidth}|}
+\hline
+\textbf{Ưu điểm} & \textbf{Nhược điểm} \\
+\hline
+\begin{itemize}[leftmargin=1em]
+    \item Thuật toán đơn giản, dễ hiểu và dễ triển khai.
+    \item Tốc độ nhanh trên dữ liệu lớn với số chiều vừa phải.
+    \item Hiệu quả với cụm dạng cầu (spherical) và kích thước tương tự.
+    \item Có thể mở rộng cho nhiều ứng dụng như phân cụm khách hàng, nén ảnh, tiền xử lý cho mô hình học sâu.
+\end{itemize}
+&
+\begin{itemize}[leftmargin=1em]
+    \item Phải chọn số cụm $K$ trước khi chạy.
+    \item Nhạy cảm với vị trí khởi tạo centroid (dễ rơi vào cực tiểu cục bộ).
+    \item Không phù hợp cho cụm có hình dạng phức tạp, không lồi hoặc kích thước chênh lệch.
+    \item Ảnh hưởng lớn bởi nhiễu và điểm ngoại lai (outlier).
+\end{itemize}
+\\
+\hline
+\end{tabular}
+\end{table}

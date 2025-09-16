@@ -1,0 +1,159 @@
+\begin{center}
+    \Large\textbf{Khám Phá Python Cơ Bản Cho AI}
+\end{center}
+
+\begin{center}
+    \Large\textit{Đàm Nguyên Khánh}
+\end{center}
+
+\begin{abstract}
+Python là ngôn ngữ lập trình phổ biến và mạnh mẽ, đặc biệt trong lĩnh vực Trí tuệ nhân tạo (AI). Bài viết này trình bày những kiến thức nền tảng của Python bao gồm: biểu diễn dữ liệu, khai báo hàm, cấu trúc điều kiện và ứng dụng vào việc xây dựng chatbot dựa trên luật. Đây là bước đệm vững chắc cho người mới bắt đầu tiếp cận lập trình AI.
+\end{abstract}
+
+\section{Giới thiệu}
+Python là một trong những ngôn ngữ lập trình phổ biến nhất hiện nay nhờ cú pháp đơn giản, dễ học, đồng thời hỗ trợ nhiều thư viện mạnh mẽ cho phát triển hệ thống AI. Việc nắm vững kiến thức Python cơ bản là điều kiện tiên quyết trước khi bước vào các lĩnh vực nâng cao như học máy hay học sâu.
+
+\section{Biểu Diễn Dữ Liệu Trong Python}
+Python hỗ trợ nhiều kiểu dữ liệu cơ bản:
+\begin{itemize}
+    \item \textbf{Số nguyên (int)}: Dùng để lưu trữ các số nguyên ví dụ: 1, -5, 100
+    \item \textbf{Số thực (float)}: Đại diện cho các số có phần thập phân ví dụ: 3.14, -2.5
+    \item \textbf{Chuỗi (string)}: Đại diện cho dữ liệu dạng văn bản ví dụ: ``AI'', ``Việt Nam''
+    \item \textbf{Logic (bool)}: Chỉ nhận hai giá trị: \texttt{True}, \texttt{False}, thường được dùng trong các câu lệnh điều kiện.
+\end{itemize}
+
+Kiểu dữ liệu nâng cao gồm:
+\begin{itemize}
+    \item \textbf{Danh sách (list)}: Một tập hợp có thứ tự, có thể chứa nhiều giá trị khác nhau. Ví dụ: \texttt{[1, 2, 3]}
+    \item \textbf{Từ điển (dictionary)}: Lưu trữ dữ liệu dưới dạng cặp khóa – giá trị. Ví dụ: \texttt{\{``name'': ``Python'', ``year'': 1991\}}
+    \item \textbf{Tabular}: Lưu trữ dữ liệu dưới dạng bảng. Ví dụ: Các file \texttt{.CSV}
+    \item \textbf{image data}: Lưu trữ dữ liệu dưới dạng hình ảnh. Ví dụ: Các file \texttt{.jpg, .png,...}
+\end{itemize}
+ 
+\section{Hàm Trong Python}
+Hàm (function) là một phần không thể thiếu trong bất kỳ ngôn ngữ lập trình nào. Hàm giúp đóng gói một đoạn mã có nhiệm vụ cụ thể và cho phép tái sử dụng nhiều lần, giúp mã nguồn ngắn gọn và dễ bảo trì. Lưu ý: Không thể dùng các từ khóa đã được chọn cho tên của hàm tích hợp để đặt tên cho biến.
+Cú pháp định nghĩa hàm trong Python:
+\begin{minted}[
+    linenos,
+    frame=single,
+    fontsize=\small,
+    bgcolor=gray!10,
+    breaklines,
+]{python}
+def function_name(parameters):
+    '''
+    Docstring mô tả chức năng hàm
+    '''
+    # Khối lệnh xử lý
+    return result
+    
+# ví dụ đơn giản
+def compute_area(width, height):
+    return width * height
+\end{minted}
+
+Một số hàm dựng sẵn:
+\begin{itemize}
+    \item \texttt{print()}, \texttt{type()}, \texttt{input()}
+    \item Chuyển kiểu: \texttt{int()}, \texttt{float()}
+\end{itemize}
+
+\section{Cấu Trúc Điều Kiện}
+Câu lệnh điều kiện trong Python cho phép chương trình phản ứng linh hoạt:
+\begin{minted}[
+    linenos,
+    frame=single,
+    fontsize=\small,
+    bgcolor=gray!10,
+    breaklines
+]{python}
+# Ví dụ về câu lệnh if-elif-else trong Python
+
+x = 5
+
+if x > 0:
+    print("Số dương")
+elif x < 0:
+    print("Số âm")
+else:
+    print("Bằng 0")
+\end{minted}
+
+Các toán tử so sánh gồm: \texttt{==, !=, >, <, >=, <=}
+
+\section{Xây Dựng Chatbot Dựa Trên Hàm if-elif-else}
+Một ứng dụng đơn giản là xây dựng chatbot phản hồi theo từ khoá:
+
+\begin{minted}[
+    linenos,
+    frame=single,
+    fontsize=\small,
+    bgcolor=gray!10,
+    breaklines
+]{python}
+def chatbot_response(user_input):
+    message = user_input.lower()
+    
+    if message in ["hi", "hello", "xin chào"]:
+        return "Xin chào! Tôi có thể giúp gì cho bạn?"
+    elif message == "tư vấn mua hàng":
+        return "Bạn muốn mua sản phẩm nào ạ?"
+    elif message == "tra cứu bảo hành":
+        return "Vui lòng cung cấp số seri."
+    else:
+        return "Xin lỗi, tôi chưa hiểu yêu cầu của bạn."
+
+# Ví dụ sử dụng
+user_input = "Hello"
+print(chatbot_response(user_input))
+\end{minted}
+
+
+Hình \ref{fig:chatbot_tree} mô tả sơ đồ cây quyết định của chatbot này:
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{projects/Basic Python/image/Chatbot tree.png}
+    \caption{Sơ đồ cây chatbot đơn giản}
+    \label{fig:chatbot_tree}
+\end{figure}
+
+Ngoài ra, có thể dùng \texttt{dictionary} để rút gọn mã:
+
+\begin{minted}[
+    linenos,
+    frame=single,
+    fontsize=\small,
+    bgcolor=gray!10,
+    breaklines
+]{python}
+responses = {
+    "hi": "Xin chào!",
+    "hello": "Chào bạn!",
+    "tư vấn": "Bạn cần tư vấn gì ạ?"
+}
+user_input = "hi"
+print(responses.get(user_input.lower(), "Xin lỗi, tôi chưa hiểu."))
+\end{minted}
+
+\section{Hàm Logarithm và Hàm Softmax}
+\begin{itemize}
+
+    \item Hàm log là hàm đơn điệu ánh xạ tính chất với hàm gốc, vị trí cực đại của hàm gốc và hàm log không thay đổi dù giá trị thay đổi. Nên thường được dùng trong các bài toán tối ưu hóa.
+    \begin{equation}
+    x_1, x_2 \in [a, b],\ x_1 \leq x_2 \ \rightarrow\ \log(x_1) \leq \log(x_2)
+    \end{equation}
+    \item Softmax là hàm chuyển đổi các giá trị của một Vector thành các giá trị xác xuất. Dùng phổ biến trong lớp đầu ra của mạng nơ-ron sâu (deep learning classification):
+    \begin{equation}
+    f(x_i) = \frac{e^{x_i}}{\sum_j e^{x_j}}
+    \end{equation}
+    
+\end{itemize}
+
+\section{Kết Luận}
+Việc thành thạo Python cơ bản giúp người học xây dựng các ứng dụng như chatbot, chuẩn bị nền tảng để tiếp cận các lĩnh vực AI phức tạp hơn. Từ kiến thức về kiểu dữ liệu, hàm, điều kiện cho đến chatbot theo luật – tất cả đều là bước đầu vững chắc trên hành trình học lập trình và khám phá trí tuệ nhân tạo.
+
+\section*{Tài Liệu Tham Khảo}
+\begin{enumerate}
+    \item Python Documentation: \url{https://docs.python.org/3/}
+\end{enumerate}

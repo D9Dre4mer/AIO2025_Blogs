@@ -1,0 +1,169 @@
+
+\begin{center}
+    \Large\textbf{NoSQL -- MongoDB: Từ Aggregation đến Tối ưu hóa Truy vấn}
+\end{center}
+
+\begin{center}
+    \Large\textit{Đàm Nguyên Khánh}
+\end{center}
+
+\section*{Giới thiệu}
+MongoDB là một cơ sở dữ liệu NoSQL phổ biến, đặc biệt hiệu quả với dữ liệu phi cấu trúc và ứng dụng thời gian thực. Trong bài viết này, chúng ta tìm hiểu về Aggregation Framework, chỉ mục (Indexes) và sử dụng PyMongo để thao tác với MongoDB qua Python.
+
+\section{Aggregation Framework}
+\subsection{ Vì sao cần Aggregation?}
+Mặc dù Mongo Query Language (MQL) cung cấp cú pháp đơn giản và trực quan để truy xuất dữ liệu, nó chỉ phù hợp với các truy vấn cơ bản. Đối với các nhu cầu xử lý dữ liệu phức tạp hơn như tính toán, tổng hợp, hoặc biến đổi cấu trúc document, Aggregation Framework là công cụ mạnh mẽ và linh hoạt hơn. Cụ thể, Aggregation Pipeline cho phép tổ chức truy vấn thành các giai đoạn (stages) liên tiếp, mỗi giai đoạn thực hiện một thao tác cụ thể trên tập dữ liệu trung gian. Một số thao tác phổ biến bao gồm:
+
+\begin{itemize}
+    \item \textbf{Lọc dữ liệu} với \texttt{\$match}: Chỉ giữ lại các document thỏa mãn điều kiện nhất định, tương tự như mệnh đề \texttt{WHERE} trong SQL.
+    \item \textbf{Chiếu trường và biến đổi cấu trúc} với \texttt{\$project}, \texttt{\$addFields}: Chọn trường cần thiết, tạo trường mới hoặc chuyển đổi biểu diễn dữ liệu.
+    \item \textbf{Nhóm dữ liệu} với \texttt{\$group}: Gom các document theo một hoặc nhiều trường, và áp dụng các hàm tổng hợp như đếm, tính tổng, trung bình, v.v.
+    \item \textbf{Thực hiện tính toán số học và logic} với các toán tử như \texttt{\$sum}, \texttt{\$avg}, \texttt{\$round}, \texttt{\$multiply}, \texttt{\$cond}, giúp linh hoạt xử lý dữ liệu ngay trong truy vấn.
+\end{itemize}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{projects/NoSQL2/Image/Aggregate-660x477.png}
+    \caption{Minh họa Aggregation Pipeline: kết hợp \texttt{\$match} và \texttt{\$group} để lọc và tổng hợp dữ liệu theo ID}
+\end{figure}
+
+\subsection{Các Stage cơ bản trong Aggregation Pipeline}
+
+Aggregation Pipeline bao gồm chuỗi các giai đoạn xử lý dữ liệu (gọi là \textit{stage}). Mỗi stage nhận đầu vào là tập document trung gian từ stage trước và xuất ra một tập document mới. Dưới đây là ba stage cơ bản và thường gặp nhất:
+
+\vspace{1em}
+\noindent\textbf{\$match} -- Lọc document theo điều kiện:
+
+Stage này tương đương với mệnh đề \texttt{WHERE} trong SQL. Nó cho phép lọc các document thỏa mãn điều kiện cụ thể trước khi tiếp tục xử lý.
+
+\begin{minted}[fontsize=\small, breaklines]{js}
+db.trips.aggregate([
+  { $match: { "stop time": { $gt: ISODate("2016-01-05") } } }
+])
+\end{minted}
+
+\vspace{1em}
+\noindent\textbf{\$project} -- Chọn và tính toán lại trường:
+
+Stage này dùng để chỉ định những trường nào sẽ được giữ lại hoặc tạo mới trong mỗi document. Có thể dùng kèm các biểu thức toán học, logic hoặc biến đổi kiểu dữ liệu.
+
+\begin{minted}[fontsize=\small, breaklines]{js}
+db.trips.aggregate([
+  { $project: { "tripduration_hrs": { $divide: ["$tripduration", 60] } } }
+])
+\end{minted}
+
+\vspace{1em}
+\noindent\textbf{\$group} -- Gom nhóm và tính toán tổng hợp:
+
+Stage này nhóm các document theo một khoá chung (ví dụ: theo loại người dùng) và cho phép áp dụng các phép tổng hợp như \texttt{\$sum}, \texttt{\$avg}, \texttt{\$max},...
+
+\begin{minted}[fontsize=\small, breaklines]{js}
+db.trips.aggregate([
+  { $group: { _id: "$usertype", total: { $sum: 1 } } }
+])
+\end{minted}
+
+\subsection{ Các toán tử phổ biến}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Số học:} \texttt{\$add}, \texttt{\$divide}, \texttt{\$round}
+    \item \textbf{Chuỗi:} \texttt{\$concat}, \texttt{\$toUpper}
+    \item \textbf{Ngày:} \texttt{\$month}, \texttt{\$dateDiff}
+    \item \textbf{So sánh:} \texttt{\$gt}, \texttt{\$eq}, \texttt{\$lte}
+    \item \textbf{Mảng:} \texttt{\$isArray}, \texttt{\$first}, \texttt{\$size}
+    \item \textbf{Điều kiện:} \texttt{\$cond}, \texttt{\$ifNull}
+\end{itemize}
+
+\subsection{ Các Stage nâng cao}
+\begin{itemize}[leftmargin=*]
+    \item \texttt{\$addFields} -- Thêm trường mới không xoá dữ liệu cũ
+    \item \texttt{\$sort}, \texttt{\$limit}, \texttt{\$skip}, \texttt{\$count} -- Phân trang dữ liệu
+    \item \texttt{\$bucket}, \texttt{\$bucketAuto} -- Phân nhóm theo khoảng giá trị
+    \item \texttt{\$facet} -- Chạy nhiều pipeline đồng thời
+    \item \texttt{\$sortByCount} -- Đếm số lượng theo nhóm giá trị
+\end{itemize}
+
+\section{Tối ưu truy vấn với Indexes}
+\subsection{ Index là gì?}
+Indexes tăng tốc truy vấn bằng cách tránh duyệt toàn bộ collection. MongoDB dùng cấu trúc \textbf{B-Tree} để lưu chỉ mục.
+
+\begin{minted}[fontsize=\small, breaklines]{bash}
+db.collection.createIndex({ name: 1 })
+\end{minted}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{projects/NoSQL2/Image/b1.jpeg}
+    \caption{Cây phân cấp từ Employee Collection: phân nhóm nhân viên theo trường \texttt{Domain} và hiển thị thông tin chi tiết.}
+\end{figure}
+
+\subsection{Các loại Index quan trọng}
+
+Chỉ mục (Index) là thành phần quan trọng trong tối ưu hóa hiệu suất truy vấn dữ liệu. MongoDB hỗ trợ nhiều loại chỉ mục phù hợp với từng nhu cầu cụ thể:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Single field index:} Chỉ mục được tạo trên một trường duy nhất. Đây là loại chỉ mục cơ bản, thường dùng cho các truy vấn lọc theo một điều kiện cụ thể.
+    
+    \item \textbf{Compound index:} Chỉ mục kết hợp trên nhiều trường, hỗ trợ các truy vấn lọc hoặc sắp xếp theo nhiều tiêu chí. MongoDB sử dụng thứ tự khai báo trường trong index để xác định khả năng tận dụng.
+
+    \item \textbf{Partial index:} Chỉ mục chỉ áp dụng cho một tập con document thỏa mãn điều kiện nhất định. Rất hữu ích khi truy vấn thường xuyên tập dữ liệu có điều kiện rõ ràng (ví dụ: chỉ những bản ghi có giá trị lớn hơn một ngưỡng).
+\end{itemize}
+
+Ví dụ tạo partial index cho các chuyến đi có thời lượng lớn hơn 100:
+
+\begin{minted}[fontsize=\small, breaklines]{js}
+db.trips.createIndex(
+  { tripduration: 1 },
+  { partialFilterExpression: { tripduration: { $gt: 100 } } }
+)
+\end{minted}
+
+% Gợi ý chèn hình ảnh minh họa: biểu đồ compare tốc độ truy vấn có và không có index.
+
+\section{Làm việc với MongoDB qua Python (PyMongo)}
+
+\subsection{Kết nối MongoDB}
+
+PyMongo là thư viện chính thức để tương tác với MongoDB thông qua Python. Đoạn mã sau thiết lập kết nối với cơ sở dữ liệu MongoDB cục bộ:
+
+\begin{minted}[fontsize=\small, breaklines]{python}
+from pymongo import MongoClient
+client = MongoClient("mongodb://localhost:27017/")
+db = client.mydatabase
+\end{minted}
+
+Sau khi kết nối, ta có thể thực hiện mọi thao tác CRUD (Create, Read, Update, Delete) và các truy vấn nâng cao.
+
+\subsection{Aggregation với PyMongo}
+
+Aggregation Pipeline có thể được định nghĩa dưới dạng danh sách Python (dạng dictionary) và truyền trực tiếp vào phương thức \texttt{aggregate()} của collection:
+
+\begin{minted}[fontsize=\small, breaklines]{python}
+pipeline = [
+  {"$match": {"tripduration": {"$gt": 100}}},
+  {"$group": {"_id": "$usertype", "count": {"$sum": 1}}}
+]
+result = db.trips.aggregate(pipeline)
+\end{minted}
+
+Kết quả trả về là một iterator chứa các document đã xử lý theo đúng các giai đoạn trong pipeline.
+
+
+\section{Tổng kết}
+
+MongoDB cung cấp một hệ sinh thái phong phú phục vụ cho việc lưu trữ, xử lý và truy vấn dữ liệu phi quan hệ. Bảng dưới đây tóm tắt các thành phần chính đã được trình bày và vai trò của chúng trong quá trình xây dựng hệ thống dữ liệu hiệu quả:
+
+\begin{tabular}{|p{4cm}|p{10.5cm}|}
+\hline
+\textbf{Thành phần} & \textbf{Mô tả và Mục tiêu} \\\hline
+
+\textbf{Aggregation Framework} & Cung cấp các công cụ mạnh mẽ để xử lý dữ liệu phức tạp theo chuỗi các bước (pipeline stages). Cho phép lọc (\texttt{\$match}), chiếu (\texttt{\$project}), nhóm (\texttt{\$group}), tính toán (\texttt{\$sum}, \texttt{\$avg}, \texttt{\$round}), phân nhóm động (\texttt{\$bucket}, \texttt{\$facet}) và nhiều thao tác khác. Đây là thành phần tương đương với các phép toán trong \texttt{GROUP BY}, \texttt{HAVING}, và \texttt{SELECT} của SQL. \\\hline
+
+\textbf{Indexes} & Giúp tăng tốc độ truy vấn dữ liệu bằng cách tạo cấu trúc dữ liệu phụ (B-Tree) để tra cứu nhanh hơn, thay vì phải duyệt toàn bộ collection. MongoDB hỗ trợ nhiều loại chỉ mục: chỉ mục đơn, chỉ mục kết hợp (compound), chỉ mục điều kiện (partial index) nhằm tối ưu các trường hợp truy vấn cụ thể và tiết kiệm không gian lưu trữ. \\\hline
+
+\textbf{PyMongo (MongoDB Driver cho Python)} & Thư viện chính thức giúp kết nối và thao tác MongoDB thông qua Python. Cung cấp đầy đủ khả năng thực hiện CRUD (Create, Read, Update, Delete), chạy aggregation pipeline, và thực hiện các thao tác nâng cao như indexing, filter động, xử lý dữ liệu trả về dưới dạng dictionary. Đây là cầu nối thiết yếu giữa ứng dụng và cơ sở dữ liệu trong các hệ thống sử dụng Python. \\\hline
+
+\end{tabular}
+
+

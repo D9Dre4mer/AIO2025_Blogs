@@ -1,0 +1,537 @@
+\begin{center}
+    \Large\textbf{Phân Tích và Trực Quan Hóa Dữ Liệu Nâng Cao với Python}
+\end{center}
+
+\begin{center}
+    \Large\textit{Bùi Đức Xuân}
+\end{center}
+
+\begin{abstract}
+Trực quan hóa dữ liệu là một kỹ năng thiết yếu trong kỷ nguyên dữ liệu, giúp chúng ta biến các bộ dữ liệu phức tạp thành những hình ảnh trực quan dễ hiểu. Bài viết này sẽ đi sâu vào các kiến thức và ví dụ code thực tế từ slide bài giảng về "Advanced Data Visualization", hướng dẫn bạn cách chọn biểu đồ phù hợp và sử dụng các thư viện Python mạnh mẽ như Matplotlib, Seaborn, và Plotly để tạo ra các biểu đồ ấn tượng.
+\end{abstract}
+
+\section{Trực Quan Hóa Dữ Liệu Là Gì?}
+Trực quan hóa dữ liệu là thực hành chuyển đổi thông tin thành ngữ cảnh trực quan, chẳng hạn như bản đồ hoặc biểu đồ, để giúp não bộ con người dễ hiểu và rút ra thông tin chi tiết từ dữ liệu hơn. Nó giúp dịch các bộ dữ liệu phức tạp thành các định dạng trực quan mà não bộ con người dễ dàng nắm bắt. Trực quan hóa dữ liệu là một công cụ thiết yếu cho bất kỳ tổ chức dựa trên dữ liệu nào, cho phép người dùng hiểu các bộ dữ liệu phức tạp và truyền đạt thông tin chi tiết đến các bên liên quan một cách hiệu quả.
+
+Trực quan hóa dữ liệu có thể có nhiều hình thức khác nhau và có thể sử dụng nhiều loại dữ liệu khác nhau.
+
+\section{Trực Quan Hóa Dữ Liệu Với Python}
+Python cung cấp các thư viện mạnh mẽ để trực quan hóa dữ liệu. Các thư viện phổ biến bao gồm:
+\begin{itemize}
+    \item \textbf{Matplotlib}: Cung cấp khả năng tùy chỉnh rộng rãi nhưng yêu cầu nhiều mã hơn.
+    \item \textbf{Seaborn}: Đơn giản hóa các biểu đồ thống kê với các chủ đề tích hợp.
+    \item \textbf{Plotly}: Xuất sắc trong việc tạo các trực quan hóa động và tương tác.
+\end{itemize}
+
+\section{Cách Chọn Biểu Đồ Phù Hợp}
+Với rất nhiều loại biểu đồ để lựa chọn, việc quyết định sử dụng loại nào cho một bộ dữ liệu cụ thể có thể là một thách thức. Quá trình này bao gồm 5 bước chính:
+\begin{itemize}
+    \item \textbf{Bước 1: Xác định loại dữ liệu}
+    Dữ liệu có thể được phân loại thành bốn loại: định lượng (quantitative), phân loại (categorical), thời gian (temporal), hoặc không gian (spatial).
+        \begin{itemize}
+            \item Dữ liệu định lượng (Quantitative data): Đề cập đến các giá trị số.
+            \item Dữ liệu phân loại (Categorical data): Đề cập đến các giá trị không phải số.
+            \item Dữ liệu thời gian (Temporal data): Đề cập đến dữ liệu dựa trên thời gian.
+            \item Dữ liệu không gian (Spatial data): Đề cập đến dữ liệu dựa trên vị trí.
+        \end{itemize}
+    \item \textbf{Bước 2: Xác định mối quan hệ giữa các biến}
+    Bạn muốn hiển thị mối quan hệ nào trong trực quan hóa của mình? So sánh, phân phối, hay mối quan hệ?
+        \begin{itemize}
+            \item Biểu đồ so sánh (comparison chart): Hữu ích để hiển thị sự khác biệt giữa hai hoặc nhiều điểm dữ liệu, như biểu đồ cột hoặc biểu đồ thanh.
+            \item Biểu đồ phân phối (distribution chart): Hữu ích để hiển thị cách dữ liệu được phân tán, như biểu đồ tần suất (histogram) hoặc biểu đồ hộp (box plot).
+            \item Biểu đồ mối quan hệ (relationship chart): Hữu ích để hiển thị mối quan hệ giữa hai hoặc nhiều biến, như biểu đồ phân tán (scatter plot) hoặc biểu đồ bong bóng (bubble chart).
+        \end{itemize}
+    \item \textbf{Bước 3: Xác định mục đích của trực quan hóa}
+    Bạn muốn truyền tải thông điệp gì qua trực quan hóa dữ liệu của mình? Xu hướng, so sánh, hay phân phối?
+        \begin{itemize}
+            \item Để hiển thị xu hướng theo thời gian, biểu đồ đường (line chart) hoặc biểu đồ vùng (area chart) có thể phù hợp hơn.
+            \item Để so sánh các điểm dữ liệu, biểu đồ cột (bar chart) hoặc biểu đồ thanh (column chart) có thể là lựa chọn tốt hơn.
+            \item Để hiển thị phân phối, biểu đồ tần suất (histogram) hoặc biểu đồ hộp (box plot) có thể hữu ích hơn.
+        \end{itemize}
+    \item \textbf{Bước 4: Xác định đối tượng mục tiêu}
+    Xem xét đối tượng mục tiêu của bạn. Họ có hiểu các biểu đồ phức tạp hay cần một cách trình bày đơn giản hơn?
+    \item \textbf{Bước 5: Chọn loại biểu đồ phù hợp}
+    Không có loại biểu đồ nào là giải pháp "một kích cỡ cho tất cả". Điều cần thiết là thử nghiệm với các loại biểu đồ khác nhau để tìm ra loại phù hợp nhất cho dữ liệu của bạn.
+\end{itemize}
+
+\section{Các Trường Hợp Nghiên Cứu và Mã Tương Ứng}
+Chúng ta sẽ đi sâu vào các loại biểu đồ thông dụng thông qua ba trường hợp nghiên cứu: Bộ dữ liệu ETTh, Bộ dữ liệu hiệu suất sinh viên, và Bộ dữ liệu Iris.
+
+\subsection{Trường Hợp Nghiên Cứu: Bộ Dữ Liệu ETTh (Electricity Transformer Dataset)}
+Bộ dữ liệu này có thể được sử dụng để xác định thời điểm OT cao nhất, hiểu mối tương quan giữa các biến, hiểu phân phối dữ liệu, và phân tích tải trung bình.
+
+\subsubsection{Biểu Đồ Đường (Line Chart)}
+Biểu đồ đường là một trong những biểu đồ phổ biến nhất được sử dụng để quan sát một hoặc nhiều biến với sự thay đổi của một biến khác, thường được sử dụng trong phân tích xu hướng và phân tích chuỗi thời gian.
+
+\begin{lstlisting}[language=Python, caption=Biểu đồ đường đơn với Matplotlib]
+import matplotlib.pyplot as plt
+import pandas as pd
+
+plt.plot(df.date[0:150], df.OT[0:150], marker = 'o', color = 'black',
+         linewidth = 0.9, linestyle = '--',
+         markeredgecolor = 'blue',
+         markeredgewidth = '2.0',
+         markerfacecolor = 'red', markersize = 7.0)
+plt.title('Oil Temperature', color = 'Blue', size = 14)
+plt.xlabel('Date', size = 14)
+plt.ylabel('Value', size = 14)
+plt.style.use('fivethirtyeight')
+plt.grid(True)
+plt.xticks(rotation = 90)
+plt.show()
+\end{lstlisting}
+
+
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{projects/VisualD/image/line_plt.png}
+    \caption{Biểu đồ đường đơn với Matplotlib}
+    \label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=Python, caption=Biểu đồ đường đơn với Seaborn]
+import seaborn as sns
+sns.lineplot(data=df, x=df.date[0:150], y=df.OT[0:150], marker='o',
+             markersize=10, markerfacecolor='red')
+plt.xticks(rotation=45)
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{projects/VisualD/image/line_sns.png}
+    \caption{Biểu đồ đường đơn với Seaborn}
+    \label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=Python, caption=Biểu đồ đường đơn với Plotly]
+import plotly.express as px
+fig = px.line(df, x=df.date[0:150], y=df.OT[0:150],
+              title='Oil Temperature', markers=True)
+fig.update_layout(
+    xaxis_title="Date", yaxis_title="Value"
+)
+fig.show()
+\end{lstlisting}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{projects/VisualD/image/line_plotly.png}
+    \caption{Biểu đồ đường đơn với Plotly}
+    \label{fig:placeholder}
+\end{figure}
+
+
+\subsubsection{Biểu Đồ Hộp (Box Plots)}
+Biểu đồ hộp và râu (box and whisker plots) mô tả sự phân phối của dữ liệu, các giá trị ngoại lai (outliers) và giá trị trung vị (median). Nó giúp xác định sự tồn tại của các giá trị ngoại lai trong bộ dữ liệu.
+\begin{lstlisting}[language=Python, caption=Biểu đồ Hộp với Matplotlib]
+import matplotlib.pyplot as plt
+
+# Creating Box Plots for Distribution Analysis of each variable
+plt.figure(figsize=(12, 6))
+df.boxplot(column=['HUFL', 'HULL', 'MUFL', 'MULL', 'LUFL', 'LULL', 'OT'])
+plt.xlabel('Variables')
+plt.ylabel('Values')
+plt.title('Box Plot for Distribution Analysis of Each Variable')
+plt.xticks(rotation=45)
+plt.show()
+\end{lstlisting}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{projects/VisualD/image/box_plt.png}
+    \caption{Biểu đồ hộp với Matplotlib}
+    \label{fig:placeholder}
+\end{figure}
+
+
+\subsubsection{Biểu Đồ Cột (Bar Chart)}
+Biểu đồ cột sử dụng các thanh để hiển thị sự thay đổi giá trị của một biến cụ thể so với biến khác. Loại biểu đồ này thường được sử dụng với dữ liệu rời rạc hoặc phân loại.
+\begin{lstlisting}[language=Python, caption=Biểu đồ Cột với Matplotlib]
+import matplotlib.pyplot as plt
+
+# Identifying peak values and their corresponding times for each column
+peak_values = df.max()
+peak_times = df.idxmax()
+
+# Creating a DataFrame to display peak values and their times
+peak_analysis = pd.DataFrame({'Peak Value': peak_values, 'Peak Time': peak_times})
+
+# Dropping the 'date' column as it's not a load or temperature type
+peak_analysis = peak_analysis.drop('date')
+
+# Plotting the peak values for visual representation
+plt.figure(figsize=(12, 6))
+peak_analysis['Peak Value'].plot(kind='bar', color='skyblue')
+plt.title('Peak Values for Each Load Type and Oil Temperature')
+plt.xlabel('Variable')
+plt.ylabel('Peak Value')
+plt.xticks(rotation=45)
+plt.show()
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{projects/VisualD/image/bar_plt.png}
+    \caption{Biểu đồ cột với Matplotlib}
+    \label{fig:placeholder}
+\end{figure}
+
+\subsubsection{Biểu Đồ Donut (Donut Chart)}
+Biểu đồ Donut là một biến thể của biểu đồ tròn, thường được sử dụng để hiển thị thành phần part-to-whole (phần-trong-tổng thể) giống như biểu đồ tròn, nhưng có một lỗ ở giữa.
+\begin{lstlisting}[language=Python, caption=Biểu đồ Donut với Matplotlib]
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+
+
+counts = {
+    col: [
+        np.sum(df[col] < 0),
+        np.sum(df[col] == 0),
+        np.sum(df[col] > 0)
+    ]
+    for col in df.columns[1:]
+}
+
+counts_df = pd.DataFrame(counts, index=['Negatives', 'Zeros', 'Positives']).T
+counts_for_donut = counts_df.sum()
+
+# Plot
+fig, ax = plt.subplots(figsize=(8, 6))
+
+colors = ['#1f77b4', '#ff7f0e', '#2ca02c']  # blue, orange, green
+wedges, texts, autotexts = ax.pie(
+    counts_for_donut,
+    labels=counts_for_donut.index,
+    autopct='%1.1f%%',
+    startangle=90,
+    wedgeprops=dict(width=0.3),
+    colors=colors,
+    pctdistance=0.75,
+    labeldistance=1.15
+)
+
+# Set font size
+for text in texts:
+    text.set_fontsize(12)
+for autotext in autotexts:
+    autotext.set_fontsize(10)
+
+# Donut hole
+centre_circle = plt.Circle((0, 0), 0.65, fc='white')
+fig.gca().add_artist(centre_circle)
+
+ax.axis('equal')  
+plt.title('Counts of Zero, Negative, and Positive Values in the dataset', fontsize=14)
+plt.tight_layout()
+plt.show()
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{projects/VisualD/image/donut_plt.png}
+    \caption{Biểu đồ Donut với Matplotlib}
+    \label{fig:placeholder}
+\end{figure}
+
+\subsubsection{Biểu Đồ Tương Quan (Correlation Chart)}
+\begin{itemize}
+    \item \textbf{Bản đồ nhiệt (Heatmap):} Là một biểu đồ hai chiều, chủ yếu được sử dụng để phân tích mối tương quan giữa các trường khác nhau trong một bộ dữ liệu.
+    \item \textbf{Biểu đồ phân tán (Scatter Plot):} Được sử dụng để nghiên cứu mối tương quan giữa hai biến.
+\end{itemize}
+
+
+\begin{lstlisting}[language=Python, caption=Biểu đồ Heatmap với Seaborn]
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+corr_matrix = df.corr(numeric_only=True)
+plt.figure(figsize=(10, 8))
+sns.heatmap(corr_matrix, annot=True, cmap='viridis', linewidths=0.5)
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{projects/VisualD/image/heatmap_sns.png}
+    \caption{Heatmap với Seaborn}
+    \label{fig:placeholder}
+\end{figure}
+
+\begin{lstlisting}[language=Python, caption=Biểu đồ Scatter với Matplotlib]
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+plt.scatter(df.HUFL, df.OT, marker = "o",
+            color = "green", linewidths = 1, edgecolors = "red", s = 10)
+plt.style.use('fivethirtyeight')
+plt.xlabel("HUFL", size = 10, color = "black")
+plt.ylabel("OT", size = 10, color = "black")
+plt.title("HUFL vs OT", size =12, color = "black")
+plt.xticks(color = "black")
+plt.yticks(color = "black")
+plt.grid(color = "grey", alpha = 0.2)
+plt.show()
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{projects/VisualD/image/scatter_plt.png}
+    \caption{Scatterplot với Matplotlib}
+    \label{fig:placeholder}
+\end{figure}
+
+\subsection{Trường Hợp Nghiên Cứu: Bộ Dữ Liệu Hiệu Suất Học Sinh (Student Performance Dataset)}
+\subsubsection{Biểu Đồ Cột (Bar Chart)}
+Biểu đồ cột được sử dụng để hiển thị sự thay đổi giá trị của một biến cụ thể so với biến khác.
+\begin{lstlisting}[language=Python, caption=Điểm Toán theo Trình độ học vấn của Phụ huynh]
+import pandas as pd
+import matplotlib.pyplot as plt
+
+grouped_data = df_st.groupby(['race/ethnicity', 'gender']).size().unstack()
+grouped_data
+
+fig = plt.figure(figsize=(4, 5))
+plt.style.use('fivethirtyeight')
+plt.bar(
+    x=grouped_data.index,
+    height= grouped_data["female"],
+    label = "Female",
+    color='orange',      # Set the color of the bars
+    edgecolor='black',    # Set the color of the bar edges
+    linewidth=1.5,        # Set the width of the bar edges
+    alpha=0.8             # Set the transparency of the bars
+)
+
+plt.bar(
+    x=grouped_data.index,
+    height= grouped_data["male"],
+    bottom = grouped_data["female"],
+    label = "Male",
+    color='blue',      # Set the color of the bars
+    edgecolor='black',    # Set the color of the bar edges
+    linewidth=1.5,        # Set the width of the bar edges
+    alpha=0.8             # Set the transparency of the bars
+)
+
+plt.xlabel('Race/Ethnicity', fontsize=14, fontweight='bold')  # Set the x-axis label with font size and style
+plt.ylabel('Count', fontsize=14, fontweight='bold')           # Set the y-axis label with font size and style
+plt.title('Race/Ethnicity Counts', fontsize=16, fontweight='bold')  # Set the chart title with font size and style
+plt.xticks(fontsize=12, rotation = 45)    # Set the font size of the x-axis tick labels
+plt.yticks(fontsize=12)    # Set the font size of the y-axis tick labels
+plt.grid(True, linestyle='--', linewidth=0.5, alpha=0.5, color = "black")# Display gridlines with a dashed style and reduced opacity
+plt.legend()
+
+plt.show()
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{projects/VisualD/image/bar_std.png}
+    \caption{Bar Chart với Matplotlib (StudentsPerformance dataset)}
+    \label{fig:placeholder}
+\end{figure}
+
+\subsubsection{Biểu Đồ Đếm (Count Plot)}
+Biểu đồ đếm được sử dụng để hiển thị số lượng quan sát của một biến phân loại trong một bộ dữ liệu.
+\begin{lstlisting}[language=Python, caption=Số lượng Học sinh theo Giới tính]
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+# Seaborn
+sns.countplot(data = df_st, x = "race/ethnicity", hue = "gender",
+              palette = "plasma")
+\end{lstlisting}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{projects/VisualD/image/count_sns.png}
+    \caption{Count Chart với Seaborn (StudentsPerformance dataset)}
+    \label{fig:placeholder}
+\end{figure}
+
+
+
+\subsection{Trường Hợp Nghiên Cứu: Bộ Dữ Liệu Iris}
+\subsubsection{Biểu Đồ Tần Suất (Histogram)}
+Biểu đồ tần suất được sử dụng để quan sát phân phối tần suất của một biến.
+\begin{lstlisting}[language=Python, caption=Phân phối Chiều dài Đài hoa]
+import seaborn as sns
+import matplotlib.pyplot as plt
+iris = pd.read_csv("/content/Iris.csv")
+
+# If bins of specific width are needed
+bin_width = 0.2
+bins = int((iris.SepalWidthCm.max()-iris.SepalWidthCm.min())/bin_width)
+plt.style.use('classic')
+plt.hist(iris.SepalWidthCm, bins = bins, color = "green", alpha = 0.6,
+         orientation = "vertical", rwidth = 1)
+plt.xlabel("Sepal Width in cm", size = 12, color = "black")
+plt.ylabel("Frequency", size = 12, color = "black")
+plt.title("Histogram for Sepal Length", size =15, color = "black")
+plt.xticks(color = "black")
+plt.yticks(color = "black")
+plt.show()
+\end{lstlisting}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\linewidth]{projects/VisualD/image/hist_plt.png}
+    \caption{Histogram với Matplotlib (Iris dataset)}
+    \label{fig:placeholder}
+\end{figure}
+
+
+\subsubsection{Biểu đồ bong bóng(Bubble Chart)}
+Biểu đồ Bubble mở rộng scatter plot bằng cách thêm một chiều thông qua kích thước điểm, giúp hiển thị quan hệ giữa ba biến và rất hữu ích trong trực quan hóa đa biến.
+\begin{lstlisting}[language=Python, caption=Bubble Chart]
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
+
+sizes = iris['PetalWidthCm']/iris['PetalWidthCm'].max()
+
+# Here, the size of the bubble will show the Petal Width
+
+plt.figure()
+plt.scatter(iris.SepalLengthCm, iris.PetalLengthCm, marker = "o",
+            color = "red", linewidths = 1, edgecolors = "red",
+            s= sizes*250, alpha = 0.5)
+plt.style.use('fivethirtyeight')
+plt.xlabel("Sepal Length in cm", size = 10, color = "black")
+plt.ylabel("Petal Length in cm", size = 10, color = "black")
+plt.title("Sepal Length vs Petal Length", size =12, color = "black")
+plt.xticks(color = "black")
+plt.yticks(color = "black")
+plt.grid(color = "grey", alpha = 0.2)
+plt.show()
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{projects/VisualD/image/bubble.png}
+    \caption{Bubble Chart với Matplotlib (Iris dataset)}
+    \label{fig:placeholder}
+\end{figure}
+
+
+
+\subsubsection{Biểu đồ mật độ xác suất(KDE Plot)}
+Biểu đồ KDE ước lượng mật độ phân bố xác suất liên tục một cách mượt mà hơn histogram, giúp dễ dàng so sánh nhiều nhóm trên cùng một biểu đồ.
+
+\begin{lstlisting}[language=Python, caption=Trực quan hóa 3D của Bộ dữ liệu Iris]
+import matplotlib.pyplot as plt
+import seaborn as sns
+sns.kdeplot(x=iris["SepalLengthCm"], hue = iris["Species"],
+            linewidth = 0.5, fill = True, multiple = "layer", cbar = True,
+            palette = "crest", alpha = 0.4)
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{projects/VisualD/image/kde.png}
+    \caption{KDE Plot với Seaborn (Iris dataset)}
+    \label{fig:placeholder}
+\end{figure}
+
+\subsubsection{Distribution Plot(DisPlot)}
+Biểu đồ DisPlot kết hợp giữa histogram và KDE, giúp thể hiện đồng thời tần suất và mật độ xác suất của một biến liên tục.
+
+\begin{lstlisting}[language=Python, caption=Trực quan hóa 3D của Bộ dữ liệu Iris]
+import matplotlib.pyplot as plt
+import seaborn as sns
+sns.distplot(iris["SepalWidthCm"], bins = 25, kde = True,
+             rug = True, color = "green", hist_kws = {"alpha":0.3},
+             kde_kws = {"linewidth":2})
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{projects/VisualD/image/displot.png}
+    \caption{DisPlot với Seaborn (Iris dataset)}
+    \label{fig:placeholder}
+\end{figure}
+
+\subsubsection{Biểu đồ cặp(Pairplot)}
+Biểu đồ pairplot tự động hiển thị phân tán cho mọi cặp biến và phân phối đơn biến trên đường chéo, giúp khám phá nhanh mối quan hệ giữa các biến trong tập dữ liệu.
+\begin{lstlisting}[language=Python, caption=Trực quan hóa 3D của Bộ dữ liệu Iris]
+import matplotlib.pyplot as plt
+import seaborn as sns
+sns.pairplot(df)
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{projects/VisualD/image/pairplot.png}
+    \caption{Pairplot với Seaborn (Iris dataset)}
+    \label{fig:placeholder}
+\end{figure}
+
+\subsubsection{Trực Quan Hóa 3D (3D Visualization)}
+Biểu đồ 3D Scatter hiển thị mối quan hệ giữa ba biến định lượng trong không gian ba chiều, rất hữu ích để kiểm tra khả năng phân tách trực quan khi dữ liệu có nhiều biến.
+\begin{lstlisting}[language=Python, caption=Trực quan hóa 3D của Bộ dữ liệu Iris]
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import Axes3D
+
+fig = plt.figure(figsize = (20,20))
+plt.style.use("classic")
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(iris["PetalWidthCm"], iris["SepalWidthCm"],iris["PetalLengthCm"], c = "red")
+ax.set_xlabel("PetalWidth in cm", fontsize = 20)
+ax.set_ylabel("SepalWidth in cm", fontsize = 20)
+ax.set_zlabel("PetalLength in cm", fontsize = 20)
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{projects/VisualD/image/3D_plt.png}
+    \caption{3D Visualization với Matplotlib (Iris dataset)}
+    \label{fig:placeholder}
+\end{figure}
+
+\section{Các Biểu Đồ Khác: Word Cloud}
+Biểu đồ Word Cloud cung cấp thông tin về ngữ cảnh của dữ liệu. Kích thước của các từ khác nhau thể hiện tần suất hoặc tầm quan trọng của những từ đó.
+\begin{lstlisting}[language=Python, caption=Word Cloud: Đánh giá 5 sao cho ứng dụng]
+from wordcloud import WordCloud, STOPWORDS
+import matplotlib.pyplot as plt
+import pandas as pd
+
+stopwords = set(STOPWORDS)
+words = ''
+for review in df_fs.Review:
+    tokens = str(review).split()
+    tokens = [i.lower() for i in tokens]
+    words += ' '.join(tokens) + ' '
+
+wordcloud = WordCloud(width = 800, height = 800,
+                background_color ='white',
+                stopwords = stopwords,
+                min_font_size = 10).generate(words)
+
+# plot the WordCloud image
+plt.figure(figsize = (8, 8), facecolor = None)
+plt.imshow(wordcloud)
+plt.axis("off")
+plt.tight_layout(pad = 0)
+
+plt.show()
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{projects/VisualD/image/wordcloud.png}
+    \caption{WordCloud (five star reviews dataset)}
+    \label{fig:placeholder}
+\end{figure}
+
+\section{Mẹo Chọn Biểu Đồ Phù Hợp (Tổng hợp)}
+Để chọn đúng biểu đồ, hãy xem xét mục đích của trực quan hóa:
+\begin{itemize}
+    \item \textbf{Hiển thị sự thay đổi theo thời gian:} Biểu đồ đường (Line Chart), Biểu đồ vùng (Area Chart).
+    \item \textbf{Hiển thị thành phần part-to-whole:} Biểu đồ tròn (Pie Chart), Biểu đồ Donut (Donut Chart).
+    \item \textbf{Cách dữ liệu được phân phối:} Biểu đồ tần suất (Histogram), Biểu đồ hộp (Box Plot).
+    \item \textbf{So sánh giá trị giữa các nhóm:} Biểu đồ cột (Bar Chart), Biểu đồ thanh (Column Chart).
+    \item \textbf{Quan sát mối quan hệ giữa các biến:} Biểu đồ phân tán (Scatter Plot), Biểu đồ bong bóng (Bubble Chart), Bản đồ nhiệt (Heatmap).
+    \item \textbf{Trình bày tính năng nổi bật từ văn bản:} Biểu đồ Word Cloud.
+\end{itemize}
+
+\section*{Kết luận}
+Qua các trường hợp nghiên cứu và biểu đồ đã trình bày, chúng ta thấy rằng việc chọn đúng biểu đồ và thư viện trực quan hóa là yếu tố then chốt để hiểu rõ dữ liệu và truyền tải thông tin một cách hiệu quả. Python cung cấp công cụ đa dạng, từ các thư viện cơ bản như Matplotlib đến các thư viện hiện đại như Plotly và Seaborn, giúp người dùng tạo nên những trực quan hóa đẹp mắt và giàu thông tin.

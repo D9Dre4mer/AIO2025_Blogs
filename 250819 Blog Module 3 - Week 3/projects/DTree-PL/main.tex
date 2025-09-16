@@ -1,0 +1,479 @@
+\begin{center}
+    \Large\textbf{Khám Phá Decision Tree trong Bài Toán Phân Loại và Dự Đoán}
+\end{center}
+
+\begin{center}
+    \Large\textit{Đàm Nguyên Khánh}
+\end{center}
+
+\begin{abstract}
+\noindent
+\textbf{Decision Tree} là một trong những mô hình học máy trực quan và dễ hiểu nhất, 
+được sử dụng rộng rãi cho cả \textbf{phân loại (classification)} và \textbf{dự đoán (regression)}. 
+Với cấu trúc dạng cây bao gồm \textbf{Root Node}, \textbf{Internal Nodes} và \textbf{Leaf Nodes}, 
+mô hình này mô phỏng cách con người đưa ra quyết định dựa trên các điều kiện tuần tự.
+
+Trong bài toán phân loại, Decision Tree lựa chọn thuộc tính phân chia tốt nhất 
+dựa trên các chỉ số như \textbf{Gini Impurity} hoặc \textbf{Entropy – Information Gain}, 
+giúp dữ liệu được tách thành những nhóm thuần khiết hơn.  
+Trong bài toán dự đoán, mô hình sử dụng tiêu chí \textbf{Sum of Squared Residuals (SSR)} hoặc 
+\textbf{Mean Squared Error (MSE)} để xây dựng hàm dự đoán bậc thang (\textit{piecewise constant function}), 
+từ đó ước lượng các giá trị liên tục như lương, giá nhà hay giá cổ phiếu.
+
+Bên cạnh đó, các kỹ thuật mở rộng như \textbf{Pruning}, \textbf{Regularization} 
+và các phương pháp \textbf{Ensemble} (Random Forest, Gradient Boosting, XGBoost) 
+giúp mô hình khắc phục hạn chế về overfitting, cải thiện hiệu năng và mở rộng khả năng ứng dụng.  
+
+Nhờ vào sự minh bạch trong cách ra quyết định, Decision Tree không chỉ mạnh mẽ trong học máy 
+mà còn đặc biệt hữu ích ở những lĩnh vực cần tính giải thích cao như \textbf{y tế, tài chính, pháp lý}. 
+\end{abstract}
+
+
+\section{Mở đầu}
+Trong học máy (Machine Learning), bài toán phân loại là một trong những ứng dụng quan trọng nhất, từ nhận diện khuôn mặt, phân loại email spam đến phát hiện gian lận tín dụng. 
+
+Một trong những mô hình phổ biến, trực quan và dễ hiểu nhất để giải quyết phân loại là \textbf{Decision Tree (Cây quyết định)}.  
+
+Không giống như KNN (K-Nearest Neighbors) – vốn đòi hỏi tính toán khoảng cách trên toàn bộ dữ liệu dẫn đến tốc độ chậm khi dataset lớn – Decision Tree cho phép \textbf{chia nhỏ dữ liệu thành các tập con} dựa trên các thuộc tính, từ đó đưa ra quyết định nhanh chóng.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{projects/DTree-PL/Image/dicision-tree1-1024x688.png}
+    \caption{Cấu trúc cơ bản của một cây quyết định: 
+    \textbf{Root Node} (nút gốc) là điểm bắt đầu, 
+    các \textbf{Decision Node} (nút quyết định) phân nhánh dữ liệu dựa trên điều kiện, 
+    \textbf{Leaf Node} (nút lá) chứa nhãn phân loại cuối cùng, 
+    và các nhóm nhánh nhỏ có thể được xem như một \textbf{Sub-tree}.}
+\end{figure}
+
+
+% ===================
+\section{Cấu trúc của Decision Tree}
+
+Một cây quyết định (\textit{Decision Tree}) có cấu trúc phân cấp, được xây dựng từ các nút (\textit{nodes}) và các nhánh (\textit{branches}). 
+Mỗi nhánh thể hiện một điều kiện chia dữ liệu, trong khi mỗi nút mang một vai trò cụ thể. 
+Ba thành phần chính của cây quyết định bao gồm:
+
+\begin{itemize}
+    \item \textbf{Root Node (Nút gốc):} 
+    Đây là điểm bắt đầu của toàn bộ cây, chứa \textbf{toàn bộ tập dữ liệu} ban đầu. 
+    Tại nút gốc, thuật toán sẽ lựa chọn một thuộc tính (feature) tốt nhất để chia dữ liệu thành các nhóm nhỏ hơn dựa trên chỉ số đánh giá như \textit{Gini Impurity} hoặc \textit{Entropy}.  
+    Việc chọn đúng Root Node quyết định chất lượng và độ chính xác của toàn bộ cây.
+    
+    \item \textbf{Internal Nodes (Nút trung gian):} 
+    Đây là các nút phân nhánh nằm giữa Root Node và các nút lá. 
+    Mỗi Internal Node chứa một điều kiện kiểm tra (ví dụ: \textit{Age < 30?}, \textit{Income = High?}). 
+    Khi dữ liệu đi qua nút này, nó sẽ được chia nhỏ hơn nữa thành các nhánh con. 
+    Quá trình phân chia tiếp tục cho đến khi dữ liệu đủ "thuần khiết" (ít hỗn tạp) hoặc đạt đến giới hạn độ sâu của cây.
+    
+    \item \textbf{Leaf Nodes (Nút lá):} 
+    Đây là điểm dừng của quá trình phân loại. 
+    Mỗi Leaf Node chứa \textbf{kết quả dự đoán cuối cùng} hoặc \textbf{nhãn phân loại} mà mô hình đưa ra (ví dụ: \textit{Spam} / \textit{Not Spam}, \textit{Good Credit} / \textit{Bad Credit}). 
+    Các Leaf Nodes không có nhánh con nào nữa, vì vậy chúng được coi là kết quả cuối cùng của đường đi trong cây.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{projects/DTree-PL/Image/1-1.png}
+    \caption{Ví dụ minh họa cây quyết định trong thực tế: 
+    \textbf{Root Node} (nút gốc) bắt đầu bằng câu hỏi \textit{Work to do?}, 
+    các \textbf{Internal Node} (nút trung gian) như \textit{Outlook?} hay \textit{Friends busy?} 
+    đưa ra điều kiện phân nhánh, 
+    \textbf{Branches} (nhánh) thể hiện các lựa chọn có thể, 
+    và \textbf{Leaf Nodes} (nút lá) đưa ra kết quả cuối cùng như \textit{Stay in}, \textit{Go to beach}, \textit{Go running} hay \textit{Go to movies}.}
+\end{figure}
+
+
+% ===================
+\section{Làm thế nào để chọn thuộc tính tốt nhất?}
+
+\subsection{Khái niệm Impurity (Độ hỗn tạp)}
+
+Trong một cây quyết định, mục tiêu của việc chia dữ liệu tại mỗi nút là làm cho các tập con trở nên \textbf{thuần khiết} hơn, tức là mỗi tập con chỉ chứa dữ liệu thuộc về một lớp duy nhất. 
+Để đo lường mức độ "thuần khiết" hay "hỗn tạp" của dữ liệu tại một nút, người ta sử dụng khái niệm \textbf{Impurity (độ hỗn tạp)}.
+
+\begin{tcolorbox}[colback=green!5!white, colframe=green!50!black, title=\textbf{Ý nghĩa}]
+    \begin{itemize}
+        \item Nếu tất cả các mẫu trong một nút đều thuộc cùng một lớp $\Rightarrow$ độ hỗn tạp = 0 (nút thuần khiết).
+        \item Nếu các mẫu được chia đều cho nhiều lớp $\Rightarrow$ độ hỗn tạp cao (khó phân loại).
+        \item Mục tiêu khi xây dựng cây: \textbf{chọn thuộc tính giúp giảm độ hỗn tạp nhiều nhất}.
+    \end{itemize}
+\end{tcolorbox}
+
+Hai chỉ số phổ biến dùng để đo độ hỗn tạp là:
+
+\begin{itemize}
+    \item \textbf{Gini Impurity:} đo xác suất chọn ngẫu nhiên một phần tử bị phân loại sai.
+    \[
+        Gini = 1 - \sum_{i=1}^k p_i^2
+    \]
+    Trong đó $p_i$ là xác suất phần tử thuộc lớp $i$.  
+    Gini = 0 nghĩa là nút hoàn toàn thuần khiết.
+
+    \item \textbf{Entropy – Information Gain:} Entropy đo độ hỗn loạn của dữ liệu:
+    \[
+        Entropy = - \sum_{i=1}^k p_i \log_2 p_i
+    \]
+    Dựa trên Entropy, ta tính được \textbf{Information Gain (IG)} – mức độ giảm Entropy khi tách dữ liệu bằng một thuộc tính.  
+    Thuộc tính nào cho IG cao nhất sẽ được chọn làm Root Node.
+\end{itemize}
+
+\subsection{Gini Impurity}
+Công thức tính:
+\[
+Gini = 1 - \sum_{i=1}^k p_i^2
+\]
+
+Trong đó \(p_i\) là xác suất dữ liệu thuộc về lớp \(i\).
+\begin{itemize}
+    \item Gini = 0: dữ liệu thuần khiết (chỉ 1 lớp).
+    \item Gini cao: dữ liệu lẫn lộn nhiều lớp.
+\end{itemize}
+
+\subsection{Entropy và Information Gain}
+
+\textbf{Entropy} là một khái niệm xuất phát từ lý thuyết thông tin, 
+dùng để đo mức độ hỗn tạp hoặc sự không chắc chắn của dữ liệu tại một nút trong cây quyết định.  
+Nếu dữ liệu càng lẫn lộn giữa nhiều lớp thì giá trị Entropy càng cao, 
+ngược lại nếu dữ liệu chỉ chứa một lớp duy nhất thì Entropy bằng 0.
+
+\[
+Entropy(S) = - \sum_{i=1}^k p_i \log_2(p_i)
+\]
+
+Trong đó:
+\begin{itemize}
+    \item $k$: số lớp trong tập dữ liệu.
+    \item $p_i$: xác suất một phần tử trong tập $S$ thuộc lớp $i$.
+\end{itemize}
+
+\begin{tcolorbox}[colback=green!5!white, colframe=green!50!black, title=\textbf{Ý nghĩa của Entropy}]
+    \begin{itemize}
+        \item Entropy = 0: dữ liệu hoàn toàn thuần khiết (chỉ có 1 lớp).
+        \item Entropy cao: dữ liệu hỗn tạp, khó phân loại.
+        \item Entropy đạt cực đại khi các lớp có phân phối đồng đều (ví dụ: 50\% lớp A, 50\% lớp B).
+    \end{itemize}
+\end{tcolorbox}
+
+\textbf{Information Gain (IG)} là chỉ số thể hiện mức độ giảm Entropy sau khi tách dữ liệu theo một thuộc tính nào đó.  
+Nói cách khác, IG đo lường “thông tin mới” mà một thuộc tính mang lại cho việc phân loại.
+
+\[
+IG(S, A) = Entropy(S) - \sum_{v \in Values(A)} \frac{|S_v|}{|S|} \, Entropy(S_v)
+\]
+
+Trong đó:
+\begin{itemize}
+    \item $S$: tập dữ liệu ban đầu.
+    \item $A$: thuộc tính được chọn để chia.
+    \item $S_v$: tập con của $S$ khi $A = v$.
+    \item $\dfrac{|S_v|}{|S|}$: tỷ lệ kích thước tập con.
+\end{itemize}
+
+\begin{tcolorbox}[colback=green!5!white, colframe=green!50!black, title=\textbf{Ý nghĩa của Information Gain}]
+    \begin{itemize}
+        \item IG càng cao $\Rightarrow$ thuộc tính càng “tốt” cho việc chia dữ liệu.
+        \item Root Node được chọn là thuộc tính có IG cao nhất.
+    \end{itemize}
+\end{tcolorbox}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{projects/DTree-PL/Image/Entropy.png}
+        \caption*{(a) Tính toán Entropy và Information Gain cho thuộc tính \textit{Savings}}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{projects/DTree-PL/Image/Gini.png}
+        \caption*{(b) Tính toán Gini Index cho thuộc tính \textit{Savings}}
+    \end{minipage}
+    \caption{So sánh hai phương pháp chọn thuộc tính: Entropy (Information Gain) và Gini Index. 
+    Cả hai đều đo lường độ hỗn tạp (impurity) để xác định nút gốc tốt nhất, 
+    tuy nhiên cách tính khác nhau: Entropy dùng logarit trong khi Gini dựa trên xác suất bình phương.}
+\end{figure}
+
+% ===================
+\section{Xây dựng Decision Tree – Ví dụ minh họa}
+
+Giả sử ta có dataset nhỏ về sở thích:
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+\hline
+Love Math & Love Art & Age & Love AI \\
+\hline
+Yes & Yes & 7 & No \\
+Yes & No & 12 & No \\
+No & Yes & 18 & Yes \\
+No & Yes & 35 & Yes \\
+Yes & Yes & 38 & Yes \\
+Yes & No & 50 & No \\
+No & No & 83 & No \\
+\hline
+\end{tabular}
+\end{center}
+
+Sau khi tính toán, ta thấy ``Love Art'' là Root Node tốt nhất. Tiếp theo, phân chia theo ``Age < 26.5'' để đưa ra quyết định cuối cùng.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{projects/DTree-PL/Image/DT LoveAI.png}
+    \caption{Cây quyết định huấn luyện từ dữ liệu nhỏ về sở thích: 
+    nút gốc là thuộc tính \textit{Love Art}, 
+    sau đó tiếp tục phân chia theo \textit{Age}. 
+    Các nút hiển thị số mẫu (samples), phân bố giữa hai lớp (value), 
+    và nhãn dự đoán cuối cùng (class).}
+\end{figure}
+
+
+Cây quyết định được huấn luyện từ dataset nhỏ về sở thích. Dưới đây là diễn giải chi tiết cho từng node trong cây:
+
+\begin{itemize}
+    \item \textbf{Root Node (node \#0):} 
+    \begin{itemize}
+        \item Điều kiện tách: \texttt{Love Art <= 0.5}. 
+        Đây là kết quả của \texttt{OneHotEncoder}, trong đó cột \texttt{Love Art\_Yes} được mã hoá thành 0/1 và ngưỡng 0.5 để phân tách Yes/No.
+        \item Ý nghĩa: Nếu \texttt{Love Art=No} $\Rightarrow$ đi nhánh trái, nếu \texttt{Love Art=Yes} $\Rightarrow$ đi nhánh phải.
+        \item Tổng số mẫu: 7 (5 ``No'', 2 ``Yes'').
+        \item Nhãn dự đoán chính: \textbf{No} (đa số).
+    \end{itemize}
+
+    \item \textbf{Node \#1 (nhánh trái của Root):}
+    \begin{itemize}
+        \item Điều kiện: \texttt{Love Art=No}.
+        \item Tổng số mẫu: 3, tất cả đều ``No''.
+        \item Đây là nút lá thuần khiết.
+        \item Kết quả dự đoán: \textbf{No}.
+    \end{itemize}
+
+    \item \textbf{Node \#2 (nhánh phải của Root, tức \texttt{Love Art=Yes}):}
+    \begin{itemize}
+        \item Tổng số mẫu: 4 (2 ``No'', 2 ``Yes''), rất hỗn tạp.
+        \item Cây tiếp tục chia bằng thuộc tính \texttt{Age <= 26.5}.
+        \item Nhãn dự đoán tại node: \textbf{No} (do cân bằng, sklearn ưu tiên lớp đầu).
+    \end{itemize}
+
+    \item \textbf{Node \#3 (nhánh trái của Node \#2):}
+    \begin{itemize}
+        \item Điều kiện: \texttt{Age < 26.5}.
+        \item Tập con gồm 2 mẫu, cả hai đều ``No''.
+        \item Nút lá thuần khiết, kết quả dự đoán: \textbf{No}.
+    \end{itemize}
+
+    \item \textbf{Node \#4 (nhánh phải của Node \#2):}
+    \begin{itemize}
+        \item Điều kiện: \texttt{Age >= 26.5}.
+        \item Tập con gồm 2 mẫu, cả hai đều ``Yes''.
+        \item Nút lá thuần khiết, kết quả dự đoán: \textbf{Yes}.
+    \end{itemize}
+\end{itemize}
+
+% ===================
+\section{Vấn đề Overfitting và Giải pháp}
+
+Một trong những thách thức lớn khi sử dụng cây quyết định là hiện tượng 
+\textbf{Overfitting} – mô hình học quá kỹ dữ liệu huấn luyện, ghi nhớ cả những chi tiết 
+và nhiễu ngẫu nhiên thay vì nắm được quy luật tổng quát. 
+Khi đó, cây quyết định có thể dự đoán chính xác trên tập huấn luyện nhưng lại hoạt động kém 
+trên dữ liệu mới.
+
+\begin{tcolorbox}[colback=green!5!white, colframe=green!50!black, title=\textbf{Dấu hiệu Overfitting}]
+    \begin{itemize}
+        \item Cây có quá nhiều tầng, nhánh phân chia phức tạp.
+        \item Độ chính xác trên tập train cao bất thường, nhưng accuracy trên tập test thấp.
+        \item Các nhánh cuối cùng chỉ còn rất ít mẫu (thậm chí 1 mẫu) nhưng vẫn được chia nhỏ.
+    \end{itemize}
+\end{tcolorbox}
+
+\subsection*{Các giải pháp khắc phục}
+
+\begin{itemize}
+    \item \textbf{Pruning (Cắt tỉa):}  
+    Giới hạn độ sâu (\texttt{max\_depth}) hoặc số node lá, loại bỏ các nhánh không quan trọng.  
+    Ví dụ: hình \ref{fig:prunning} cho thấy cây sau khi cắt tỉa (\texttt{max\_depth=2}) trở nên gọn nhẹ hơn, giảm rủi ro overfitting.
+
+    \item \textbf{Regularization:}  
+    Sử dụng các tham số điều chuẩn như \texttt{min\_samples\_split}, \texttt{min\_samples\_leaf}, hoặc \texttt{max\_features} để kiểm soát việc phân chia.  
+    Ý tưởng: không cho phép một node được tách ra nếu số mẫu quá ít.
+
+    \item \textbf{Ensemble Methods:}  
+    Thay vì dựa vào một cây duy nhất (dễ overfit), ta kết hợp nhiều cây:
+    \begin{itemize}
+        \item \textbf{Random Forest:} xây nhiều cây độc lập, dựa trên mẫu bootstrap khác nhau, sau đó bỏ phiếu số đông.
+        \item \textbf{Gradient Boosting / XGBoost:} xây các cây tuần tự, mỗi cây mới học từ lỗi của cây trước, dần cải thiện mô hình.
+    \end{itemize}
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{projects/DTree-PL/Image/Prunning.png}
+    \caption{Cây quyết định sau khi được \textbf{cắt tỉa (pruning)} với \texttt{max\_depth=2}. 
+    Việc giới hạn độ sâu giúp giảm độ phức tạp của cây, tránh hiện tượng \textit{overfitting}, 
+    đồng thời làm cho mô hình dễ hiểu và khái quát hơn.}
+\end{figure}
+
+% ===================
+\section{Ứng dụng thực tế}
+\subsection{Phát hiện gian lận thẻ tín dụng}
+
+Phát hiện gian lận thẻ tín dụng là một trong những ứng dụng quan trọng và thực tế nhất 
+của các mô hình phân loại. Các công ty tài chính cần nhanh chóng nhận diện các giao dịch bất thường 
+để bảo vệ khách hàng và giảm thiểu thiệt hại.
+
+\begin{itemize}
+    \item \textbf{Dataset:} hơn 280,000 giao dịch của khách hàng châu Âu (trong 2 ngày), 
+    trong đó chỉ $\sim$0.17\% là gian lận (492 mẫu gian lận). Đây là một tập dữ liệu \textbf{mất cân bằng nghiêm trọng}, 
+    vì số giao dịch hợp lệ quá lớn so với số giao dịch gian lận.
+    \item \textbf{Thách thức:} 
+    \begin{itemize}
+        \item Nếu chỉ dự đoán tất cả đều là giao dịch hợp lệ, mô hình cũng đạt độ chính xác rất cao 
+        (hơn 99\%), nhưng vô nghĩa về mặt thực tế.
+        \item Cần các thước đo khác ngoài accuracy, như \textbf{Precision}, \textbf{Recall}, \textbf{F1-score}, 
+        đặc biệt quan trọng là Recall (tỷ lệ phát hiện được giao dịch gian lận).
+    \end{itemize}
+    \item \textbf{Giải pháp với Decision Tree và biến thể:}
+    \begin{itemize}
+        \item \textbf{Decision Tree:} dễ giải thích, có thể phát hiện ra các quy luật từ đặc trưng 
+        (ví dụ: số tiền lớn bất thường, quốc gia hiếm gặp, tần suất giao dịch cao trong thời gian ngắn).
+        \item \textbf{Random Forest:} giảm overfitting, tăng khả năng khái quát hóa, hoạt động tốt 
+        khi số chiều dữ liệu lớn.
+        \item \textbf{Gradient Boosting / XGBoost:} tối ưu dần trên lỗi của mô hình trước, 
+        đặc biệt hiệu quả trong bài toán dữ liệu mất cân bằng nhờ khả năng điều chỉnh trọng số (weights) 
+        cho các mẫu gian lận hiếm.
+    \end{itemize}
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{projects/DTree-PL/Image/Radom forrest and XGBoost.png}
+    \caption{So sánh hai phương pháp Ensemble phổ biến: 
+    \textbf{Bagging} (ví dụ: Random Forest) xây dựng nhiều cây song song trên các mẫu bootstrap độc lập và kết hợp bằng \textit{majority voting}; 
+    trong khi \textbf{Boosting} (ví dụ: AdaBoost, XGBoost) xây dựng các mô hình tuần tự, mỗi mô hình mới tập trung vào việc sửa lỗi của mô hình trước, 
+    từ đó cải thiện dần độ chính xác.}
+\end{figure}
+
+\section{Decision Tree cho Dự đoán (Regression Tree)}
+
+Bên cạnh bài toán phân loại, \textbf{Decision Tree} còn có thể áp dụng cho các bài toán 
+\textbf{dự đoán giá trị số liên tục} (\textit{regression problems}). Trong trường hợp này, thay vì 
+trả về một nhãn lớp (Yes/No, Spam/Ham, v.v.), cây quyết định dự đoán ra một giá trị số 
+như \textit{giá nhà, mức lương, hiệu quả vaccine hay giá cổ phiếu}.
+
+\subsection{Nguyên lý hoạt động}
+
+\begin{itemize}
+    \item \textbf{Khác biệt chính so với Classification Tree:}  
+    \begin{itemize}
+        \item Với \textbf{Classification Tree}, tiêu chí chọn thuộc tính dựa trên \textit{Gini Impurity} hoặc \textit{Entropy}.
+        \item Với \textbf{Regression Tree}, tiêu chí chọn thuộc tính dựa trên \textit{lỗi dự đoán số}, thường được đo bằng 
+        \textbf{Sum of Squared Residuals (SSR)} hoặc \textbf{Mean Squared Error (MSE)}.
+    \end{itemize}
+
+    \item \textbf{Cách tính tại một node:}  
+    \[
+        SSR = \sum_{i=1}^{n} (y_i - \hat{y})^2
+    \]
+    trong đó:
+    \begin{itemize}
+        \item $y_i$: giá trị thực tế của quan sát thứ $i$.
+        \item $\hat{y}$: giá trị trung bình của tất cả $y_i$ trong node đó.
+    \end{itemize}
+
+    \item \textbf{Nguyên tắc tách node:} thuật toán sẽ duyệt qua tất cả các thuộc tính và các ngưỡng có thể, 
+    chọn ra cách tách giúp \textbf{giảm SSR nhiều nhất}. Nói cách khác, mô hình luôn cố gắng tìm ngưỡng phân chia 
+    sao cho dữ liệu trong mỗi nhánh có giá trị $y$ càng đồng nhất càng tốt.
+\end{itemize}
+
+\begin{tcolorbox}[colback=green!5!white, colframe=green!50!black, title=\textbf{Trực quan hoá}]
+    Với bài toán hồi quy, mỗi lá (Leaf Node) không phải là một nhãn, mà là \textbf{một giá trị trung bình}. 
+    Khi có một mẫu mới đi qua cây, nó sẽ rơi vào một nút lá, và giá trị dự đoán chính là trung bình của 
+    các mẫu huấn luyện trong nút lá đó.  
+    \[
+        \hat{y}_{leaf} = \frac{1}{n_{leaf}} \sum_{i=1}^{n_{leaf}} y_i
+    \]
+\end{tcolorbox}
+
+\subsection{Ví dụ minh họa}
+
+\paragraph{Ví dụ 1: Dự đoán hiệu quả vaccine.}  
+Giả sử ta có dữ liệu về \textit{liều lượng tiêm (unit)}, \textit{tuổi (age)} và \textit{giới tính (sex)} 
+của bệnh nhân, cùng hiệu quả vaccine đo được (%).  
+\begin{itemize}
+    \item Nếu chọn \texttt{Unit} làm Root Node, cây sẽ tách dữ liệu theo các ngưỡng của liều lượng.  
+    \item Ví dụ: khi \texttt{Unit=5}, mô hình dự đoán hiệu quả $\approx 44\%$, vì đó chính là giá trị trung bình 
+    của các mẫu trong nhánh này.  
+\end{itemize}
+
+\paragraph{Ví dụ 2: Dự đoán lương (Salary Prediction).}  
+Một công ty muốn dự đoán mức lương dựa trên vị trí công việc (position level).  
+Regression Tree sẽ phân chia các khoảng giá trị của \texttt{position level} (ví dụ: Junior, Mid, Senior) 
+và gán cho mỗi khoảng một mức lương trung bình.  
+\begin{itemize}
+    \item Nếu \texttt{position level = 3} (Mid-level), cây có thể dự đoán mức lương $\sim 50,000$ USD.  
+    \item Nếu \texttt{position level = 7} (Senior), cây có thể dự đoán mức lương $\sim 120,000$ USD.  
+\end{itemize}
+
+\paragraph{Ví dụ 3: Dự đoán giá cổ phiếu Microsoft (MSFT).}  
+Lấy dữ liệu lịch sử từ Yahoo Finance, Regression Tree có thể được huấn luyện để dự đoán giá cổ phiếu 
+dựa trên các thuộc tính như \texttt{ngày}, \texttt{volume}, \texttt{open/close price}.  
+Mỗi nhánh trong cây chia dữ liệu theo các ngưỡng giá hoặc khối lượng giao dịch, và giá dự đoán cuối cùng 
+tại lá sẽ là giá trung bình trong khoảng đó.  
+
+\subsection{Vấn đề Overfitting trong Regression Tree}
+
+Cũng như Classification Tree, Regression Tree rất dễ gặp hiện tượng \textbf{overfitting} khi cây phát triển quá sâu.  
+Khi đó, mô hình có thể dự đoán hoàn hảo dữ liệu huấn luyện, nhưng lại dự đoán kém trên dữ liệu mới.  
+
+\textbf{Giải pháp:}
+\begin{itemize}
+    \item Giới hạn độ sâu cây (\texttt{max\_depth}).
+    \item Đặt số mẫu tối thiểu để tách (\texttt{min\_samples\_split}) hoặc số mẫu tối thiểu tại một lá (\texttt{min\_samples\_leaf}).
+    \item Sử dụng \textbf{Ensemble Methods} như Random Forest Regression hoặc Gradient Boosting Regression. 
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{projects/DTree-PL/Salary.png}
+    \caption{Ví dụ Decision Tree Regression cho dự đoán mức lương theo cấp bậc công việc. 
+    Các dấu tròn đỏ biểu diễn \textbf{mức lương thực tế}, trong khi đường xanh thể hiện \textbf{hàm dự đoán dạng bậc thang} 
+    của Decision Tree.  
+    Ta thấy rằng thay vì vẽ một đường thẳng như Linear Regression, Decision Tree tạo ra các đoạn hằng số (piecewise constant), 
+    phù hợp với các mức lương thực tế vốn thường nhảy bậc theo vị trí công việc.}
+\end{figure}
+
+
+% ===================
+% ===================
+\section{Kết luận}
+
+Qua toàn bộ nội dung, có thể thấy rằng \textbf{Decision Tree} là một trong những mô hình 
+đơn giản nhưng đầy sức mạnh trong học máy, đặc biệt với các bài toán phân loại và dự đoán. 
+Điểm mạnh lớn nhất của mô hình này nằm ở sự \emph{trực quan} và khả năng \emph{giải thích kết quả}, 
+mà nhiều mô hình phức tạp khác (như Neural Network) khó đạt được.
+
+\begin{itemize}
+    \item Cây quyết định khắc phục được hạn chế về tốc độ và tính toán phức tạp của KNN, 
+    đồng thời hoạt động hiệu quả trên dữ liệu kích thước vừa và lớn.
+    \item Các chỉ số \textbf{Gini Impurity} và \textbf{Entropy – Information Gain} 
+    giúp lựa chọn thuộc tính phân chia tốt nhất, đảm bảo dữ liệu được tách thành 
+    những tập con thuần khiết hơn trong \textbf{bài toán phân loại}.
+    \item Với \textbf{bài toán hồi quy}, cây quyết định dùng tiêu chí \textbf{Sum of Squared Residuals (SSR)} 
+    hoặc \textbf{Mean Squared Error (MSE)} để chọn ngưỡng phân chia, giúp dự đoán các giá trị liên tục 
+    như lương, giá nhà hay giá cổ phiếu.
+    \item Với các kỹ thuật mở rộng như \textbf{Random Forest}, \textbf{Gradient Boosting}, 
+    hay \textbf{XGBoost}, cây quyết định có thể đạt hiệu năng vượt trội, 
+    giảm thiểu overfitting và xử lý tốt các tập dữ liệu lớn, phức tạp.
+\end{itemize}
+
+\begin{tcolorbox}[colback=green!5!white, colframe=green!50!black, title=\textbf{Thông điệp cuối cùng}]
+Không chỉ là một công cụ học máy, cây quyết định còn là một phương pháp 
+\textbf{giải thích quyết định rõ ràng}, giúp con người hiểu được 
+“\textit{tại sao}” mô hình đưa ra dự đoán đó. 
+Chính sự minh bạch này làm cho Decision Tree đặc biệt hữu ích 
+trong các lĩnh vực nhạy cảm như y tế, tài chính và pháp lý, 
+nơi mà cả \textbf{dự đoán số liệu} và \textbf{phân loại tình huống} 
+đều cần sự tin cậy và minh bạch.
+\end{tcolorbox}
