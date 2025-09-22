@@ -1,0 +1,146 @@
+\documentclass[a4paper,12pt]{article}
+
+\input{preamble.tex} % Gọi preamble từ file riêng
+
+\begin{document}
+\fancyhead[L]{%
+    \includegraphics[height=1.2cm]{Logo/Logo.png}%
+}
+\newpage
+
+\begin{center}
+    \vspace*{2em}
+    {\LARGE\bfseries Blog Tuần 2 – Module 4 \par}
+    \vspace{0.5em}
+    {\Huge\bfseries Gradient Boosting, XGBoost, FastAPI và Data Project \par}
+    \vspace{1em}
+    {\Large\itshape Từ gradient boosting cơ bản đến XGBoost nâng cao, FastAPI deployment và dự án thực tế \par}
+    \vspace{2em}
+    {\large\textbf{Tác giả:} Team GRID034} \\
+    \vspace{2em}
+    \hrule
+    \vspace{1.5em}
+\end{center}
+
+
+\noindent
+Tuần thứ hai của Module 4 tập trung vào các \textbf{thuật toán boosting} tiên tiến và \textbf{triển khai API}, cùng với việc áp dụng vào \textbf{dự án thực tế}. Module này giúp người học nắm vững gradient boosting từ cơ bản đến nâng cao và cách triển khai mô hình ML thành API production.
+
+\vspace{1em}
+\noindent
+Cụ thể, blog tuần này sẽ bao gồm các chủ đề:
+
+\vspace{1em}
+\begin{enumerate}
+    \item \textbf{Gradient Boosting – Học qua ví dụ tính tay}  
+    Hiểu gradient boosting từ cơ bản thông qua các ví dụ tính toán chi tiết và minh họa trực quan.
+
+    \item \textbf{Gradient Boosting – Nâng cao}  
+    Các kỹ thuật tối ưu hóa, regularization và so sánh với các thuật toán ensemble khác.
+
+    \item \textbf{XGBoost – Extreme Gradient Boosting}  
+    Thuật toán XGBoost hiện đại, ưu điểm vượt trội và ứng dụng trong các cuộc thi data science.
+
+    \item \textbf{FastAPI – Xây dựng API cho ML Models}  
+    Triển khai mô hình ML thành API production-ready với FastAPI framework.
+
+    \item \textbf{Data Project – PG\&E Energy Analytics Challenge}  
+    Dự án thực tế dự báo tải điện sử dụng time-series analysis và machine learning.
+\end{enumerate}
+
+\vspace{1em}
+\noindent\textbf{ Giá trị nhận được sau khi đọc Blog}
+\begin{itemize}
+    \item Hiểu và triển khai được Gradient Boosting từ cơ bản đến nâng cao.  
+    \item Nắm vững thuật toán XGBoost và ứng dụng trong các dự án thực tế.  
+    \item Biết cách xây dựng API cho mô hình ML với FastAPI.  
+    \item Áp dụng được time-series analysis và feature engineering.  
+    \item Triển khai dự án ML hoàn chỉnh từ EDA đến production.  
+\end{itemize}
+
+\vspace{1em}
+\newpage
+
+\vspace{2em}
+\noindent
+{\Large\bfseries Mục lục}
+\vspace{1em}
+
+\noindent
+\textbf{Gradient Boosting – Học qua ví dụ tính tay} \dotfill \pageref{sec:gradient-boosting-hand}
+\begin{itemize}
+    \item Gradient Boosting là gì? \dotfill \pageref{sec:gradient-boosting-hand}
+    \item Gradient Boosting -- Học từ phần dư \dotfill \pageref{subsec:gradient-boosting-residuals}
+    \item Nguyên lý hoạt động \dotfill \pageref{subsec:gradient-boosting-principle}
+    \item Các khái niệm cơ bản \dotfill \pageref{subsec:gradient-boosting-concepts}
+    \item So sánh AdaBoost và Gradient Boosting \dotfill \pageref{subsec:gradient-boosting-comparison}
+\end{itemize}
+
+\vspace{0.5em}
+\noindent
+\textbf{Gradient Boosting – Nâng cao} \dotfill \pageref{sec:gradient-boosting-advanced}
+\begin{itemize}
+    \item Giới thiệu: Ngoài việc học từ sai lầm, hãy học đúng hướng! \dotfill \pageref{sec:gradient-boosting-advanced}
+    \item Trái tim của thuật toán: "Gradient" đến từ đâu? \dotfill \pageref{subsec:gradient-boosting-advanced-gradient}
+    \item Gradient Boosting cho Bài toán Hồi quy \dotfill \pageref{subsec:gradient-boosting-advanced-regression}
+    \item Gradient Boosting cho Bài toán Phân loại \dotfill \pageref{subsec:gradient-boosting-advanced-classification}
+    \item Thực hành với Python \dotfill \pageref{subsec:gradient-boosting-advanced-python}
+\end{itemize}
+
+\vspace{0.5em}
+\noindent
+\textbf{XGBoost – Extreme Gradient Boosting} \dotfill \pageref{sec:xgboost}
+\begin{itemize}
+    \item XGBoost là gì? \dotfill \pageref{sec:xgboost}
+    \item Behind the Scenes – Bí mật dưới nắp capo của XGBoost \dotfill \pageref{subsec:xgboost-behind}
+    \item Case Study – Time Series Forecasting với XGBoost \dotfill \pageref{subsec:xgboost-case-study}
+    \item Ưu – Nhược điểm của XGBoost \dotfill \pageref{subsec:xgboost-pros-cons}
+    \item Ứng dụng thực tế \& Kết luận \dotfill \pageref{subsec:xgboost-applications}
+\end{itemize}
+
+\vspace{0.5em}
+\noindent
+\textbf{FastAPI – Xây dựng API cho ML Models} \dotfill \pageref{sec:fastapi}
+\begin{itemize}
+    \item Giới thiệu về FastAPI \dotfill \pageref{sec:fastapi}
+    \item Ứng dụng CRUD đơn giản với FastAPI \dotfill \pageref{subsec:fastapi-crud}
+    \item Nâng cao trải nghiệm với Response và Templating \dotfill \pageref{subsec:fastapi-advanced}
+    \item Case Study: AI Text Classification API \dotfill \pageref{subsec:fastapi-case-study}
+    \item MLOps cho dự án AI \dotfill \pageref{subsec:fastapi-mlops}
+\end{itemize}
+
+\vspace{0.5em}
+\noindent
+\textbf{Data Project – PG\&E Energy Analytics Challenge} \dotfill \pageref{sec:data-project}
+\begin{itemize}
+    \item Giới thiệu Dự án PG\&E Energy Analytics Challenge \dotfill \pageref{sec:data-project}
+    \item Phân tích Dữ liệu Thăm dò (EDA) \dotfill \pageref{subsec:data-project-eda}
+    \item Feature Engineering \dotfill \pageref{subsec:data-project-features}
+    \item Modeling và Evaluation \dotfill \pageref{subsec:data-project-modeling}
+    \item Kết quả và Đánh giá \dotfill \pageref{subsec:data-project-results}
+\end{itemize}
+
+\vspace{1em}
+\newpage
+
+\input{projects/Gradient_Boosting__Hoc_qua_vi_du_tinh_tay/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\input{projects/GradientBoosting/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\input{projects/XGBoost/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\input{projects/FastAPI/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\input{projects/DataProject/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\end{document}

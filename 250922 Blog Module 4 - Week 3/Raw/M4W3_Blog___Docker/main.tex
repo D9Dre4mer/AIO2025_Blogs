@@ -1,0 +1,366 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{minted}
+\usepackage{enumitem}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{pifont}
+
+\ding{51} 
+\ding{55}
+
+\input{preamble.tex} % Gọi preamble từ file riêng
+
+\begin{document}
+
+\title{Dựng môi trường phát triển bằng Docker trên máy cá nhân}
+\author{Võ Hoàng}
+\date{}
+
+\maketitle
+
+\section*{Giới thiệu}
+Bài viết này là một tutorial thực chiến giúp bạn thiết kế \textbf{môi trường phát triển (dev env)} dùng Docker ngay trên máy cá nhân. 
+Mục tiêu: \textbf{nhanh, tái lập, ít ``cồng kềnh'', dễ debug}, và tương thích nhóm.
+
+\section{Đối tượng \& mục tiêu}
+\begin{itemize}
+  \item \textbf{Đối tượng}: Dev backend/frontend, data/ML, sinh viên, team nhỏ cần môi trường đồng nhất.
+  \item \textbf{Mục tiêu}:
+  \begin{itemize}
+    \item Chạy dự án local bằng \verb|docker compose up| với hot-reload.
+    \item Tách biệt \textbf{dev} và \textbf{prod} bằng profiles.
+    \item Chuẩn hoá secrets, volumes, network.
+    \item Chạy tốt trên Windows (WSL2), macOS, Linux.
+  \end{itemize}
+\end{itemize}
+
+\section{Kiến trúc tổng quan (host ↔ Docker)}
+\begin{minted}{text}
+Host OS (Windows/macOS/Linux)
+  └─ (Tuỳ chọn) WSL2 (Windows)
+      └─ Docker Engine / Docker Desktop / Rancher Desktop
+          └─ Containers (app, db, cache, etc.)
+              └─ Volumes (bind/named) + Networks
+\end{minted}
+
+\textbf{Gợi ý:}
+\begin{itemize}
+  \item Windows: WSL2 + Docker Desktop (dễ nhất). Nếu tối giản: cài Docker Engine rootless trong WSL2.
+  \item macOS: Docker Desktop hoặc Colima (nhẹ, nhanh, M-series friendly).
+  \item Linux: Cài Docker Engine chính chủ.
+\end{itemize}
+
+\section{Chuẩn bị theo hệ điều hành}
+
+\subsection{Windows 10/11 (WSL2 + Docker Desktop)}
+\begin{minted}{powershell}
+wsl --install -d Ubuntu
+wsl --set-default-version 2
+\end{minted}
+Sau đó cài Docker Desktop, bật WSL 2 based engine, để project code trong WSL FS để tránh I/O chậm.
+Di chuyển dữ liệu Docker sang ổ D bằng thiết lập trong Docker Desktop hoặc \verb|wsl --export/--import|.
+
+\subsection{macOS (Intel/M-series)}
+\begin{minted}{bash}
+brew install colima docker
+colima start --cpu 4 --memory 8 --disk 50
+\end{minted}
+
+\subsection{Linux (Ubuntu/Debian)}
+\begin{minted}{bash}
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl gnupg lsb-release
+# Add Docker’s official GPG key & repo
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io \
+    docker-buildx-plugin docker-compose-plugin
+sudo usermod -aG docker $USER
+newgrp docker
+\end{minted}
+
+\section{Tiêu chuẩn hoá bố cục dự án}
+\begin{minted}{text}
+myapp/
+  backend/
+    app/
+      main.py
+    pyproject.toml
+    Dockerfile
+    Dockerfile.dev
+  db/
+    init.sql
+  .env
+  docker-compose.yml
+  Makefile
+  .dockerignore
+  .editorconfig
+  .gitattributes
+  .devcontainer/
+    devcontainer.json
+\end{minted}
+
+\textbf{Quy ước:} Bind mount cho mã nguồn (dev), named volume cho dữ liệu (db, cache), secrets qua \verb|.env|, 
+profiles để tách dev/prod.
+
+\section{Ví dụ : FastAPI + PostgreSQL (hot-reload)}
+
+\subsection{main.py}
+\begin{minted}{python}
+from fastapi import FastAPI
+from os import getenv
+import psycopg
+
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {"msg": "Hello Docker Dev!", "env": getenv("APP_ENV", "dev")}
+\end{minted}
+
+\subsection{pyproject.toml}
+\begin{minted}{toml}
+[project]
+name = "myapp-backend"
+version = "0.1.0"
+dependencies = [
+  "fastapi",
+  "uvicorn[standard]",
+  "psycopg[binary]",
+]
+\end{minted}
+
+\subsection{Dockerfile.dev}
+\begin{minted}{docker}
+FROM python:3.12-slim
+WORKDIR /app
+COPY pyproject.toml /app/
+RUN pip install --no-cache-dir uv pip-tools && \
+    pip install --no-cache-dir fastapi uvicorn[standard] psycopg[binary]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+\end{minted}
+
+\subsection{docker-compose.yml}
+\begin{minted}{yaml}
+version: "3.9"
+name: myapp
+
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8000:8000"
+    env_file: .env
+    volumes:
+      - ./backend:/app:rw
+    depends_on:
+      - db
+    profiles: ["dev"]
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+
+volumes:
+  pgdata:
+\end{minted}
+
+\vspace{1em}
+Chạy dev:
+\begin{verbatim}
+docker compose --profile dev up --build
+\end{verbatim}
+
+Mở: \url{http://localhost:8000}.
+
+\section{Ví dụ 2: Next.js + Redis (hot-reload)}
+
+\subsection{frontend/src/index.js}
+\begin{minted}{javascript}
+export default function Home() {
+  return <h1>Hello Docker Dev with Next.js!</h1>
+}
+\end{minted}
+
+\subsection{frontend/package.json}
+\begin{minted}{json}
+{
+  "name": "myapp-frontend",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "14.0.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  }
+}
+\end{minted}
+
+\subsection{frontend/Dockerfile.dev}
+\begin{minted}{docker}
+FROM node:20-slim
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm install
+CMD ["npm", "run", "dev"]
+\end{minted}
+
+\subsection{docker-compose.override.yml (mở rộng)}
+\begin{minted}{yaml}
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - redis
+    profiles: ["dev"]
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+
+volumes:
+  redisdata:
+\end{minted}
+
+Mở: \url{http://localhost:3000}. Hot reload hoạt động tự động.
+
+\section{CI/CD nâng cao (GitHub Actions + Docker Hub)}
+\subsection{.github/workflows/deploy.yml}
+\begin{minted}{yaml}
+name: deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Login Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build & Push
+        run: |
+          docker build -t myorg/myapp-backend:latest ./backend
+          docker build -t myorg/myapp-frontend:latest ./frontend
+          docker push myorg/myapp-backend:latest
+          docker push myorg/myapp-frontend:latest
+\end{minted}
+
+\section{Triển khai thử nghiệm (Prod mini)}
+
+Chạy trên một server (VD: VPS):
+
+\begin{verbatim}
+git pull origin main
+docker compose --profile prod up -d --build
+\end{verbatim}
+
+Muốn expose với domain + HTTPS:
+\begin{itemize}
+  \item Dùng Traefik hoặc NGINX reverse proxy.
+  \item Dùng Caddy (tự động cấp TLS).
+\end{itemize}
+
+\subsection{Compose với Caddy}
+\begin{minted}{yaml}
+services:
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:
+\end{minted}
+
+\subsection{Caddyfile mẫu}
+\begin{minted}{text}
+myapp.localhost {
+    reverse_proxy frontend:3000
+}
+\end{minted}
+
+\section{So sánh Docker Desktop vs thay thế}
+\begin{center}
+\begin{tabular}{|l|c|c|c|}
+\hline
+Tính năng & Docker Desktop & Colima (macOS) & Rancher Desktop (Win/mac) \\
+\hline
+GUI quản lý container & \ding{51} & \ding{55} & \ding{51} \\
+Dễ cài trên Win/mac   & \ding{51} & \ding{55} & \ding{51} \\
+Hỗ trợ Kubernetes     & \ding{51} & \ding{55} & \ding{51} \\
+Dùng ít RAM hơn       & \ding{55} & \ding{51} & \ding{51} \\
+\hline
+\end{tabular}
+\end{center}
+
+\section{Best practices nâng cao}
+\begin{itemize}
+  \item Luôn viết multi-stage build để image nhỏ gọn.
+  \item Tách dev/prod config.
+  \item Dùng linter + CI để check Dockerfile.
+  \item Dùng healthcheck để giám sát service.
+  \item Cache dependencies hợp lý (COPY requirements.txt trước).
+\end{itemize}
+
+
+\section{Inclusion}
+
+Qua toàn bộ hành trình trên, bạn đã thấy rằng Docker không chỉ là công cụ chạy container đơn lẻ 
+mà còn là nền tảng để chuẩn hoá môi trường phát triển. Khi biết cách tổ chức dự án, 
+tách cấu hình dev/prod, quản lý volumes, secrets, và sử dụng thêm các công cụ như 
+Makefile, Dev Containers, CI/CD pipeline, bạn sẽ có:
+
+\begin{itemize}
+  \item Một môi trường dev nhất quán, không còn cảnh ``works on my machine''.
+  \item Quy trình on-boarding nhanh chóng: chỉ cần \verb|git clone| và \verb|docker compose up|.
+  \item Khả năng mở rộng sang full-stack (backend + frontend + database + cache) 
+        chỉ với vài service trong Compose.
+  \item Dễ dàng nâng cấp: từ local $\to$ staging/prod $\to$ Kubernetes mà không phải viết lại quá nhiều.
+  \item Tích hợp liền mạch với các công cụ hiện đại: GitHub Actions, secret managers, GPU runtime cho AI/ML.
+\end{itemize}
+
+Điều quan trọng hơn cả: Docker giúp bạn tư duy theo hướng 
+\textit{infrastructure as code} – coi môi trường dev cũng là một phần của dự án, 
+được quản lý version control, test, và tối ưu như chính mã nguồn. Đây chính là nền tảng 
+để tiến tới CI/CD chuyên nghiệp và triển khai microservices ở quy mô lớn.
+
+Hãy thử áp dụng các mẫu cấu trúc trong bài viết cho dự án của bạn, tuỳ biến cho phù hợp. 
+Khi đã quen, bạn sẽ thấy việc tạo một môi trường dev hoàn chỉnh chỉ mất vài phút – 
+và lợi ích mang lại thì vô cùng lớn.
+
+\end{document}

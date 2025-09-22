@@ -1,0 +1,450 @@
+ \documentclass[a4paper,12pt]{article}
+
+\input{preamble.tex} % Gọi preamble bạn đã định nghĩa
+
+\title{\textbf{Dự báo Doanh số với Explainable AI (XAI):\\
+Một Case Study kết hợp LightGBM và SHAP}}
+\author{Vương Nguyệt Bình}
+\date{\mydate\today} % Dùng định dạng ngày trong preamble
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Dự báo doanh số bán hàng là một thách thức lớn đối với doanh nghiệp,
+khi mà hành vi tiêu dùng chịu ảnh hưởng đồng thời từ nhiều yếu tố như mùa vụ,
+ngày lễ, thời tiết, và xu hướng thị trường.  
+
+Trong nghiên cứu này, chúng tôi xây dựng hệ thống dự báo dựa trên thuật toán
+\textbf{LightGBM}, kết hợp với \textbf{SHAP} để giải thích kết quả dự báo,
+sử dụng \textbf{Optuna} cho tối ưu tham số và triển khai qua ứng dụng web \textbf{Streamlit}.  
+
+Điểm nổi bật là hệ thống vừa đạt độ chính xác cao, vừa minh bạch,
+tạo điều kiện cho nhà quản lý kinh doanh ra quyết định nhanh chóng và đáng tin cậy.
+\end{abstract}
+
+\section{Giới thiệu}
+\subsection{Bối cảnh kinh doanh}
+Trong ngành bán lẻ, việc dự báo doanh số đóng vai trò trung tâm. 
+Một dự báo chính xác giúp doanh nghiệp:
+\begin{itemize}
+    \item Lập kế hoạch tồn kho, tránh thiếu hoặc thừa hàng.
+    \item Bố trí nhân sự hợp lý trong các ngày cao điểm.
+    \item Lên chiến lược khuyến mãi và marketing phù hợp.
+\end{itemize}
+
+\textbf{Thách thức chính}:  
+Doanh số bị ảnh hưởng bởi nhiều yếu tố \textit{không tuyến tính} và \textit{khó dự đoán}, 
+ví dụ: thời tiết xấu làm khách hàng ít đi mua sắm, 
+ngày lễ kéo doanh số tăng vọt, hoặc xu hướng đột ngột từ mạng xã hội.  
+
+\subsection{Vấn đề của mô hình “hộp đen”}
+Nhiều thuật toán AI hiện đại cho kết quả chính xác nhưng không thể giải thích được.  
+Nhà quản lý kinh doanh cần biết không chỉ “dự báo là bao nhiêu”, 
+mà còn “tại sao lại như vậy”.  
+
+\begin{quote}
+\textit{Ví dụ:} Nếu hệ thống báo rằng tuần tới doanh số sẽ giảm 15\%, 
+một nhà quản lý sẽ đặt câu hỏi:  
+“Giảm là do thời tiết, do đối thủ cạnh tranh, hay do mùa vụ?”
+\end{quote}
+
+\subsection{Mục tiêu dự án}
+Dự án này được thiết kế với hai nhóm mục tiêu chính: 
+\textbf{mục tiêu kinh doanh} và \textbf{mục tiêu kỹ thuật}. 
+Điều này đảm bảo rằng nỗ lực kỹ thuật không tách rời giá trị mà doanh nghiệp nhận được. 
+
+\paragraph{Mục tiêu Kinh doanh:}
+\begin{itemize}
+  \item \textbf{Độ chính xác}: đạt được mức dự báo cao, đủ để cải thiện kế hoạch và giảm lãng phí.
+  \item \textbf{Khả năng giải thích}: cung cấp lý do đằng sau mỗi con số, giúp nhà quản lý tự tin hơn khi ra quyết định.
+  \item \textbf{Khả năng mở rộng}: dễ dàng áp dụng cho nhiều chi nhánh hoặc cửa hàng khác nhau.
+  \item \textbf{Tính khả dụng}: giao diện thân thiện, để cả nhân viên không chuyên về kỹ thuật cũng sử dụng được.
+\end{itemize}
+
+\paragraph{Mục tiêu Kỹ thuật:}
+\begin{itemize}
+  \item \textbf{Hiệu suất mô hình}: giảm sai số RMSE, MAE, MAPE, vượt qua baseline Prophet.
+  \item \textbf{Kỹ thuật đặc trưng}: tạo ra bộ đặc trưng phong phú (thời gian, lag, rolling statistics...).
+  \item \textbf{Khả năng giải thích}: cung cấp cả phân tích SHAP toàn cục (global) và cục bộ (local).
+  \item \textbf{Sẵn sàng sản xuất}: mã nguồn module hóa, dễ bảo trì, có tài liệu đầy đủ.
+\end{itemize}
+
+Điểm thú vị là các mục tiêu này không tách biệt, 
+mà bổ sung cho nhau: 
+một mô hình chính xác nhưng khó hiểu thì không có giá trị, 
+một mô hình dễ hiểu nhưng kém chính xác cũng vô dụng. 
+Dự án này chọn con đường dung hòa cả hai.
+
+\textbf{Gợi ý hình minh hoạ:} Bảng tóm tắt hai nhóm mục tiêu: 
+cột trái là kinh doanh (accuracy, interpretability, scalability, usability), 
+cột phải là kỹ thuật (RMSE, feature engineering, SHAP, production readiness).
+
+\section{Các công nghệ cốt lõi sử dụng}
+
+Không phải ngẫu nhiên mà dự án chọn LightGBM, SHAP, Optuna và Streamlit. 
+Mỗi công nghệ đều được lựa chọn để giải quyết một “nút thắt” cụ thể. 
+Cùng điểm qua:
+
+\paragraph{LightGBM – Trái tim của mô hình dự báo}
+LightGBM là một framework \emph{gradient boosting} nổi tiếng, 
+được tối ưu cho tốc độ và hiệu suất, đặc biệt phù hợp với dữ liệu dạng bảng (tabular data).  
+Với hơn 50 đặc trưng được tạo ra, LightGBM xử lý nhanh chóng, 
+khai thác được cả mối quan hệ phi tuyến tính trong dữ liệu.  
+So với Prophet, LightGBM cho khả năng học sâu hơn từ các đặc trưng phức tạp, 
+tạo ra dự báo chính xác hơn.
+
+\paragraph{SHAP – Khi AI biết giải thích}
+SHAP (\emph{SHapley Additive exPlanations}) là công cụ biến mô hình “hộp đen” 
+thành một mô hình \textbf{có thể giải thích được}.  
+Nó dựa trên lý thuyết trò chơi để tính giá trị Shapley cho từng đặc trưng, 
+nói cách khác: “mỗi yếu tố đóng góp bao nhiêu phần vào kết quả cuối cùng?”.  
+Nhờ SHAP, các nhà quản lý không chỉ thấy con số dự báo, 
+mà còn hiểu vì sao mô hình đưa ra kết quả đó.
+
+\paragraph{Optuna – Tối ưu hoá thông minh}
+Huấn luyện LightGBM không chỉ là cho dữ liệu vào rồi bấm nút.  
+Hiệu suất của nó phụ thuộc mạnh mẽ vào các siêu tham số (hyperparameters) như 
+\texttt{num\_leaves}, \texttt{learning\_rate}, \texttt{reg\_alpha}, \texttt{reg\_lambda}...  
+Thay vì thử tay thủ công, nhóm dùng \textbf{Optuna} – một framework tối ưu hoá tự động.  
+Nó giúp thử nghiệm hàng trăm cấu hình khác nhau và chọn ra bộ tham số tốt nhất, 
+tiết kiệm rất nhiều thời gian và công sức.
+
+\paragraph{Streamlit – Cầu nối đến người dùng cuối}
+Một mô hình AI mạnh đến đâu mà không ai dùng thì cũng vô nghĩa.  
+Streamlit giúp biến mô hình thành một \textbf{ứng dụng web tương tác}, 
+nơi người dùng (kể cả không rành kỹ thuật) có thể:
+\begin{itemize}
+  \item Xem dữ liệu lịch sử bán hàng.
+  \item Nhận dự báo doanh số cho tương lai gần.
+  \item Xem giải thích trực quan (biểu đồ SHAP) cho từng dự đoán.
+\end{itemize}
+Điều này biến AI từ một “món đồ trong phòng lab” thành một \textbf{công cụ kinh doanh thực thụ}.
+
+\paragraph{Các thư viện hỗ trợ khác}
+Đằng sau các công nghệ chính, còn có cả một hệ sinh thái thư viện hỗ trợ:
+\begin{itemize}
+  \item \textbf{Pandas, NumPy}: xử lý dữ liệu nhanh và hiệu quả.
+  \item \textbf{Scikit-learn}: cung cấp công cụ chuẩn hóa và hỗ trợ huấn luyện.
+  \item \textbf{Matplotlib, Plotly}: trực quan hóa dữ liệu và kết quả.
+\end{itemize}
+
+\bigskip
+Sự kết hợp này thể hiện một tư duy trưởng thành trong việc xây dựng sản phẩm AI: 
+không chỉ tập trung vào mô hình, mà nhìn vào \textbf{toàn bộ vòng đời giải pháp}, 
+từ dữ liệu đến người dùng cuối.
+
+% --- Các section tiếp theo ở đây ---
+% (Quy trình triển khai, Kết quả, Bài học, Hướng phát triển, Kết luận...)
+\section{Quy trình triển khai}
+\subsection{Tổng quan pipeline}
+\begin{figure}[H] % [H], [h], [t], [b] để điều khiển vị trí
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/pipeline.png}
+    \caption{Các bước triển khai dự án}
+    \label{fig:ten_nhan}
+\end{figure}
+Nếu coi AI như một “đầu bếp dữ liệu”, thì quy trình triển khai mô hình dự báo 
+chính là công thức nấu ăn. 
+Một món ăn ngon không chỉ phụ thuộc vào nguyên liệu, 
+mà còn ở cách chuẩn bị, cách nấu, và cách trình bày.  
+Dự án này cũng vậy: từ dữ liệu thô đến mô hình hoạt động, 
+mọi bước đều được thiết kế cẩn thận.  
+
+\subsection{Bước 1: Tiền xử lý Dữ liệu}
+
+Mọi mô hình tốt đều bắt đầu từ dữ liệu tốt.  
+Nhóm tích hợp hai nguồn dữ liệu chính:
+\begin{itemize}
+  \item \textbf{Dữ liệu bán hàng} (2016–2017): bao gồm doanh số và số lượng giao dịch.
+  \item \textbf{Dữ liệu thời tiết}: các yếu tố như nhiệt độ, độ ẩm, lượng mưa.
+\end{itemize}
+
+Sau khi gom dữ liệu, công việc quan trọng là \textbf{làm sạch}:  
+\begin{itemize}
+  \item \emph{Giá trị thiếu}: điền bằng trung bình, trung vị hoặc nội suy.
+  \item \emph{Ngoại lệ}: phát hiện bằng IQR (interquartile range) hoặc Z-score và xử lý.
+\end{itemize}
+
+Mục tiêu của bước này: biến dữ liệu thô thành một bộ dữ liệu \textbf{sạch, nhất quán, đáng tin cậy}.
+
+\subsection{Bước 2: Phân tích Khám phá Dữ liệu (EDA)}
+
+EDA giống như giai đoạn “làm quen với nguyên liệu”.  
+Nhóm phân tích dữ liệu để tìm ra:
+\begin{itemize}
+  \item \textbf{Tính mùa vụ}: ví dụ, doanh số cao vào một số tháng nhất định.
+  \item \textbf{Xu hướng dài hạn}: liệu doanh số có tăng đều qua các năm?
+  \item \textbf{Tương quan}: giữa thời tiết (nhiệt độ, mưa) và doanh số bán hàng.
+\end{itemize}
+
+Kết quả của EDA giúp xác định các tín hiệu ẩn trong dữ liệu, 
+đồng thời cung cấp trực giác quan trọng để thiết kế đặc trưng và chọn mô hình.
+
+
+\subsection{Bước 3: Kỹ thuật Tạo Đặc trưng (Feature Engineering)}
+
+Nếu dữ liệu là nguyên liệu, thì đặc trưng chính là “gia vị” quyết định độ ngon.  
+Dự án tạo ra hơn \textbf{50 đặc trưng}, bao gồm:
+
+\begin{itemize}
+  \item \textbf{Đặc trưng thời gian}: ngày trong tuần, tháng, quý, ngày lễ, cuối tuần.
+  \item \textbf{Lag features (độ trễ)}: doanh số của 1, 7, 14, 28 ngày trước.
+  \item \textbf{Thống kê cuộn (rolling statistics)}: trung bình động 7 ngày, độ lệch chuẩn 14 ngày.
+\end{itemize}
+
+Nhờ đó, mô hình không chỉ nhìn thấy “ngày hôm nay”, 
+mà còn hiểu được ngữ cảnh lịch sử và quy luật ẩn sau dữ liệu.  
+
+
+\subsection{Bước 4: Phát triển Mô hình}
+
+Nhóm áp dụng chiến lược hai tầng:
+\begin{itemize}
+  \item \textbf{Prophet}: dùng làm baseline. Đây là mô hình phổ biến cho chuỗi thời gian, xử lý tốt mùa vụ, dễ triển khai.
+  \item \textbf{LightGBM}: mô hình nâng cao, tận dụng đặc trưng phức tạp và phi tuyến tính để vượt qua Prophet.
+\end{itemize}
+
+Để đảm bảo kết quả khách quan, dự án dùng \textbf{time series splitting}, 
+tránh việc rò rỉ dữ liệu từ tương lai về quá khứ (data leakage).  
+
+Kết quả: LightGBM vượt trội hơn Prophet, 
+chứng minh giá trị của việc đầu tư vào đặc trưng và mô hình phi tuyến.
+
+\subsection{Bước 5: Tối ưu hoá Siêu tham số (Hyperparameter Tuning)}
+
+Mô hình mạnh chưa đủ, cần được “điều chỉnh” tinh vi.  
+Optuna được sử dụng để tự động hóa quá trình này:  
+\begin{itemize}
+  \item Thử hơn 100 cấu hình tham số khác nhau.
+  \item Tối ưu các tham số quan trọng như \texttt{num\_leaves}, \texttt{learning\_rate}, \texttt{reg\_alpha}, \texttt{reg\_lambda}.
+  \item Áp dụng cross-validation cho chuỗi thời gian để tránh overfitting.
+\end{itemize}
+
+Kết quả là một mô hình \textbf{nhẹ hơn, nhanh hơn, chính xác hơn}, 
+sẵn sàng để bước sang giai đoạn triển khai thực tế.
+
+\section{Phân tích Khả năng Giải thích (XAI)}
+
+Một mô hình AI giỏi có thể nói cho bạn biết \emph{“ngày mai sẽ bán được 1.200 sản phẩm”}.  
+Nhưng một mô hình AI giỏi \textbf{và minh bạch} sẽ còn nói thêm:  
+\emph{“1.200 sản phẩm vì thời tiết đẹp, tuần trước bán chạy, và hôm nay rơi vào dịp lễ”}.  
+
+Đây chính là giá trị cốt lõi của \textbf{XAI – Explainable AI}, 
+giúp biến dự đoán thành một \textbf{câu chuyện dễ hiểu và hành động được}.  
+
+Trong dự án này, nhóm đã dùng \textbf{SHAP} để phân tích mô hình LightGBM, 
+với hai góc nhìn: toàn cục và cục bộ.  
+
+\subsection{Giải thích Toàn cục (Global Explanations)}
+
+SHAP toàn cục cho một bức tranh tổng quan:  
+những yếu tố nào ảnh hưởng mạnh nhất đến doanh số?  
+
+Ví dụ:
+\begin{itemize}
+  \item Ngày lễ và cuối tuần thường đẩy doanh số tăng cao.
+  \item Thời tiết xấu (mưa nhiều) làm doanh số giảm đáng kể.
+  \item Doanh số tuần trước là tín hiệu mạnh để dự báo tuần tới.
+\end{itemize}
+
+Với thông tin này, nhà quản lý có thể xây dựng chiến lược dài hạn:  
+nếu dữ liệu cho thấy thời tiết có ảnh hưởng mạnh, 
+thì các cửa hàng nên tăng cường khuyến mãi online vào mùa mưa, 
+thay vì cố gắng kéo khách đến cửa hàng vật lý.
+
+
+\subsection{Giải thích Cục bộ (Local Explanations)}
+
+Nếu toàn cục là cái nhìn từ trên cao, 
+thì cục bộ chính là soi kính lúp vào từng dự đoán riêng lẻ.  
+
+Ví dụ: mô hình dự báo rằng \emph{“Ngày mai, cửa hàng A sẽ bán được ít hơn bình thường”}.  
+Nhưng tại sao?  
+Nhờ SHAP, nhà quản lý thấy rõ:
+\begin{itemize}
+  \item “Doanh số tuần trước giảm” đóng góp -150 sản phẩm.
+  \item “Thời tiết xấu” đóng góp -80 sản phẩm.
+  \item “Hôm nay là thứ 7” đóng góp +30 sản phẩm.
+\end{itemize}
+
+Tổng hợp lại, kết quả dự báo thấp hơn bình thường là hợp lý.  
+Và quan trọng hơn: người quản lý có thể \textbf{hành động}, 
+ví dụ tung thêm khuyến mãi cuối tuần để bù lại tác động tiêu cực từ thời tiết.  
+
+
+\subsection{Từ con số sang hành động}
+
+Khả năng giải thích biến mô hình dự báo từ một “máy tính toán” 
+thành một \textbf{công cụ ra quyết định}.  
+Người dùng không chỉ biết \emph{“chuyện gì sẽ xảy ra”}, 
+mà còn hiểu \emph{“tại sao”} và \emph{“cần làm gì”}.  
+
+Chẳng hạn:
+\begin{itemize}
+  \item Nếu doanh số dự báo giảm do \textbf{thời tiết}, giải pháp có thể là tăng quảng bá online.
+  \item Nếu do \textbf{thiếu ngày lễ}, có thể bù bằng các chương trình khuyến mãi nhân tạo “mini-event”.
+  \item Nếu do \textbf{xu hướng giảm dài hạn}, cần xem xét lại chiến lược sản phẩm.
+\end{itemize}
+
+Nói cách khác, XAI không chỉ làm cho AI đáng tin cậy hơn, 
+mà còn khiến nó trở thành một \textbf{người đồng hành chiến lược} trong doanh nghiệp.
+
+
+\section{Kết quả và Thảo luận}
+
+\subsection{Hiệu suất Mô hình}
+
+Khi so sánh với Prophet – mô hình baseline phổ biến cho chuỗi thời gian – 
+LightGBM cho thấy sự vượt trội rõ rệt.  
+Trên mọi chỉ số đánh giá (RMSE, MAE, MAPE), 
+LightGBM đều cho sai số thấp hơn.  
+
+Điều này chứng minh rằng việc đầu tư vào kỹ thuật tạo đặc trưng, 
+cùng với khả năng xử lý phi tuyến của LightGBM, 
+mang lại giá trị thiết thực vượt xa các mô hình truyền thống.  
+
+\textbf{Gợi ý hình minh hoạ:} Biểu đồ cột so sánh RMSE, MAE, MAPE giữa Prophet và LightGBM.
+
+\subsection{Phân tích SHAP}
+
+Bên cạnh độ chính xác, SHAP cho ta cái nhìn sâu sắc hơn về cách mô hình ra quyết định:
+
+\begin{itemize}
+  \item \textbf{Mùa vụ} chiếm hơn 40\% ảnh hưởng đến dự báo – minh chứng rằng các dịp lễ, cuối tuần đóng vai trò quyết định.  
+  \item \textbf{Lag features} (dữ liệu quá khứ) giúp mô hình nắm bắt được chu kỳ tiêu dùng, đặc biệt là xu hướng “tuần trước ảnh hưởng tuần sau”.  
+  \item \textbf{Thời tiết} không phải yếu tố chính, nhưng vẫn góp phần đáng kể trong nhiều trường hợp (ví dụ, mưa làm giảm doanh số trực tiếp).  
+\end{itemize}
+
+Những phát hiện này vừa xác nhận trực giác kinh doanh (ngày lễ quan trọng), 
+vừa hé lộ thêm chi tiết ẩn (chu kỳ tiêu dùng từ lag features).  
+\begin{figure}[H] % [H], [h], [t], [b] để điều khiển vị trí
+    \centering
+    \includegraphics[width=0.8\textwidth]{ten_file_anh.png}
+    \caption{Chú thích ảnh}
+    \label{fig:ten_nhan}
+\end{figure}
+
+\subsection{Ứng dụng Thực tế}
+
+Từ góc nhìn kinh doanh, mô hình không chỉ đưa ra dự báo, 
+mà còn biến thành công cụ hỗ trợ ra quyết định.  
+
+Người quản lý có thể:
+\begin{itemize}
+  \item \textbf{Xem dự báo kèm giải thích minh bạch}: không còn là “con số từ hộp đen”.  
+  \item \textbf{Lập kế hoạch tồn kho chính xác hơn}: giảm lãng phí và thiếu hụt.  
+  \item \textbf{Ra quyết định dựa trên dữ liệu thay vì cảm tính}: tăng độ tin cậy và tính bền vững trong quản lý.  
+\end{itemize}
+
+Nói cách khác, dự án đã vượt qua ranh giới của một mô hình dự báo thông thường, 
+trở thành một công cụ \textbf{ra quyết định chiến lược}.  
+
+
+\section{Hạn chế và Bài học Rút ra}
+
+Dù dự án đạt được nhiều thành tựu, vẫn còn tồn tại những hạn chế và bài học quý giá.  
+Nhìn thẳng vào những điểm này giúp doanh nghiệp có cái nhìn thực tế, 
+và là cơ sở để cải tiến trong tương lai.  
+
+\subsection{Hạn chế}
+
+\begin{itemize}
+  \item \textbf{Nguồn dữ liệu còn hạn chế}: mới chỉ sử dụng dữ liệu bán hàng và thời tiết.  
+  Các yếu tố khác như dữ liệu đối thủ, chỉ số kinh tế vĩ mô, hay dữ liệu từ mạng xã hội 
+  chưa được tích hợp.  
+  \item \textbf{Mô hình dừng ở LightGBM}: mặc dù mạnh mẽ, nhưng dự án chưa thử nghiệm các kiến trúc 
+  deep learning (LSTM, Transformer) vốn có lợi thế với chuỗi thời gian dài và phức tạp.  
+\end{itemize}
+
+\textbf{Gợi ý hình minh hoạ:} Infographic “Hiện tại vs Tiềm năng”: dữ liệu hiện dùng (bán hàng, thời tiết) và dữ liệu tiềm năng (kinh tế, đối thủ, social media).
+
+\subsection{Bài học Rút ra}
+
+\begin{itemize}
+  \item \textbf{Chất lượng dữ liệu là nền tảng}: không có dữ liệu sạch và giàu đặc trưng, mô hình sẽ không phát huy được sức mạnh.  
+  \item \textbf{Khả năng giải thích quan trọng không kém độ chính xác}: chính XAI giúp nhà quản lý tin tưởng và sẵn sàng hành động dựa trên AI.  
+  \item \textbf{Ứng dụng web thân thiện quyết định mức độ chấp nhận}: một giao diện dễ dùng như Streamlit đã biến mô hình từ “công cụ phòng lab” thành “người bạn đồng hành” của đội kinh doanh.  
+\end{itemize}
+
+\section{Các Hướng Phát triển Tương lai}
+
+Một PoC thành công chưa đủ để trở thành một sản phẩm doanh nghiệp thực thụ.  
+Điều quan trọng là phải có một \textbf{lộ trình phát triển rõ ràng}, 
+để dự án không chỉ dừng lại ở mức thử nghiệm mà còn tạo ra tác động lâu dài.  
+
+Dưới đây là bốn hướng phát triển được nhóm đề xuất:  
+
+\subsection{Cải thiện Mô hình}
+
+Mô hình LightGBM đã chứng minh hiệu quả, 
+nhưng vẫn còn nhiều tiềm năng để khai thác thêm:
+
+\begin{itemize}
+  \item \textbf{Ensemble methods}: kết hợp nhiều mô hình (stacking, blending) để tăng độ chính xác và ổn định.  
+  \item \textbf{Deep learning}: tích hợp các kiến trúc như LSTM hoặc Transformer – vốn rất mạnh với chuỗi thời gian dài và phức tạp.  
+  \item \textbf{Online learning}: để mô hình có thể cập nhật liên tục từ dữ liệu mới, duy trì độ chính xác theo thời gian.  
+\end{itemize}
+
+\textbf{Gợi ý hình minh hoạ:} Biểu đồ so sánh “single model” vs “ensemble” vs “deep learning”.
+
+\subsection{Mở rộng Kỹ thuật Tạo Đặc trưng}
+
+Đặc trưng chính là “ngôn ngữ” mà mô hình sử dụng để hiểu dữ liệu.  
+Do đó, việc mở rộng kỹ thuật tạo đặc trưng có thể tăng đáng kể sức mạnh dự báo:
+
+\begin{itemize}
+  \item \textbf{Tích hợp dữ liệu ngoài}: chỉ số kinh tế vĩ mô, dữ liệu mạng xã hội (social media sentiment), sự kiện đặc biệt (chiến dịch marketing lớn).  
+  \item \textbf{Đặc trưng nâng cao}: áp dụng các kỹ thuật như Wavelets, Fourier Transform để phân tích chu kỳ ẩn trong dữ liệu.  
+  \item \textbf{Đặc trưng liên cửa hàng (cross-store)}: mô hình hóa mối quan hệ giữa các cửa hàng để học tác động chéo.  
+\end{itemize}
+
+\textbf{Gợi ý hình minh hoạ:} Infographic các loại dữ liệu mở rộng: kinh tế, social media, sự kiện đặc biệt.
+
+\subsection{Nâng cao Khả năng Giải thích}
+
+SHAP là một bước tiến lớn, nhưng vẫn có thể đi xa hơn:
+
+\begin{itemize}
+  \item \textbf{Counterfactual explanations}: trả lời câu hỏi “Điều gì sẽ xảy ra nếu...?”, 
+  ví dụ “Nếu tăng ngân sách marketing 10\%, doanh số có thể thay đổi thế nào?”.  
+  \item \textbf{Causal inference}: phân tích quan hệ nhân quả, không chỉ dừng ở mức tương quan, 
+  để xác định yếu tố nào thực sự gây ra thay đổi doanh số.  
+\end{itemize}
+
+Điều này biến mô hình dự báo thành một công cụ không chỉ giải thích quá khứ, 
+mà còn gợi ý hướng đi cho tương lai.  
+
+
+\subsection{Mở rộng Kinh doanh}
+
+Để thực sự đi vào hoạt động, hệ thống cần tích hợp sâu hơn với quy trình doanh nghiệp:  
+
+\begin{itemize}
+  \item \textbf{API development}: xây dựng kiến trúc hướng dịch vụ (SOA), để các hệ thống khác dễ dàng gọi dự báo.  
+  \item \textbf{Real-time predictions}: tích hợp dữ liệu streaming để dự báo tức thời, phục vụ quyết định nhanh.  
+  \item \textbf{Advanced analytics}: từ dự báo chuyển thành gợi ý hành động, ví dụ đề xuất chiến lược tồn kho tối ưu.  
+\end{itemize}
+
+\textbf{Gợi ý hình minh hoạ:} Roadmap phát triển 4 hướng: Model – Feature – XAI – Business.
+
+\subsection{Tầm nhìn dài hạn}
+
+Nếu các bước trên được thực hiện, dự án sẽ chuyển đổi từ một \textbf{PoC kỹ thuật} 
+thành một \textbf{nền tảng chiến lược} cho doanh nghiệp.  
+Nó không chỉ trả lời câu hỏi \emph{“Doanh số ngày mai sẽ ra sao?”}, 
+mà còn giúp doanh nghiệp hoạch định chiến lược dài hạn, 
+ứng phó kịp thời với biến động thị trường, 
+và tận dụng tối đa sức mạnh của dữ liệu.
+
+
+
+
+\section{Kết luận}
+Dự án chứng minh rằng AI có thể mang lại dự báo doanh số chính xác và minh bạch.  
+Explainable AI (XAI) giúp xây dựng niềm tin, biến kết quả AI thành công cụ hỗ trợ ra quyết định thực sự trong kinh doanh.  
+
+\vspace{0.5cm}
+\noindent\textbf{Mã nguồn dự án:} \url{https://github.com/nguyenhads/sales_forecasting_xai}
+
+\end{document}

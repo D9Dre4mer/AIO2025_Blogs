@@ -1,0 +1,427 @@
+\begin{center}
+    \Large\textbf{Gradient Boosting}
+\end{center}
+
+\begin{center}
+    \Large\textit{Vương Nguyệt Bình}
+\end{center}
+
+\section{Gradient Boosting là gì?}
+\label{sec:gradient-boosting-hand}
+
+Hãy tưởng tượng bạn đang học chơi đàn piano. Ban đầu, bản nhạc bạn gõ nghe khá chệch choạc -- nhiều nốt sai, nhịp chưa chuẩn. Nhưng thay vì bỏ cuộc, bạn nghe lại, phát hiện lỗi và chỉnh dần từng chỗ: nhấn nhẹ hơn ở đây, giữ nhịp đều hơn ở kia. Sau vài lần tập, bản nhạc dần trở nên mượt mà, tròn trịa.  
+
+Gradient Boosting cũng học theo cách tương tự. Nó bắt đầu với một mô hình đơn giản -- gần như ``ngây ngô''. Rồi ở mỗi vòng lặp, nó soi lại lỗi (\textit{residuals}), học cách ``sửa sai'' bằng cách thêm một cây quyết định nhỏ để khắc phục. Lặp đi lặp lại, mô hình ngày càng chính xác, giống như bản nhạc dần vang lên hoàn hảo.  
+
+Về bản chất, Gradient Boosting thuộc họ \textbf{Boosting} -- một kỹ thuật \textit{ensemble learning} nơi các mô hình yếu (weak learners) được xây dựng tuần tự, và mỗi mô hình mới đều có nhiệm vụ sửa sai cho mô hình trước đó.  
+
+Điểm đặc biệt là Gradient Boosting không chỉ đoán mò. Nó biết dùng \textbf{Gradient Descent trong không gian hàm} để tìm hướng đi đúng nhất nhằm giảm sai số. Nói cách khác, mỗi ``cây nông'' được thêm vào không phải ngẫu nhiên, mà chính là bước đi có tính toán, được dẫn dắt bởi đạo hàm của hàm lỗi.  
+
+\begin{quote}
+Nếu AdaBoost giống như việc ``chú ý nhiều hơn vào những bài tập khó'', thì Gradient Boosting lại giống như một học trò kiên nhẫn, cẩn thận phân tích lỗi sai và chỉnh sửa chúng từng chút một cho đến khi đạt kết quả tốt nhất.
+\end{quote}
+
+
+\section{Gradient Boosting -- Học từ phần dư}
+\label{subsec:gradient-boosting-residuals}
+
+Gradient Boosting là một trong những phương pháp \textbf{Boosting} nổi bật nhất trong học máy. 
+Khác với \textbf{Bagging} (như Random Forest) – nơi các mô hình được huấn luyện song song và độc lập – Boosting xây dựng mô hình theo cách tuần tự, 
+trong đó mỗi mô hình mới tập trung vào việc \textbf{sửa lỗi còn lại} của các mô hình trước.  
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\linewidth]{projects/Gradient_Boosting__Hoc_qua_vi_du_tinh_tay/images/bagging_vs_boosting.png}
+\caption{Boosting (sửa lỗi tuần tự) so với Bagging (trung bình song song).}
+\end{figure}
+
+
+Điểm then chốt của Gradient Boosting là \textbf{học từ phần dư (residuals)} và sử dụng 
+\textbf{Gradient Descent trong không gian hàm} để dần tối ưu hoá hàm lỗi. 
+Thay vì cố gắng dự đoán trực tiếp nhãn $y$, mỗi vòng lặp mô hình học cách sửa phần sai số còn lại của dự đoán hiện tại.  
+
+Một cách dễ hình dung: hãy tưởng tượng bạn muốn vẽ lại một đường cong dữ liệu bằng nhiều “nét bút nhỏ”:
+\begin{itemize}
+    \item Nét bút đầu tiên khá thô, còn lệch nhiều so với đường cong gốc.
+    \item Các nét sau không vẽ lại từ đầu, mà chỉ tập trung sửa vào những chỗ bị lệch: thêm vào đoạn còn thiếu, chỉnh nhẹ những chỗ thừa.
+    \item Sau nhiều lần chỉnh sửa, bức tranh dần tiệm cận với đường cong thật.
+\end{itemize}
+
+\noindent Gradient Boosting cũng vận hành như vậy: bắt đầu bằng một mô hình đơn giản, 
+sau đó liên tục bổ sung những cây nhỏ để sửa dần các phần sai sót, 
+và cuối cùng tạo ra một mô hình mạnh mẽ, chính xác hơn nhiều so với từng thành phần riêng lẻ.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\linewidth]{projects/Gradient_Boosting__Hoc_qua_vi_du_tinh_tay/images/gradient_boosting_progress.png}
+\caption{Quá trình Gradient Boosting dần cải thiện dự đoán. 
+Ban đầu (đường đỏ, sau 1 cây) mô hình còn thô, 
+sau nhiều vòng (20–100 cây) mô hình bám sát dữ liệu hơn, 
+minh họa cách “sửa sai dần dần” của thuật toán.}
+\end{figure}
+
+\subsection{Nguyên lý hoạt động}
+\label{subsec:gradient-boosting-principle}
+
+
+Giả sử sau $(m-1)$ vòng boosting, ta có một mô hình dự đoán $F_{m-1}(x)$.  
+
+Sau mỗi vòng lặp, điều quan trọng là xác định mô hình hiện tại còn sai ở đâu.  
+Ta đo sai số còn lại thông qua \textit{pseudo-residuals}, tức là gradient âm của hàm lỗi:
+\[
+r_{im} = - \frac{\partial L(y_i, F_{m-1}(x_i))}{\partial F_{m-1}(x_i)}.
+\]
+
+Một số ví dụ cụ thể:
+\begin{itemize}
+    \item \textbf{Hồi quy (MSE):} 
+    \[
+    r_{im} = y_i - F_{m-1}(x_i).
+    \]
+    \item \textbf{Phân loại nhị phân (Logistic Loss):}
+    \[
+    r_{im} = y_i - p_{m-1}(x_i),
+    \]
+    với $p_{m-1}(x_i)$ là xác suất dự đoán từ mô hình trước đó.
+\end{itemize}
+
+Tiếp theo, một cây quyết định nhỏ $h_m(x)$ được huấn luyện để dự đoán các residuals này.  
+Trong thực tế, cây mới chỉ cho ta \emph{hướng sửa lỗi}.  
+Để biết nên “bước bao xa” theo hướng đó, ta tìm một hệ số $\gamma_m$ bằng \textit{line search}, 
+giúp mô hình điều chỉnh vừa đủ — không quá ít, cũng không quá nhiều.  
+
+Mô hình sau đó được cập nhật theo công thức:
+\[
+F_m(x) = F_{m-1}(x) + \nu \cdot \gamma_m \cdot h_m(x),
+\]
+trong đó $\nu$ là \textit{learning rate} (0.01–0.1).  
+
+\begin{quote}
+Gradient Boosting không xây dựng sự hoàn hảo ngay từ đầu, 
+mà tiến gần tới nó bằng cách liên tục sửa chữa những sai sót còn lại.
+\end{quote}
+
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1.6cm,
+    box/.style={rectangle, draw=black, rounded corners, minimum width=3.5cm, minimum height=1cm, fill={rgb:red,0.2;green,0.6;blue,0.2}, text=white},
+    special/.style={rectangle, draw=black, rounded corners, minimum width=3.5cm, minimum height=1cm, fill={rgb:red,0.8;green,0.4;blue,0.1}, text=white},
+    arrow/.style={-Latex, thick, color={rgb:red,0.6;green,0.4;blue,0.1}}
+]
+\node[box] (input) {Dữ liệu $(x,y)$};
+\node[box, right=of input] (model) {Mô hình hiện tại $F_{m-1}(x)$};
+\node[box, below=of model] (resid) {Tính residuals $r_{im}$};
+\node[box, left=of resid] (tree) {Huấn luyện cây $h_m(x)$};
+\node[special, below=of resid] (gamma) {Tìm hệ số $\gamma_m$ (line search)};
+\node[special, below=of gamma] (update) {Cập nhật $F_m(x) = F_{m-1}(x) + \nu \gamma_m h_m(x)$};
+
+\draw[arrow] (input) -- (model);
+\draw[arrow] (model) -- (resid);
+\draw[arrow] (resid) -- (tree);
+\draw[arrow] (resid) -- (gamma);
+\draw[arrow] (tree) -- (gamma);
+\draw[arrow] (gamma) -- (update);
+\end{tikzpicture}
+\caption{Pipeline một vòng lặp Gradient Boosting.}
+\end{figure}
+
+\subsection{Pseudocode}
+
+Các bước trên có thể tóm tắt lại bằng giả mã như sau:
+
+\begin{algorithm}[H]
+\caption{Gradient Boosting}
+\begin{algorithmic}[1]
+\Require Dữ liệu $\{(x_i, y_i)\}$, loss $L$, số vòng $M$, learning rate $\nu$
+\State Khởi tạo $F_0(x) = \arg\min_c \sum_i L(y_i, c)$
+\For{$m = 1$ đến $M$}
+    \State Tính residuals $r_i^{(m)} = - \frac{\partial L(y_i, F_{m-1}(x_i))}{\partial F_{m-1}(x_i)}$
+    \State Huấn luyện cây $h_m(x)$ để dự đoán $r_i^{(m)}$
+    \State Tìm $\gamma_m = \arg\min_\gamma \sum_i L\big(y_i, F_{m-1}(x_i) + \gamma h_m(x_i)\big)$
+    \State Cập nhật $F_m(x) = F_{m-1}(x) + \nu \cdot \gamma_m \cdot h_m(x)$
+\EndFor
+\State \Return $F_M(x)$
+\end{algorithmic}
+\end{algorithm}
+
+
+
+\subsection{Các khái niệm cơ bản}
+\label{subsec:gradient-boosting-concepts}
+
+\subsubsection{Học viên yếu (Weak Learner)}
+
+Trong học máy, một \textbf{học viên yếu} là mô hình rất đơn giản, chỉ dự đoán tốt hơn một chút so với việc chọn ngẫu nhiên. Ý tưởng cốt lõi của Boosting là: \emph{nhiều học viên yếu, khi kết hợp khéo léo, có thể tạo thành một học viên mạnh}.  
+
+Trong Gradient Boosting, học viên yếu phổ biến nhất là \textbf{cây quyết định nông} (shallow decision trees), thường có độ sâu chỉ từ 1--5 mức. Một trường hợp đặc biệt là \textbf{decision stump} — cây chỉ có một nút chia, tương đương với một “câu hỏi có/không” trên một đặc trưng.  
+
+Đặc điểm của những cây này:
+\begin{itemize}
+    \item \textbf{Độ lệch cao (high bias)}: chúng không đủ phức tạp để khớp toàn bộ dữ liệu.
+    \item \textbf{Phương sai thấp (low variance)}: do cấu trúc đơn giản, chúng ít nhạy cảm với nhiễu.
+\end{itemize}
+
+Khi được kết hợp trong Gradient Boosting:
+\begin{itemize}
+    \item Mỗi cây nhỏ giống như một “nét bút” tinh chỉnh mô hình hiện tại, sửa một phần lỗi còn sót lại.
+    \item Qua nhiều vòng lặp, dãy cây này dần dần giảm sai số, từ một mô hình thô sơ thành một mô hình mạnh mẽ.
+\end{itemize}
+
+\begin{quote}
+Nếu coi quá trình học là việc vẽ một bức tranh: mỗi cây quyết định nông chỉ vẽ được vài nét đơn giản, nhưng khi chồng ghép hàng trăm nét lại với nhau, ta có thể tái tạo được toàn bộ bức tranh phức tạp.
+\end{quote}
+ 
+
+\subsubsection{Hàm lỗi (Loss Function)}
+
+Cốt lõi của Gradient Boosting là \textbf{học từ sai lầm}. Nhưng để biết “sai” ở đâu và “sai” bao nhiêu, ta cần một thước đo — đó chính là \textbf{hàm lỗi (loss function)}.  
+
+Hàm lỗi đóng vai trò như chiếc \textit{la bàn}: nó chỉ ra hướng mà mô hình cần điều chỉnh. Mỗi vòng lặp, Gradient Boosting tính đạo hàm của hàm lỗi để biết cần thêm một “bước sửa” như thế nào. Nếu không có hàm lỗi, mô hình sẽ không biết mình cần cải thiện ở đâu.  
+
+Một số ví dụ phổ biến:
+
+\begin{itemize}
+    \item \textbf{Hồi quy (Regression):} thường dùng \textbf{Mean Squared Error (MSE)} vì nó phạt nặng những sai số lớn, khuyến khích mô hình dự đoán sát giá trị thật:
+    \[
+    MSE = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2,
+    \]
+    với $y_i$ là giá trị thực tế, $\hat{y}_i$ là giá trị dự đoán.  
+
+    \emph{Ý tưởng:} nếu dự đoán sai nhiều, ta muốn “kéo mạnh” mô hình về gần giá trị thật hơn.  
+
+    \item \textbf{Phân loại nhị phân (Classification):} thường dùng \textbf{Cross-Entropy (CE) / Logistic Loss}, vì nó so sánh phân phối xác suất dự đoán với nhãn thật, đảm bảo mô hình không chỉ dự đoán đúng/ sai, mà còn tự tin hợp lý:
+    \[
+    CE = - \frac{1}{n} \sum_{i=1}^{n} \Big[ y_i \log \hat{y}_i + (1-y_i) \log(1-\hat{y}_i) \Big],
+    \]
+    trong đó $y_i \in \{0,1\}$ là nhãn thật, $\hat{y}_i \in [0,1]$ là xác suất dự đoán.  
+
+    \emph{Ý tưởng:} nếu mô hình dự đoán xác suất thấp cho nhãn đúng, hàm lỗi sẽ phạt rất nặng, buộc mô hình phải học “tự tin hơn ở chỗ đúng”.
+\end{itemize}
+
+\noindent Nhờ tính linh hoạt trong việc chọn hàm lỗi, Gradient Boosting có thể áp dụng cho nhiều bài toán khác nhau: từ hồi quy, phân loại, cho đến ranking hay survival analysis.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\linewidth]{projects/Gradient_Boosting__Hoc_qua_vi_du_tinh_tay/images/loss_functions.png}
+\caption{Trực quan hoá hai hàm lỗi phổ biến: 
+\textbf{MSE} (trái) có dạng parabol, sai số càng lớn thì bị phạt mạnh; 
+\textbf{Cross-Entropy} (phải) phạt rất nặng khi mô hình dự đoán xác suất thấp cho nhãn đúng.}
+\end{figure}
+
+
+
+
+\subsubsection{Pseudo-residuals}
+Trung tâm của Gradient Boosting nằm ở khái niệm \textit{pseudo-residuals} -- 
+gradient âm của hàm lỗi tại dự đoán hiện tại:
+\[
+r_{im} = - \frac{\partial L(y_i, F(x_i))}{\partial F(x_i)}.
+\]
+Ví dụ:
+\begin{itemize}
+    \item Với MSE: $r_{im} = y_i - F(x_i)$, đây chính là residuals truyền thống.
+    \item Với Logistic Loss: $r_{im} = y_i - p_{m-1}(x_i)$, trong đó $p_{m-1}(x_i)$ là xác suất dự đoán từ mô hình trước đó.
+\end{itemize}
+
+\subsubsection{Cập nhật mô hình (Model Update)}
+Sau khi có residuals, một cây $h_m(x)$ được huấn luyện để dự đoán chúng. 
+Mô hình sau đó được cập nhật:
+\[
+F_m(x) = F_{m-1}(x) + \nu \cdot h_m(x),
+\]
+trong đó:
+\begin{itemize}
+    \item $F_{m-1}(x)$: mô hình trước đó.
+    \item $\nu$: learning rate (0.01–0.1) để kiểm soát bước tiến, giảm nguy cơ overfitting.
+    \item $h_m(x)$: cây mới học residuals.
+\end{itemize}
+\subsubsection{Tiêu chí dừng (Stopping criteria)}
+\begin{itemize}
+    \item \textbf{Giới hạn số vòng lặp} \(M\): đặt trước số lần mô hình được phép học thêm (ví dụ 100 hoặc 500 vòng).
+    \item \textbf{Dừng sớm (early stopping)}: nếu trong \(k\) vòng liên tiếp, điểm số trên tập validation không được cải thiện, thì dừng lại để tránh lãng phí thời gian và bị quá khớp.
+    \item \textbf{Ngưỡng cải thiện rất nhỏ}: nếu tổng hàm mất mát (loss) giữa hai vòng liên tiếp thay đổi ít hơn một ngưỡng đặt trước, thì coi như mô hình đã hội tụ và dừng lại.
+\end{itemize}
+
+\subsubsection{Gradient Descent trong không gian hàm}
+Điểm khác biệt cốt lõi là Gradient Boosting áp dụng Gradient Descent không phải trên tham số riêng lẻ, 
+mà trong \textbf{không gian hàm}. 
+Mỗi cây mới được thêm vào tương ứng với một bước đi theo hướng giảm dốc nhất của hàm lỗi. 
+Qua nhiều vòng, mô hình dần tiến tới nghiệm tối ưu toàn cục hoặc cục bộ tốt.
+
+\section{So sánh AdaBoost và Gradient Boosting}
+\label{subsec:gradient-boosting-comparison}
+
+\begin{itemize}
+    \item \textbf{AdaBoost:} Huấn luyện nhiều học viên yếu, sau đó tăng trọng số cho các mẫu bị phân loại sai, buộc mô hình sau tập trung vào chúng.
+    \item \textbf{Gradient Boosting:} Không thay đổi trọng số dữ liệu, mà trực tiếp tối thiểu hoá hàm lỗi bằng cách học residuals.  
+\end{itemize}
+
+\section{Kỹ thuật điều chuẩn và các cải tiến}
+
+Gradient Boosting rất mạnh nhưng cũng dễ bị \textit{overfitting} nếu không được kiểm soát. Vì vậy, nhiều kỹ thuật điều chuẩn đã được phát triển:
+
+\begin{itemize}
+    \item \textbf{Learning rate (shrinkage):} giảm mức đóng góp của mỗi cây. Ví dụ, thay vì cộng thẳng \(h_m(x)\), ta chỉ cộng một phần nhỏ \(\nu h_m(x)\). Learning rate nhỏ giúp mô hình học chậm hơn nhưng tổng quát tốt hơn.
+    
+    \item \textbf{Subsampling (stochastic gradient boosting):} huấn luyện mỗi cây trên một tập con ngẫu nhiên (ví dụ 70--80\% dữ liệu). Kỹ thuật này vừa giảm phương sai, vừa tăng tốc, tương tự như “bagging nhẹ”.
+    
+    \item \textbf{Tree constraints:} áp các giới hạn để cây không quá phức tạp:
+    \begin{itemize}
+        \item Độ sâu tối đa (\textit{max depth})
+        \item Số lá tối đa (\textit{max leaves})
+        \item Số mẫu tối thiểu trong mỗi lá (\textit{min samples per leaf})
+    \end{itemize}
+    Các giới hạn này giữ cây ở mức “yếu” (weak learner) đúng nghĩa, tránh việc cây học quá chi tiết.
+    
+    \item \textbf{Early stopping:} theo dõi loss trên tập validation, nếu sau \(k\) vòng liên tiếp không cải thiện thì dừng sớm. Điều này giúp tiết kiệm thời gian và tránh mô hình “học thuộc” dữ liệu huấn luyện.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\linewidth]{projects/Gradient_Boosting__Hoc_qua_vi_du_tinh_tay/images/early_stopping_curve.png}
+\caption{Learning curve minh họa Early Stopping: 
+Validation loss ngừng cải thiện sau khoảng 100 vòng, trong khi training loss tiếp tục giảm.}
+\end{figure}
+
+\subsection*{Các cải tiến hiện đại}
+Dựa trên ý tưởng Gradient Boosting, nhiều biến thể đã được phát triển để tăng tốc và tăng độ chính xác:
+
+\begin{itemize}
+    \item \textbf{XGBoost}: bổ sung regularization L1/L2 trên trọng số lá, hỗ trợ tính toán song song, tối ưu bộ nhớ.
+    \item \textbf{LightGBM}: dùng kỹ thuật \textit{leaf-wise growth} (phát triển cây theo lá thay vì theo mức), kết hợp với histogram để xử lý nhanh dữ liệu lớn.
+    \item \textbf{CatBoost}: tối ưu cho dữ liệu phân loại (categorical features), giảm hiện tượng overfitting nhờ kỹ thuật \textit{ordered boosting}.
+\end{itemize}
+
+\noindent Các cải tiến này giúp Gradient Boosting không chỉ chính xác mà còn khả thi với tập dữ liệu lớn, phức tạp trong thực tế.
+
+\section{So sánh với các thuật toán khác}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{4cm} p{3cm} p{3.5cm} p{3cm}}
+\toprule
+\textbf{Tiêu chí} 
+& \textbf{Random Forest} 
+& \textbf{Gradient Boosting} 
+& \textbf{AdaBoost} \\
+\midrule
+\textbf{Phong cách huấn luyện} 
+& Song song 
+& Tuần tự 
+& Tuần tự \\
+\textbf{Mục tiêu chính} 
+& Giảm variance 
+& Giảm bias 
+& Tập trung mẫu khó \\
+\textbf{Tinh chỉnh tham số} 
+& Ít 
+& Nhiều 
+& Trung bình \\
+\textbf{Nguy cơ overfitting} 
+& Thấp 
+& Cao (nếu không regularize) 
+& Trung bình \\
+\textbf{Tốc độ huấn luyện} 
+& Nhanh 
+& Chậm hơn 
+& Trung bình \\
+\textbf{Ứng dụng điển hình} 
+& Baseline mạnh, dữ liệu nhiễu 
+& Dữ liệu bảng sạch, cần chính xác cao 
+& Dữ liệu nhỏ, dễ huấn luyện \\
+\bottomrule
+\end{tabular}
+\caption{So sánh giữa Random Forest, Gradient Boosting và AdaBoost.}
+\end{table}
+
+
+\section{Từ thuật toán nền tảng đến các thư viện hiện đại}
+
+Sự ra đời của các thư viện mới đã mở rộng sức mạnh của Gradient Boosting:
+\begin{itemize}
+    \item \textbf{XGBoost:} regularization L1/L2, tính toán song song, tối ưu bộ nhớ.  
+    \item \textbf{LightGBM:} chiến lược tăng trưởng theo lá, GOSS và EFB giúp huấn luyện nhanh hơn trên dữ liệu lớn.  
+    \item \textbf{CatBoost:} xử lý biến phân loại tự động, Ordered Boosting, cây đối xứng giúp tăng tốc inference.  
+\end{itemize}
+\section{Ví dụ bằng Python}
+
+Để thấy rõ cách Gradient Boosting hoạt động trong thực tế, ta thử áp dụng 
+thuật toán này trên một bài toán hồi quy đơn giản bằng thư viện \texttt{scikit-learn}.
+\begin{minted}{python}
+    
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.datasets import make_regression
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+
+X, y = make_regression(n_samples=300, n_features=1, noise=20, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+
+gbr = GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=3)
+gbr.fit(X_train, y_train)
+
+plt.scatter(X_test, y_test, color="blue", label="Thực tế")
+plt.scatter(X_test, gbr.predict(X_test), color="red", label="Dự đoán")
+plt.legend(); plt.show()
+\end{minted}
+
+\begin{figure}[H] % H yêu cầu ảnh "ngay tại đây"
+    \centering
+    \includegraphics[width=0.7\textwidth]{projects/Gradient_Boosting__Hoc_qua_vi_du_tinh_tay/images/gbr_output.png}
+    \caption{Kết quả dự đoán của Gradient Boosting Regressor}
+    \label{fig:gbr_output}
+\end{figure}
+
+\section{Ứng dụng thực tiễn}
+
+Gradient Boosting đặc biệt hiệu quả trên dữ liệu dạng bảng (tabular data).  
+Một số ứng dụng:
+\begin{itemize}
+    \item \textbf{Tài chính:} chấm điểm tín dụng, phát hiện gian lận.  
+    \item \textbf{Marketing:} dự đoán churn, tối ưu chiến dịch.  
+    \item \textbf{Y tế:} mô hình nguy cơ bệnh, phân tích dữ liệu lâm sàng.  
+    \item \textbf{Công nghiệp:} dự báo nhu cầu, mô phỏng, xếp hạng.  
+\end{itemize}
+
+
+\subsection*{Ví dụ: Dự đoán churn khách hàng}
+
+Sử dụng LightGBM trên dữ liệu churn - dự đoán khách hàng nào có nguy cơ rời bỏ dịch vụ (unsubscribe, ngừng sử dụng). Đây là một ứng dụng kinh điển của học máy trong marketing và chăm sóc khách hàng.  
+\begin{minted}{python}
+    
+import lightgbm as lgb
+train_data = lgb.Dataset(X_train, label=y_train)
+valid_data = lgb.Dataset(X_test, label=y_test)
+
+params = {
+    "objective": "binary",
+    "learning_rate": 0.05,
+    "num_leaves": 31,
+    "metric": "auc"
+}
+model = lgb.train(params, train_data, valid_sets=[valid_data],
+                  num_boost_round=500, early_stopping_rounds=50)
+
+print("Best AUC:", model.best_score["valid_0"]["auc"])
+\end{minted}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.45\textwidth]{projects/Gradient_Boosting__Hoc_qua_vi_du_tinh_tay/images/roc_curve.png}
+    \hfill
+    \includegraphics[width=0.45\textwidth]{projects/Gradient_Boosting__Hoc_qua_vi_du_tinh_tay/images/feature_importance.png}
+    \caption{(Trái) Đường cong ROC minh họa khả năng phân biệt của mô hình LightGBM 
+    trong việc dự đoán churn. AUC càng cao, mô hình càng tốt (ở đây $\approx 0.99$). 
+    (Phải) Biểu đồ tầm quan trọng đặc trưng (Feature Importance) cho thấy các yếu tố 
+    có ảnh hưởng mạnh nhất đến dự đoán khách hàng rời bỏ dịch vụ.}
+\end{figure}
+Kết quả cho thấy mô hình đạt AUC rất cao, chứng tỏ khả năng phân biệt tốt giữa nhóm khách hàng có nguy cơ rời bỏ và nhóm ở lại. 
+Biểu đồ Feature Importance giúp đội ngũ marketing hiểu rõ những yếu tố nào (ví dụ như mức độ sử dụng dịch vụ, thời gian gắn bó, 
+chi phí hàng tháng, v.v.) có ảnh hưởng nhiều nhất đến hành vi churn, từ đó đưa ra các chiến lược giữ chân khách hàng hiệu quả.
+
+
+\section{Kết luận}
+
+Gradient Boosting là một thuật toán vừa thanh lịch vừa thực dụng: bằng cách học từ phần dư và cập nhật có kiểm soát, nó tạo ra một mô hình có khả năng dự đoán vượt trội.  
+Hiểu rõ cơ chế và kỹ thuật điều chuẩn giúp tận dụng được sức mạnh này.  
+Trong hầu hết các bài toán học máy trên dữ liệu dạng bảng, Gradient Boosting (và các biến thể hiện đại như XGBoost, LightGBM, CatBoost) thường là lựa chọn hàng đầu.  

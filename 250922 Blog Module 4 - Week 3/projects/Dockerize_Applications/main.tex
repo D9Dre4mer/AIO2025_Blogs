@@ -1,0 +1,210 @@
+
+\begin{center}
+    \Large\textbf{XGBoost: The most underatted algorithm}
+\end{center}
+
+\begin{center}
+    \Large\textit{Võ Hoàng}
+\end{center}
+
+\begin{quote}
+Nếu bạn từng tham gia Kaggle – cộng đồng thi đấu dữ liệu lớn nhất thế giới – chắc hẳn bạn sẽ nhận ra một cái tên quen thuộc xuất hiện trong hầu hết các solution top đầu: XGBoost.
+
+Không phải deep learning, cũng chẳng cần GPU khủng, XGBoost vẫn chinh phục trái tim của nhiều data scientist nhờ sự cân bằng tuyệt vời giữa tốc độ – độ chính xác – khả năng ứng dụng rộng rãi. Từ dự báo giá nhà, phát hiện gian lận thẻ tín dụng, cho đến dự báo nhu cầu năng lượng trong các thành phố lớn… đâu đâu cũng có dấu chân của XGBoost.
+
+Điều thú vị là, đằng sau cái tên nghe khá “ngầu” ấy lại là một ý tưởng không hề xa lạ: Boosting – kỹ thuật kết hợp nhiều mô hình yếu để tạo nên một mô hình mạnh. Vậy điều gì đã biến XGBoost thành “ngôi sao” của giới Machine Learning, vượt xa so với những người tiền nhiệm như Random Forest hay AdaBoost?
+\end{quote}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{projects/XGBoost/image/XGBoost_logo.png}
+    \caption{XGBoost: In General}
+    \label{fig:xgboost-logo}
+\end{figure}
+
+\section{XGBoost là gì?}
+\label{sec:xgboost}
+
+Nói một cách ngắn gọn, XGBoost (Extreme Gradient Boosting) là một thuật toán học máy thuộc họ ensemble learning – tức là kết hợp nhiều mô hình nhỏ để tạo thành một mô hình mạnh mẽ hơn.
+
+Nếu Random Forest giống như việc "hội ý" của nhiều cái cây độc lập để ra quyết định, thì XGBoost lại chọn con đường khác: nó xây dựng từng cây một cách tuần tự, và mỗi cây mới được sinh ra để sửa lỗi của cây trước đó.
+
+\subsection*{3.2. Classification – phân loại nhãn}
+Ngược lại, khi bài toán là “có bệnh hay không?”, “khách hàng churn hay không?”, ta cần classification.
+
+Thay vì trực tiếp dự đoán giá trị, XGBoost sẽ dự đoán log(odds) – một cách biến đổi xác suất sang dạng dễ tính toán hơn.
+
+Sau đó, log(odds) được chuyển ngược lại thành xác suất (ví dụ: 70\% khách hàng sẽ rời bỏ dịch vụ).
+
+Các cây liên tiếp giúp mô hình ngày càng phân biệt rõ ràng đâu là “có” và đâu là “không”.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{projects/XGBoost/image/Classification.png}
+    \caption{XGBoost Classification}
+    \label{fig:xgboost-classification}
+\end{figure}
+
+\subsection*{3.3. Điểm khác biệt tinh tế}
+Regression tập trung giảm khoảng cách dự đoán (residuals).
+
+Classification thì tinh chỉnh log(odds) và tối ưu dựa trên xác suất.
+
+Nói cách khác, XGBoost giống như một người huấn luyện giỏi: khi gặp học trò “sai số ít”, nó nhắc nhẹ; khi gặp học trò “sai số nhiều”, nó dồn sức chỉnh sửa. Và dù ở regression hay classification, nguyên lý “học từ lỗi sai” vẫn là trái tim của thuật toán này.
+
+\section{Behind the Scenes – Bí mật dưới nắp capo của XGBoost}
+\label{subsec:xgboost-behind}
+
+Nếu phần trước giống như việc quan sát một chiếc xe đang chạy trên đường, thì giờ đây chúng ta mở nắp capo và nhìn vào “động cơ” – nơi XGBoost thực sự tạo nên sức mạnh.
+
+\paragraph{4.1. Loss function – trái tim của XGBoost}
+XGBoost học cách dự đoán bằng cách tối thiểu hóa hàm mất mát (loss function).
+
+Với Regression, loss function thường là Mean Squared Error (MSE).
+
+Với Classification, loss function là Log Loss, dựa trên xác suất đúng/sai.
+
+Điểm đặc biệt: XGBoost không chỉ nhìn vào gradient bậc 1 (giống như Gradient Boosting truyền thống) mà còn dùng thêm hessian (đạo hàm bậc 2). Nhờ đó, quá trình tối ưu trở nên chính xác hơn – giống như việc bạn không chỉ biết mình đang leo dốc, mà còn biết độ dốc thay đổi nhanh thế nào.
+
+\paragraph{4.2. Regularization – bí quyết tránh overfitting}
+Nếu chỉ tối ưu loss, mô hình dễ “học vẹt” dữ liệu huấn luyện (overfitting). Để ngăn điều đó, XGBoost thêm vào 2 “chiếc phanh”:
+
+λ (lambda): giảm độ phức tạp bằng cách kéo các giá trị về gần 0.
+
+γ (gamma): yêu cầu một mức “lợi ích tối thiểu” trước khi tạo thêm nhánh mới trên cây.
+
+Kết quả: cây gọn gàng, dễ tổng quát hơn cho dữ liệu mới.
+
+\paragraph{4.3. Cover \& Similarity Score – cách XGBoost đánh giá một nhánh}
+Trong lúc chia nhánh, XGBoost tính Similarity Score – thước đo cho biết việc gom nhóm residuals có “đáng” hay không. Ngoài ra, nó còn dùng Cover để đảm bảo mỗi nhánh có đủ dữ liệu đại diện, thay vì chỉ dựa vào một vài điểm lẻ loi.
+
+\paragraph{4.4. Taylor Expansion – bí kíp toán học}
+Tối ưu loss function trực tiếp là cực khó. Vì vậy, XGBoost dùng Khai triển Taylor bậc 2 để gần đúng. Đây chính là mấu chốt giúp thuật toán vừa nhanh, vừa chính xác.
+
+Nói vui thì, XGBoost giống như một đầu bếp: Loss function là công thức nấu ăn, Gradient \& Hessian là nguyên liệu, còn Regularization là gia vị giúp món ăn không bị “quá mặn” (overfit).
+
+\section{Case Study – Time Series Forecasting với XGBoost}
+\label{subsec:xgboost-case-study}
+
+Để thấy XGBoost “ra trận” như thế nào, hãy thử một bài toán thực tế: dự báo nhu cầu năng lượng của một thành phố.
+
+\subsubsection*{5.1. Bài toán đặt ra}
+Giả sử ta có dữ liệu về mức tiêu thụ điện hằng ngày của các hộ gia đình. Nhiệm vụ là dự đoán nhu cầu năng lượng trong tương lai – một công việc vô cùng quan trọng cho ngành điện lực, vì nó giúp tối ưu hoá việc sản xuất, phân phối và lưu trữ.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{projects/XGBoost/image/Electronic.jpg}
+    \caption{Mức điện tiêu thụ}
+    \label{fig:xgboost-electronic}
+\end{figure}
+
+\subsubsection*{5.2. Cách tiếp cận với XGBoost}
+Tiền xử lý dữ liệu: điền giá trị thiếu, làm sạch dữ liệu tiêu thụ điện.
+
+Huấn luyện mô hình: dùng XGBoost để học từ dữ liệu quá khứ.
+
+Đánh giá mô hình: các chỉ số như MAE (Mean Absolute Error), MSE (Mean Squared Error), và MAPE (Mean Absolute Percentage Error) cho thấy độ chính xác.
+
+\subsubsection*{5.3. Kết quả ban đầu}
+MAE: \textasciitilde0.77
+
+MSE: \textasciitilde1.50
+
+MAPE: \textasciitilde19.7\%
+
+Nói cách khác, mô hình đã dự đoán tương đối tốt, nhưng vẫn còn nhiều dư địa để cải thiện.
+
+\subsubsection*{5.4. Bí quyết cải thiện: thêm dữ liệu thời tiết}
+Khi nhóm nghiên cứu bổ sung dữ liệu thời tiết (từ London Weather Dataset), hiệu quả tăng vọt:
+
+MAE giảm từ 0.77 → 0.42
+
+MSE giảm từ 1.50 → 0.86
+
+MAPE giảm từ 19.7\% → 16.4\%
+
+Kết quả này minh chứng một điều quan trọng: trong học máy, dữ liệu thường quan trọng không kém – thậm chí còn quan trọng hơn – mô hình.
+
+\subsubsection*{5.5. Thông điệp rút ra}
+XGBoost mạnh mẽ, nhưng nếu không có dữ liệu phù hợp, nó cũng khó lòng tạo ra dự đoán chính xác. Khi được “cho ăn” dữ liệu giàu thông tin hơn, XGBoost có thể biến thành một công cụ dự báo cực kỳ đáng tin cậy.
+
+\section{Ưu – Nhược điểm của XGBoost}
+\label{subsec:xgboost-pros-cons}
+
+Sau khi đi qua lý thuyết, cơ chế hoạt động và cả case study thực tế, giờ là lúc chúng ta “ngồi lại” để cân nhắc: XGBoost có thật sự phù hợp với mọi bài toán không?
+
+\subsection*{6.1 Ưu điểm}
+
+\paragraph{Hiệu năng cao}
+Tối ưu tốt, hỗ trợ tính toán song song, nên chạy nhanh hơn hẳn so với nhiều thuật toán boosting truyền thống.
+
+\paragraph{Độ chính xác vượt trội}
+Nhờ tận dụng gradient + hessian và regularization, XGBoost thường đạt độ chính xác cao, đặc biệt trên các bộ dữ liệu structured/tabular.
+
+\paragraph{Linh hoạt}
+Dùng được cho cả regression, classification, ranking, thậm chí time series.
+
+\paragraph{Chống overfitting khá tốt}
+Nhờ có λ (lambda) và γ (gamma) kiểm soát độ phức tạp của cây, giúp mô hình tổng quát hóa dữ liệu mới tốt hơn.
+
+\paragraph{Thân thiện với Kaggle-er và Data Scientist}
+Nhiều thư viện tích hợp sẵn (Python, R, Julia), cộng đồng đông đảo, tài liệu phong phú.
+
+\subsection*{6.2. Nhược điểm}
+
+\paragraph{Dễ bị “over-engineering”}
+Có quá nhiều hyperparameter để tune (learning rate, max\_depth, min\_child\_weight, subsample…), nên dễ khiến người mới rối rắm.
+
+\paragraph{Khó diễn giải}
+Mô hình ensemble nhiều cây → khó giải thích tại sao mô hình đưa ra quyết định (so với logistic regression chẳng hạn).
+
+\paragraph{Không phải lúc nào cũng tối ưu nhất}
+Với dữ liệu unstructured (ảnh, âm thanh, văn bản), deep learning thường vượt trội hơn.
+
+\paragraph{Tốn tài nguyên nếu dataset rất lớn}
+Dù nhanh hơn boosting truyền thống, XGBoost vẫn “ngốn” RAM/GPU đáng kể khi xử lý hàng trăm triệu dòng dữ liệu.
+
+\subsection*{6.3. So sánh nhanh}
+\begin{itemize}
+    \item So với LightGBM: XGBoost thường ổn định hơn, nhưng LightGBM nhanh hơn trên dataset cực lớn.
+    \item So với CatBoost: CatBoost xử lý categorical features “out-of-the-box” tốt hơn, nhưng XGBoost vẫn phổ biến hơn nhờ cộng đồng rộng và tính linh hoạt.
+\end{itemize}
+
+\section{Ứng dụng thực tế \& Kết luận}
+\label{subsec:xgboost-applications}
+
+XGBoost đã chứng minh sức mạnh của mình trong vô số lĩnh vực:
+
+\begin{itemize}
+    \item Tài chính: phát hiện gian lận thẻ tín dụng, dự đoán rủi ro khách hàng.
+    \item Y tế: dự đoán khả năng tái nhập viện, phân loại bệnh dựa trên hồ sơ bệnh án.
+    \item Marketing: phân khúc khách hàng, dự đoán hành vi mua sắm.
+    \item Năng lượng \& môi trường: dự báo nhu cầu điện, lượng khí thải, hay thậm chí xu hướng thời tiết.
+\end{itemize}
+
+\subsection*{7.1. Khi nào nên dùng XGBoost?}
+\begin{itemize}
+    \item Khi dữ liệu của bạn chủ yếu là structured/tabular (số liệu, bảng tính, giao dịch).
+    \item Khi bạn cần một mô hình mạnh mẽ, nhưng vẫn muốn huấn luyện tương đối nhanh và dễ triển khai.
+    \item Khi bài toán đòi hỏi giải thích mức độ vừa phải (dùng thêm SHAP/Feature Importance).
+\end{itemize}
+
+\subsection*{7.2. Khi nào nên cân nhắc giải pháp khác?}
+\begin{itemize}
+    \item Nếu dữ liệu là ảnh, âm thanh, văn bản dài → deep learning thường vượt trội.
+    \item Nếu bạn muốn dễ dàng giải thích quyết định của mô hình → logistic regression hoặc decision tree đơn giản có thể phù hợp hơn.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{projects/XGBoost/image/XGBoost.png}
+    \caption{XGBoost: Kết luận}
+    \label{fig:xgboost-conclusion}
+\end{figure}
+
+\subsection*{7.3. Kết luận}
+XGBoost không phải là “thuốc tiên” cho mọi bài toán, nhưng nó là một trong những công cụ đa năng và hiệu quả nhất trong hộp đồ nghề của một data scientist.
+Nó mạnh mẽ nhờ sự kết hợp giữa boosting + regularization + tối ưu toán học thông minh, và khi được cung cấp dữ liệu chất lượng, XGBoost có thể trở thành “chiếc xe phân khối lớn” đưa bạn băng qua những con đường dữ liệu phức tạp nhất.
+
+Vậy lần tới, khi đứng trước một bài toán dự báo giá trị hay phân loại, hãy tự hỏi: “Liệu XGBoost có phải là chiếc chìa khoá mở ra lời giải nhanh và chuẩn xác cho mình không?”
