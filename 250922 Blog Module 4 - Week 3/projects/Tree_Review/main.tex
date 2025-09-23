@@ -1,710 +1,296 @@
 \begin{center}
-    \Large\textbf{Xây dựng trang web đầu tiên với FastAPI: Hướng dẫn toàn~diện cho người mới bắt đầu}
+    \Large\textbf{Hành Trình Của Các Thuật Toán Cây: Từ Nhánh Cây Đơn Độc Đến Khu Rừng Bất Bại}
 \end{center}
 
 \begin{center}
-    \Large\textit{Trịnh Nguyễn Huy Hoàng}
+    \Large\textit{Vũ Thái Sơn}
 \end{center}
 
-% \begin{center}
-%     \large\textit{Hành trình rủ thêm đồng bọn của Decision Tree để tạo ra "hội đồng" mạnh hơn, hiệu quả hơn trong các bài toán phân loại và hồi quy.}
-% \end{center}
+\begin{center}
+    \large "Từ một cây quyết định đơn lẻ đến sức mạnh của cả khu rừng"
+\end{center}
 
-\begin{abstract}
-Được xây dựng để giải quyết những thách thức của kỷ nguyên số, FastAPI nổi bật với tốc độ vượt trội, hiệu quả tối đa và khả năng tự động hóa đáng kinh ngạc. Bài viết này là một cẩm nang toàn diện, dẫn dắt từ những khái niệm nền tảng nhất cho đến việc xây dựng một ứng dụng web hoàn chỉnh, có tính ứng dụng cao, đặc biệt là trong lĩnh vực trí tuệ AI.
-\end{abstract}
+\section{Lời Dẫn Nhập}
+\label{sec:tree-intro}
 
-%\begin{minted}
-% \tableofcontents
-%\end{minted}
+Trong thế giới Trí tuệ Nhân tạo, khi nhắc đến dữ liệu phi cấu trúc như hình ảnh hay ngôn ngữ, Deep Learning dường như là một vị vua không ngai. Tuy nhiên, khi bước vào địa hạt của dữ liệu dạng bảng (tabular data) – loại dữ liệu phổ biến nhất trong các bài toán kinh doanh, từ dự báo tài chính, phân tích rủi ro đến hành vi khách hàng – một họ thuật toán khác lại vươn lên chiếm lĩnh vị thế thống trị: các mô hình cây (Tree-based Models).
 
-\section{Giới thiệu về FastAPI}
-\label{sec:fastapi}
+Một nghiên cứu quy mô lớn năm 2022 của Grinsztajn và các cộng sự đã chỉ ra rằng, trên hàng chục bộ dữ liệu dạng bảng, các mô hình cây tăng cường như XGBoost thường xuyên cho hiệu suất vượt trội so với cả những kiến trúc Deep Learning phức tạp nhất~\cite{grinsztajn2022why}. Tại sao lại có sự ưu ái này? Điều gì đã tạo nên sức mạnh đáng kinh ngạc của chúng?
 
-\subsection{API là gì?}
+Bài viết này sẽ đưa bạn vào một cuộc hành trình khám phá sự tiến hóa của các thuật toán cây. Chúng ta sẽ bắt đầu từ "tổ tiên" sơ khai nhất là \textbf{Cây Quyết Định (Decision Tree)}, chứng kiến cách nó khắc phục điểm yếu thông qua "trí tuệ đám đông" của \textbf{Random Forest}, học cách "sửa sai" một cách thông minh qua các thế hệ \textbf{Boosting}, và cuối cùng đạt đến đỉnh cao với \textbf{XGBoost} – nhà vô địch của các cuộc thi khoa học dữ liệu.
 
-API (Application Programming Interface) là một giao diện phần mềm cho phép hai ứng dụng khác nhau giao tiếp với nhau. Có thể hình dung API như một người phục vụ tại nhà hàng: khi một người khách muốn gọi món, họ không cần phải vào bếp mà chỉ cần đưa yêu cầu cho người phục vụ. Người phục vụ sẽ nhận yêu cầu, chuyển đến bếp và mang món ăn trở lại cho khách. API cũng tương tự, nó giúp các lập trình viên sử dụng các chức năng phức tạp, chẳng hạn như dữ liệu thời tiết hoặc bản đồ, mà không cần hiểu chi tiết bên trong của hệ thống đó. Điều này cho phép chúng ta xây dựng các ứng dụng mới một cách nhanh chóng bằng cách ghép nối các "khối chức năng" (API) với nhau, giống như việc lắp ráp các viên gạch Lego.
+Xuyên suốt hành trình, chúng ta sẽ sử dụng một ví dụ duy nhất – một tập dữ liệu con về \textbf{Dự đoán Bệnh tim} – để mổ xẻ cách từng thuật toán suy nghĩ và đưa ra quyết định.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{projects/FastAPI/image/FastAPI_1.png}
-    \caption{Sơ đồ kiến trúc API với client và server}
+    \includegraphics[width=\textwidth]{projects/Tree_Review/images/evolution.png}
+    \caption{Sự tiến hóa của các thuật toán cây từ Decision Tree đến XGBoost.}
+    \label{fig:evolution}
 \end{figure}
 
-REST API (Representational State Transfer) là một kiểu thiết kế API sử dụng các phương thức HTTP tiêu chuẩn như GET, POST, PUT, DELETE để thực hiện các thao tác CRUD (Create, Read, Update, Delete) trên dữ liệu. REST API có những đặc điểm quan trọng:
-\begin{itemize}[noitemsep]
-\item \textbf{Stateless:} Mỗi request đều độc lập, không lưu trữ thông tin giữa các request
-\item \textbf{Uniform Interface:} Sử dụng các URL để xác định resources và HTTP methods để thao tác
-\item \textbf{Client-Server Architecture:} Tách biệt rõ ràng giữa client và server
-\end{itemize}
+\section{Ví Dụ Xuyên Suốt: Tập Dữ Liệu Bệnh Tim}
 
-\subsection{ASGI Server và Unicorn}
-
-Trước khi FastAPI xuất hiện, hầu hết các framework web Python đều dựa trên giao thức \emph{WSGI (Web Server Gateway Interface)}, được thiết kế cho mô hình xử lý request đồng bộ. Điều này có nghĩa là khi một request đến, server sẽ xử lý nó từ đầu đến cuối trước khi có thể chấp nhận request tiếp theo. Phương pháp này không hiệu quả khi gặp các tác vụ tốn thời gian như truy vấn cơ sở dữ liệu hoặc gọi đến một API bên ngoài, vì nó sẽ làm "tắc nghẽn" toàn bộ hệ thống.   
-
-Để khắc phục nhược điểm này, tiêu chuẩn \textit{\textbf{ASGI (Asynchronous Server Gateway Interface)}} đã ra đời, mở đường cho lập trình bất đồng bộ. FastAPI là một trong những framework tiên phong tuân thủ tiêu chuẩn này. 
-
-Điều quan trọng cần nắm là FastAPI không phải là một máy chủ web độc lập. Thay vào đó, nó là một "ứng dụng" tuân thủ giao thức ASGI và cần một máy chủ web ASGI để chạy. Uvicorn là một máy chủ web ASGI hiệu suất cao, được tạo ra để chuyên biệt cho các ứng dụng như FastAPI.   
-
-Uvicorn chịu trách nhiệm lắng nghe các request đến từ client và chuyển chúng đến FastAPI để xử lý. Việc tách biệt này cho phép FastAPI tập trung vào việc xử lý logic nghiệp vụ, trong khi Uvicorn đảm nhận vai trò quản lý kết nối và tối ưu hóa hiệu suất.
-
-Sơ đồ kiến trúc của ASGI Server được minh hoạ như hình \ref{fig:fastapi2}. Cần lưu ý rằng, Uvicorn hỗ trợ HTTP/1.1 và WebSockets, cho phép xử lý nhiều request đồng thời một cách hiệu quả. Điều này đặc biệt quan trọng khi xây dựng các API cần xử lý nhiều request cùng lúc.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\linewidth]{projects/FastAPI/image/FastAPI_2.png}
-    \caption{Sơ đồ kiến trúc ASGI server với xử lý bất đồng bộ}
-    \label{fig:fastapi2}
-\end{figure}
-
-\subsection{Hiểu rõ async và await}
-
-Lập trình bất đồng bộ là một khái niệm cốt lõi của FastAPI. Không giống như lập trình đa luồng (multi-threading) hay đa tiến trình (multi-processing), lập trình bất đồng bộ trong Python là một kỹ thuật "đơn luồng, đa tác vụ" (single-threaded, multi-tasking).   
-
-Hãy tưởng tượng bạn đang chơi cờ với 24 người cùng một lúc. Thay vì chơi một ván cờ duy nhất từ đầu đến cuối (mô hình đồng bộ), bạn sẽ di chuyển từ bàn này sang bàn khác, thực hiện một nước cờ và ngay lập tức chuyển sang bàn tiếp theo, cho phép đối thủ của mình suy nghĩ. Tương tự, trong lập trình bất đồng bộ, khi một tác vụ I/O-bound (như truy vấn cơ sở dữ liệu hoặc chờ phản hồi từ một API khác) đang chờ, \verb|await| sẽ tạm dừng việc thực thi của hàm hiện tại và chuyển quyền điều khiển cho event loop (vòng lặp sự kiện) để xử lý các tác vụ khác.  
-
-\begin{itemize}[noitemsep]
-\item \emph{async def} được sử dụng để định nghĩa một \emph{coroutine} function, một loại hàm có thể bị tạm dừng.   
-\item \emph{await} chỉ có thể được sử dụng bên trong một hàm \emph{async def} và là từ khóa để tạm dừng việc thực thi và nhường quyền điều khiển.   
-\end{itemize}
-
-Điều này cực kỳ quan trọng đối với các ứng dụng web vì phần lớn thời gian chờ đợi là do các tác vụ I/O. Bằng cách tận dụng async/await, FastAPI có thể xử lý hàng ngàn kết nối đồng thời trên một luồng duy nhất, tránh được chi phí và sự phức tạp của việc quản lý đa luồng. Chính nhờ cơ chế này, FastAPI được đánh giá là một trong những framework Python nhanh nhất, sánh ngang với Node.js và Go.
-
-\subsection{FastAPI, Flask và Django}
-
-Khi bắt đầu một dự án web Python, ta thường băn khoăn giữa ba lựa chọn phổ biến: Django, Flask và FastAPI.
-
-\begin{itemize}
-\item Django là một framework monolithic (đơn khối) hoặc "all-in-one". Nó đi kèm với mọi thứ cần thiết để xây dựng một ứng dụng lớn, từ ORM (lớp ánh xạ đối tượng-quan hệ) để tương tác với cơ sở dữ liệu, đến giao diện quản trị viên tích hợp và hệ thống template. Django phù hợp với các dự án phức tạp, cần triển khai nhanh các chức năng cơ bản, nhưng có thể trở nên cồng kềnh đối với các ứng dụng nhỏ. 
-
-\item Flask là một framework tối giản và linh hoạt. Nó chỉ cung cấp những chức năng cốt lõi nhất, cho phép lập trình viên tự do lựa chọn và tích hợp các thư viện bên ngoài để thêm tính năng. Sự linh hoạt này là một ưu điểm, nhưng cũng là một nhược điểm đối với người mới, vì họ phải tự tìm hiểu và kết hợp các thành phần, ví dụ như thư viện để xử lý CORS. 
-
-\item FastAPI được thiết kế như một framework hiện đại, tận dụng sức mạnh của các thư viện tốt nhất như Starlette cho routing và Pydantic cho validation. Nó cung cấp các tính năng "có sẵn" (out-of-the-box) như tự động xác thực dữ liệu và tạo tài liệu API tương tác, giúp giảm thiểu lỗi và tăng tốc độ phát triển mà không mang sự phức tạp của Django.
-\end{itemize}
-
-Quan trọng hơn cả, Python hiện là ngôn ngữ chính trong lĩnh vực Khoa học dữ liệu/ Học máy, nên FastAPI – với khả năng kết hợp giữa hiệu năng web và code Python ML – trở thành lựa chọn tuyệt vời để triển khai các mô hình AI thành dịch vụ web. Thay vì phải dùng các giải pháp phức tạp hoặc ngôn ngữ khác, các nhà nghiên cứu AI có thể dùng FastAPI để “đóng gói” mô hình của mình thành API phục vụ cho ứng dụng thực tế một cách nhanh chóng.
-
-\section{Ứng dụng CRUD đơn giản với FastAPI}
-\label{subsec:fastapi-crud}
-
-\subsection{Ứng dụng FastAPI cơ bản}
-
-Để bắt đầu với FastAPI, chúng ta cần cài đặt framework:
-\begin{minted}{bash}
-pip install fastapi uvicorn
-\end{minted}
-
-Sau đó, hãy tạo một tệp tin \emph{main.py} với đoạn code đơn giản sau:
-
-\begin{minted}{python}
-from fastapi import FastAPI
-
-app = FastAPI()
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-\end{minted}
-
-Để chạy ứng dụng, hãy sử dụng lệnh sau:
-\begin{minted}{bash}
-uvicorn main:app --reload
-\end{minted}
-Lệnh \emph{--reload} sẽ tự động khởi động lại server khi bạn thay đổi code. Sau khi chạy, bạn có thể truy cập \emph{http://127.0.0.1:8000/} để thấy kết quả.
-
-\subsection{Tổ chức code với APIRouter}
-
-Khi ứng dụng lớn dần, việc đặt tất cả các endpoint vào một file \emph{main.py} sẽ làm cho code trở nên "cồng kềnh" và khó quản lý. FastAPI cung cấp một giải pháp thanh lịch cho vấn đề này thông qua APIRouter.  
-
-APIRouter cho phép bạn nhóm các endpoint liên quan lại với nhau vào các module riêng biệt. Ví dụ, bạn có thể tạo một file \emph{routers/items.py} để chứa tất cả các endpoint liên quan đến item, và sau đó import nó vào file \emph{main.py}. Đây không chỉ là một cách để tổ chức code, mà còn là một yếu tố kiến trúc quan trọng cho tính linh hoạt và khả năng mở rộng. Bằng cách tách biệt các nhóm chức năng, APIRouter giúp ngăn chặn tình trạng "monolithic" (đơn khối) và cho phép các dự án phát triển theo mô hình microservices một cách tự nhiên.
-
-FastAPI sử dụng decorators để định nghĩa routes. Mỗi route tương ứng với một HTTP method và path:
-
-\begin{minted}{python}
-from fastapi import FastAPI
-
-app = FastAPI()
-
-@app.get("/items")
-async def get_items():
-    return {"items": []}
-
-@app.post("/items")
-async def create_item(item: dict):
-    return {"message": "Item created", "item": item}
-
-@app.put("/items/{item_id}")
-async def update_item(item_id: int, item: dict):
-    return {"message": f"Item {item_id} updated", "item": item}
-
-@app.delete("/items/{item_id}")
-async def delete_item(item_id: int):
-    return {"message": f"Item {item_id} deleted"}
-\end{minted}
-
-Ta có thể tổ chức chương trình trên tốt hơn bằng cách sử dụng APIRouter như sau:
-
-\begin{minted}{python}
-from fastapi import APIRouter
-
-router = APIRouter(prefix="/items", tags=["items"])
-
-@router.get("/")
-async def get_items():
-    return {"items": []}
-
-@router.post("/")
-async def create_item(item: dict):
-    return {"message": "Item created"}
-\end{minted}
-
-\subsection{Tương tác với API và Pydantic}
-
-Trong quá trình phát triển web, các HTTP request thường sử dụng các phương thức chính để giao tiếp:
-\begin{itemize}[noitemsep]
-\item GET: Được sử dụng để lấy dữ liệu.
-\item POST: Dùng để tạo một tài nguyên mới trên server.
-\item PUT: Dùng để cập nhật một tài nguyên đã có.
-\item DELETE: Dùng để xóa một tài nguyên.
-\end{itemize}
-FastAPI sử dụng một thư viện mạnh mẽ tên là \emph{Pydantic} để tự động hóa việc xác thực dữ liệu đầu vào. Bằng cách định nghĩa các model dữ liệu bằng Pydantic BaseModel và sử dụng type hints trong các hàm endpoint, FastAPI sẽ tự động kiểm tra Request Body, Path parameters, và Query parameters. Nếu dữ liệu không hợp lệ (ví dụ: thiếu trường, sai kiểu dữ liệu), FastAPI sẽ tự động trả về một lỗi JSON chi tiết, giúp giảm thiểu đáng kể các lỗi do lập trình viên gây ra.
-
-Dưới đây là một ví dụ code đơn giản cho ứng dụng CRUD với in-memory storage (lưu trữ trong bộ nhớ):   
-
-\begin{minted}{python}
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import Dict
-
-app = FastAPI()
-
-class Item(BaseModel):
-    name: str
-    price: float
-    is_offer: bool = None
-
-items_db: Dict[int, Item] = {}
-next_item_id = 1
-
-@app.post("/items/", status_code=201)
-def create_item(item: Item):
-    global next_item_id
-    item_id = next_item_id
-    items_db[item_id] = item
-    next_item_id += 1
-    return {"message": "Item created successfully", "item_id": item_id, "item": item}
-
-@app.get("/items/", response_model=Dict[int, Item])
-def read_items():
-    return items_db
-
-@app.get("/items/{item_id}", response_model=Item)
-def read_item(item_id: int):
-    if item_id not in items_db:
-        raise HTTPException(status_code=404, detail="Item not found")
-    return items_db[item_id]
-
-@app.put("/items/{item_id}")
-def update_item(item_id: int, item: Item):
-    if item_id not in items_db:
-        raise HTTPException(status_code=404, detail="Item not found")
-    items_db[item_id] = item
-    return {"message": "Item updated successfully", "item_id": item_id, "item": item}
-
-@app.delete("/items/{item_id}")
-def delete_item(item_id: int):
-    if item_id not in items_db:
-        raise HTTPException(status_code=404, detail="Item not found")
-    del items_db[item_id]
-    return {"message": "Item deleted successfully", "item_id": item_id}
-\end{minted}
-
-\subsection{Tài liệu tự động (Documentation)}
-
-Một tính năng được lòng người dùng của FastAPI là tự động sinh giao diện tài liệu API. Khi chạy ứng dụng, FastAPI cung cấp sẵn giao diện tương tác tại đường dẫn \emph{/docs} (Swagger UI) và \emph{/redoc} (ReDoc). Bạn có thể mở trình duyệt tới \emph{http://localhost:8000/docs} để xem danh sách tất cả các endpoint, các tham số yêu cầu và mẫu dữ liệu vào/ra. Giao diện này còn cho phép bạn thử gọi trực tiếp API ngay trên trang (nhập tham số và bấm “Execute”). Việc tự động tạo documentation chi tiết cho API này của FastAPI giúp việc hiểu và sử dụng API trở nên dễ dàng. Điều này đặc biệt hữu ích cho team AI ít kinh nghiệm về web – bạn có thể nhanh chóng kiểm thử API của mình mà không cần viết thêm dòng code tài liệu nào.
-
-\section{Nâng cao trải nghiệm với Response và Templating}
-\label{subsec:fastapi-advanced}
-
-\subsection{Response \& Templating}
-
-Khi xây dựng API, việc quy định rõ phản hồi (response) trả về rất quan trọng để client hiểu và xử lý đúng. FastAPI cho phép chúng ta chỉ định Response Model (mô hình dữ liệu phản hồi) như đã thấy ở phần CRUD – nhờ đó đảm bảo dữ liệu trả về đúng cấu trúc mong muốn và được mô tả trong tài liệu API. Ngoài ra, có thể tùy chỉnh HTTP Status Code cho từng tình huống cụ thể.
-
-Bên cạnh JSON response, FastAPI cũng hỗ trợ trả về HTML thông qua cơ chế templating. Với các ứng dụng web có giao diện, ta có thể sử dụng \emph{Jinja2} template giống Flask. FastAPI tích hợp sẵn \emph{Jinja2Templates} cho phép render file HTML và trả về trong response. Chẳng hạn, ta tạo thư mục \emph{templates/} chứa file \emph{index.html}, sau đó trong code:
-
-\begin{minted}{python}
-from fastapi.templating import Jinja2Templates
-from starlette.requests import Request
-
-templates = Jinja2Templates(directory="templates")
-
-@app.get("/hello")
-async def hello(request: Request, name: str = "AI"):
-    return templates.TemplateResponse("index.html", {"request": request, "name": name})
-\end{minted}
-
-Ở ví dụ trên, endpoint \emph{/hello} sẽ render template \emph{index.html} với biến name truyền vào. Biến request luôn cần có để \emph{TemplateResponse} hoạt động. Như vậy FastAPI có thể vừa phục vụ API JSON vừa phục vụ trang web nếu cần thiết, mặc dù mục tiêu chính của FastAPI vẫn là xây dựng API. (Lưu ý: Để sử dụng tính năng này, cần cài đặt thư viện \emph{jinja2} trong môi trường của bạn).
-
-\subsection{HTTP Status Code}
-
-HTTP Status Code là các mã số được server sử dụng để thông báo kết quả của một request cho client. Việc hiểu và sử dụng đúng các mã này là rất quan trọng để xây dựng một API chuyên nghiệp. Các mã được chia thành 5 nhóm chính:  
-\begin{itemize}[noitemsep]
-\item \textbf{2xx (Success)}: Request đã được xử lý thành công.
-\item \textbf{4xx (Client Error)}: Lỗi đến từ phía client (ví dụ: \emph{request} không hợp lệ).
-\item \textbf{5xx (Server Error)}: Lỗi đến từ phía server.
-\end{itemize}
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\linewidth]{projects/FastAPI/image/FastAPI_3.png}
-    \caption{Biểu đồ HTTP Status Codes phổ biến}
-\end{figure}
-
-Dưới đây là bảng tổng hợp các HTTP Status Code cơ bản mà mọi lập trình viên web nên biết:
+Để các khái niệm toán học không trở nên khô khan, chúng ta sẽ áp dụng chúng vào một bài toán thực tế. Giả sử chúng ta có một tập dữ liệu nhỏ gồm 8 bệnh nhân, với mục tiêu dự đoán liệu họ có mắc bệnh tim hay không (\texttt{HeartDisease = 1}) dựa trên ba đặc trưng:
 
 \begin{table}[H]
-    \centering
-    \begin{tabular}{|c|c|p{6cm}|p{5cm}|}
-    \hline
-    \textbf{Mã} & \textbf{Tên} & \textbf{Ý nghĩa} & \textbf{Ví dụ sử dụng} \\
-    \hline
-    200 & OK & Request đã được xử lý thành công. & GET dữ liệu thành công. \\
-    \hline
-    201 & Created & Một tài nguyên mới đã được tạo thành công. & POST dữ liệu thành công. \\
-    \hline
-    204 & No Content & Request đã xử lý thành công nhưng không có nội dung để trả về. & DELETE dữ liệu thành công. \\
-    \hline
-    400 & Bad Request & Server không thể hiểu request do cú pháp không hợp lệ. & Request body sai định dạng. \\
-    \hline
-    404 & Not Found & Server không tìm thấy tài nguyên được yêu cầu. & URL sai hoặc tài nguyên không tồn tại. \\
-    \hline
-    500 & \multicolumn{1}{|p{2.5cm}|}{Internal Server Error} & Một lỗi không mong muốn xảy ra trên server. & Lỗi logic trong code. \\
-    \hline
-    \end{tabular}
-    \caption{Các HTTP Status Codes cơ bản cần biết}
-    \label{tab:httpstatuscodes}
+\centering
+\caption{Tập dữ liệu ví dụ về bệnh tim.}
+\begin{tabular}{ccccc}
+\toprule
+\textbf{Bệnh nhân} & \textbf{Age} & \textbf{MaxHeartRate} & \textbf{ChestPain} & \textbf{HeartDisease} \\
+\midrule
+1 & 29 & 202 & 0 & 0 \\
+2 & 48 & 150 & 1 & 1 \\
+3 & 52 & 168 & 1 & 1 \\
+4 & 55 & 145 & 0 & 0 \\
+5 & 58 & 120 & 1 & 1 \\
+6 & 61 & 162 & 0 & 0 \\
+7 & 65 & 148 & 1 & 1 \\
+8 & 68 & 130 & 0 & 1 \\
+\bottomrule
+\end{tabular}
+\\ \small{\textit{Lưu ý: ChestPain = 1 có nghĩa là loại đau ngực có nguy cơ cao, 0 là loại không nguy cơ.}}
 \end{table}
 
-\subsection{Cấu trúc ứng dụng FastAPI}
-Khi dự án lớn hơn, việc tuân thủ một cấu trúc thư mục hợp lý là rất cần thiết. Một cấu trúc dự án đơn giản nhưng hiệu quả cho FastAPI có thể được minh họa như sau:
-\begin{tcolorbox}[colback=green!10, colframe=green!50!black, title={\large\bfseries CẤU TRÚC DỰ ÁN FASTAPI}, width=\textwidth]
-    \begin{center}
-        \begin{tabular}{|l|}
-            \hline
-            \rowcolor{green!20}
-            \textbf{Cấu trúc thư mục dự án} \\
-            \hline
-            \hline
-            \texttt{main.py} \\
-            \hline
-            \texttt{routers/} \\
-            \quad \texttt{items.py} \\
-            \hline
-            \texttt{schemas/} \\
-            \quad \texttt{item.py} \\
-            \hline
-        \end{tabular}
-    \end{center}
-\end{tcolorbox}
-\begin{itemize}[noitemsep]
-\item \emph{main.py}: File chính khởi tạo ứng dụng FastAPI và include các router.  
-\item \emph{routers/}: Thư mục này chứa các APIRouter để tổ chức các endpoint theo chức năng. Ví dụ, \emph{routers/items.py} sẽ chứa tất cả các endpoint liên quan đến item.  
-\item \emph{schemas/}: Chứa các Pydantic BaseModel để định nghĩa cấu trúc dữ liệu cho request và response.  
-\item \emph{dependencies/} (Tùy chọn): Chứa các hàm dependency injection để quản lý các tài nguyên như kết nối cơ sở dữ liệu.
-\end{itemize}
+\section{Chương 1: Decision Tree - Nền Móng Của Trực Giác}
+\label{sec:tree-decision-tree}
 
-Để mở rộng ứng dụng, bạn có thể tích hợp cơ sở dữ liệu. Ví dụ, với MongoDB, bạn cần cài đặt \emph{pymongo}, định nghĩa các Pydantic models cho dữ liệu, tạo kết nối database khi ứng dụng khởi động và sử dụng các phương thức của PyMongo (\verb|insert_one|, \verb|find|) trong các endpoint CRUD.
+\subsection{Ý Nghĩa và Phương Pháp}
+Decision Tree là thuật toán mô phỏng lại quá trình ra quyết định của con người một cách tự nhiên nhất. Nó là một cấu trúc dạng cây, trong đó mỗi nút trong đại diện cho một "câu hỏi" về một đặc trưng, mỗi nhánh đại diện cho một "câu trả lời", và mỗi nút lá đại diện cho một quyết định cuối cùng.
 
-\subsection{Độ bảo mật và trung gian (Middleware)}
+Để xây dựng cây, thuật toán phải trả lời câu hỏi cốt lõi: \textit{Tại mỗi bước, đâu là câu hỏi tốt nhất để chia dữ liệu?} "Tốt nhất" ở đây có nghĩa là phép chia đó tạo ra các nhóm con "thuần khiết" nhất về mặt nhãn. Với bài toán phân loại, độ thuần khiết thường được đo bằng:
 
-FastAPI hỗ trợ middleware cho phép can thiệp vào mọi request/response (ví dụ kích hoạt CORS, logging request, xử lý xác thực JWT,…). Ta cũng có thể định nghĩa Dependency để tiêm các logic chung (như kết nối database, xác thực người dùng) vào các route một cách tiện lợi. Những tính năng này giúp cấu trúc code sạch sẽ và giàu tính modular, đặc biệt hữu ích khi dự án web AI của bạn dần lớn lên.
-
-\section{Case Study: AI Text Classification API}
-\label{subsec:fastapi-case-study}
-
-Trong phần này, chúng ta sẽ xây dựng một ứng dụng thực tế sử dụng FastAPI để deploy một mô hình AI phân loại văn bản.
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=1.1\linewidth]{projects/FastAPI/image/FastAPI_4.png}
-    \caption{Sơ đồ triển khai mô hình AI với FastAPI}
-\end{figure}
-
-\subsection{Thiết lập môi trường}
-
-\begin{minted}{bash}
-pip install fastapi uvicorn scikit-learn pandas numpy joblib
-\end{minted}
-
-\subsection{Tạo và train mô hình}
-
-Đầu tiên, chúng ta tạo file \verb|train_model.py| để train một mô hình phân loại văn bản đơn giản:
-
-\begin{minted}{python}
-# train_model.py
-import pandas as pd
-import joblib
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
-from sklearn.model_selection import train_test_split
-
-# Sample data for sentiment analysis
-data = [
-    ("I love this product", "positive"),
-    ("This is amazing", "positive"),
-    ("Great quality", "positive"),
-    ("Best purchase ever", "positive"),
-    ("Excellent service", "positive"),
-    ("I hate this", "negative"),
-    ("Terrible quality", "negative"),
-    ("Waste of money", "negative"),
-    ("Very disappointed", "negative"),
-    ("Poor service", "negative"),
-    ("It's okay", "neutral"),
-    ("Average product", "neutral"),
-    ("Not bad", "neutral"),
-    ("Could be better", "neutral"),
-    ("Decent quality", "neutral")
-]
-
-# Create DataFrame
-df = pd.DataFrame(data, columns=['text', 'sentiment'])
-
-# Split data
-X_train, X_test, y_train, y_test = train_test_split(
-    df['text'], df['sentiment'], test_size=0.2, random_state=42
-)
-
-# Create pipeline
-model = Pipeline([
-    ('tfidf', TfidfVectorizer(max_features=1000)),
-    ('classifier', LogisticRegression())
-])
-
-# Train model
-model.fit(X_train, y_train)
-
-# Save model
-joblib.dump(model, 'sentiment_model.pkl')
-print("Model trained and saved successfully!")
-\end{minted}
-
-\textbf{\textit{Giải thích}}: Code này thực hiện một quy trình phân loại văn bản cơ bản với các bước sau:
-\begin{enumerate}
-\item \textbf{Chuẩn bị Dữ liệu}: Dữ liệu mẫu về các câu văn và nhãn cảm xúc tương ứng (positive, negative, neutral) được tạo và lưu vào một DataFrame của thư viện Pandas.
-\item \textbf{Chia Dữ liệu}: Tập dữ liệu được chia thành hai phần: tập huấn luyện (training set) để mô hình học và tập kiểm tra (test set) để đánh giá mô hình.
-\item \textbf{Xây dựng Pipeline}: Một Pipeline của scikit-learn được tạo ra. Đây là một công cụ mạnh mẽ để kết hợp các bước xử lý dữ liệu và mô hình vào một chuỗi duy nhất, giúp quy trình trở nên gọn gàng và hiệu quả hơn. Pipeline này bao gồm hai bước chính:
-\begin{itemize}[noitemsep]
-\item \textit{TfidfVectorizer}: Chuyển đổi văn bản thành các vector số học.
-\item \textit{LogisticRegression}: Một mô hình phân loại để học và dự đoán cảm xúc.
-\end{itemize}
-\item \textbf{Huấn luyện Mô hình}: Pipeline này được huấn luyện bằng cách sử dụng tập dữ liệu huấn luyện đã chia ở trên.
-\item \textbf{Lưu Mô hình}: Cuối cùng, mô hình đã huấn luyện được lưu vào một file (\emph{.pkl}) bằng thư viện joblib, giúp có thể sử dụng lại mô hình này mà không cần phải huấn luyện lại.
-\end{enumerate}
-
-\subsection{Tạo mô hình Pydantic}
-\begin{minted}{python}
-# models.py
-from pydantic import BaseModel
-from typing import List, Dict
-
-class TextInput(BaseModel):
-    text: str
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "text": "This product is amazing!"
-            }
-        }
-
-class PredictionResponse(BaseModel):
-    text: str
-    prediction: str
-    confidence: float
-    probabilities: Dict[str, float]
-
-class BatchTextInput(BaseModel):
-    texts: List[str]
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "texts": [
-                    "I love this product",
-                    "This is terrible",
-                    "It's okay"
-                ]
-            }
-        }
-
-class BatchPredictionResponse(BaseModel):
-    predictions: List[PredictionResponse]
-\end{minted}
-\textbf{\textit{Giải thích:}} Đoạn code định nghĩa bốn lớp (classes) bằng cách sử dụng \emph{pydantic.BaseModel}. Các lớp này hoạt động như các khuôn mẫu (schemas) để xác thực, chuyển đổi và quản lý dữ liệu.
-\begin{itemize}[noitemsep]
-\item \textit{TextInput}: Định nghĩa cấu trúc cho một yêu cầu API duy nhất, chỉ chứa một trường văn bản (text).
-\item \textit{PredictionResponse}: Định nghĩa cấu trúc cho phản hồi API duy nhất, bao gồm văn bản gốc, kết quả dự đoán, độ tin cậy và xác suất cho mỗi nhãn.
-\item \textit{BatchTextInput}: Định nghĩa cấu trúc cho một yêu cầu API theo lô (batch), chứa một danh sách các chuỗi văn bản (texts).
-\item \textit{BatchPredictionResponse}: Định nghĩa cấu trúc cho phản hồi API theo lô, chứa một danh sách các đối tượng \textit{PredictionResponse}.
-\end{itemize}
-Việc sử dụng các mô hình này giúp các framework API như FastAPI tự động tạo tài liệu API tương tác, xác thực dữ liệu đầu vào và cung cấp các thông báo lỗi rõ ràng nếu dữ liệu không đúng định dạng.
-
-\subsection{Xây dựng ứng dụng bằng FastAPI}
-
-\begin{minted}{python}
-# main.py
-from fastapi import FastAPI, HTTPException, BackgroundTasks
-from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
-import joblib
-import numpy as np
-import logging
-from typing import Dict
-from models import TextInput, PredictionResponse, BatchTextInput, BatchPredictionResponse
-
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
-
-# Global variable to store model
-ml_models = {}
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Load model on startup and clean up on shutdown"""
-    try:
-        # Load the trained model
-        ml_models["sentiment_model"] = joblib.load("sentiment_model.pkl")
-        logger.info("Sentiment analysis model loaded successfully")
-        yield
-    except Exception as e:
-        logger.error(f"Error loading model: {e}")
-        raise
-    finally:
-        # Clean up
-        ml_models.clear()
-        logger.info("Cleaned up resources")
-
-# Create FastAPI app
-app = FastAPI(
-    title="AI Text Classification API",
-    description="API for sentiment analysis using machine learning",
-    version="1.0.0",
-    lifespan=lifespan
-)
-
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-def log_prediction(text: str, prediction: str):
-    """Background task to log predictions"""
-    logger.info(f"Prediction - Text: '{text[:50]}...', Result: {prediction}")
-
-@app.get("/")
-async def root():
-    """Root endpoint with API information"""
-    return {
-        "message": "AI Text Classification API",
-        "version": "1.0.0",
-        "endpoints": {
-            "predict": "/predict",
-            "predict_batch": "/predict/batch",
-            "health": "/health"
-        }
-    }
-
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    model_loaded = "sentiment_model" in ml_models
-    return {
-        "status": "healthy" if model_loaded else "unhealthy",
-        "model_loaded": model_loaded
-    }
-
-@app.post("/predict", response_model=PredictionResponse)
-async def predict_sentiment(
-    input_data: TextInput, 
-    background_tasks: BackgroundTasks
-):
-    """
-    Predict sentiment for a single text input
-    - **text**: The text to analyze for sentiment
-    Returns prediction with confidence scores
-    """
-    try:
-        if "sentiment_model" not in ml_models:
-            raise HTTPException(status_code=503, detail="Model not loaded")
-        
-        model = ml_models["sentiment_model"]
-        
-        # Make prediction
-        prediction = model.predict([input_data.text])[0]
-        probabilities = model.predict_proba([input_data.text])[0]
-        
-        # Get class names and create probability dict
-        classes = model.classes_
-        prob_dict = {cls: float(prob) for cls, prob in zip(classes, probabilities)}
-        
-        # Get confidence (max probability)
-        confidence = float(max(probabilities))
-        
-        # Log prediction in background
-        background_tasks.add_task(log_prediction, input_data.text, prediction)
-        
-        return PredictionResponse(
-            text=input_data.text,
-            prediction=prediction,
-            confidence=confidence,
-            probabilities=prob_dict
-        )
-        
-    except Exception as e:
-        logger.error(f"Prediction error: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-@app.post("/predict/batch", response_model=BatchPredictionResponse)
-async def predict_batch_sentiment(
-    input_data: BatchTextInput,
-    background_tasks: BackgroundTasks
-):
-    """
-    Predict sentiment for multiple texts
-    - **texts**: List of texts to analyze
-    Returns predictions for all input texts
-    """
-    try:
-        if "sentiment_model" not in ml_models:
-            raise HTTPException(status_code=503, detail="Model not loaded")
-        
-        if len(input_data.texts) > 100:
-            raise HTTPException(status_code=400, detail="Maximum 100 texts allowed")
-        
-        model = ml_models["sentiment_model"]
-        predictions = []
-        
-        for text in input_data.texts:
-            # Make prediction
-            prediction = model.predict([text])[0]
-            probabilities = model.predict_proba([text])[0]
-            
-            # Get class names and create probability dict
-            classes = model.classes_
-            prob_dict = {cls: float(prob) for cls, prob in zip(classes, probabilities)}
-            
-            # Get confidence
-            confidence = float(max(probabilities))
-            
-            predictions.append(PredictionResponse(
-                text=text,
-                prediction=prediction,
-                confidence=confidence,
-                probabilities=prob_dict
-            ))
-        
-        # Log batch prediction
-        background_tasks.add_task(
-            log_prediction, 
-            f"Batch of {len(input_data.texts)} texts", 
-            "batch_processed"
-        )
-        
-        return BatchPredictionResponse(predictions=predictions)
-        
-    except Exception as e:
-        logger.error(f"Batch prediction error: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-\end{minted}
-
-\textbf{\textit{Giải thích:}} Đoạn mã này tạo một API web hoàn chỉnh với các tính năng:
-\begin{enumerate}
-\item \textbf{Khởi động \& Tải Mô hình}: Khi API khởi chạy, nó tự động tải mô hình học máy đã lưu (\verb|sentiment_model.pkl|) vào bộ nhớ. Điều này giúp tránh việc phải tải lại mô hình cho mỗi yêu cầu, cải thiện hiệu suất đáng kể.
-\item \textbf{Định tuyến \& Xử lý Yêu cầu}: Nó định nghĩa các endpoints (\emph{/}, \emph{/health}, \emph{/predict}, \emph{/predict/batch}) để xử lý các yêu cầu HTTP.
-\item \textbf{Xác thực Dữ liệu}: Sử dụng Pydantic (\textit{models.py}), nó tự động xác thực dữ liệu đầu vào và đảm bảo phản hồi có đúng định dạng.
-\item \textbf{Phân tích Cảm xúc}: Khi nhận được yêu cầu POST tới \textit{/predict} hoặc \textit{/predict/batch}, nó sử dụng mô hình đã tải để dự đoán cảm xúc của văn bản.
-\item \textbf{Ghi log \& Xử lý Lỗi}: Nó sử dụng logging để ghi lại các sự kiện quan trọng và xử lý lỗi một cách rõ ràng, trả về các mã lỗi HTTP thích hợp nếu có vấn đề.
-\end{enumerate}
-
-\subsection{Chạy ứng dụng}
-
-Trước tiên, ta cần train model bằng cách sử dụng câu lệnh bash \verb|python train_model.py|, sau đó sử dụng \verb|uvicorn main:app --reload| để chạy API server.
-
-\subsection{Testing API}
-
-Sau khi chạy server, bạn có thể test API qua:
 \begin{itemize}
-\item \textbf{Swagger UI:} \emph{http://localhost:8000/docs}
-\item \textbf{cURL commands:}
-\begin{minted}{bash}
-# Test single prediction
-curl -X POST "http://localhost:8000/predict" \
-     -H "Content-Type: application/json" \
-     -d '{"text": "This product is amazing!"}'
-
-# Test batch prediction
-curl -X POST "http://localhost:8000/predict/batch" \
-     -H "Content-Type: application/json" \
-     -d '{"texts": ["I love this", "This is terrible", "It is okay"]}'
-\end{minted}
+    \item \textbf{Gini Impurity:} Đo lường xác suất một mẫu được chọn ngẫu nhiên từ một nhóm sẽ bị phân loại sai nếu chúng ta gán nhãn cho nó theo phân phối của nhóm đó. Gini càng gần 0, nhóm càng thuần khiết. Công thức là: $Gini = 1 - \sum_{j} p_j^2$.
+    \item \textbf{Information Gain (Dựa trên Entropy):} Đo lường mức độ giảm "hỗn loạn" (Entropy) sau khi thực hiện phép chia. Thuật toán sẽ ưu tiên phép chia nào mang lại Information Gain cao nhất. $H(X) = - \sum_{i=1}^{n} p_i \log_2 p_i$.
 \end{itemize}
 
-\section{MLOps cho dự án AI}
-\label{subsec:fastapi-mlops}
+\subsection{Áp dụng vào ví dụ}
+Tại nút gốc, chúng ta có 8 bệnh nhân, trong đó 4 người bị bệnh (1) và 4 người không (0). Độ "ô uế" Gini ban đầu của nút gốc là:
+\[ Gini_{root} = 1 - ( (4/8)^2 + (4/8)^2 ) = 1 - (0.25 + 0.25) = 0.5 \]
+Bây giờ, thuật toán thử chia bằng câu hỏi \textbf{MaxHeartRate $\leq$ 156?}:
+\begin{itemize}
+    \item \textbf{Nhánh True ($\leq$ 156):} Gồm bệnh nhân \{2, 4, 5, 7, 8\}. Nhóm này có 4 người bệnh (1) và 1 người không (0).
+    \[ Gini_{true} = 1 - ( (4/5)^2 + (1/5)^2 ) = 1 - (0.64 + 0.04) = 0.32 \]
+    \item \textbf{Nhánh False ($>$ 156):} Gồm bệnh nhân \{1, 3, 6\}. Nhóm này có 1 người bệnh (1) và 2 người không (0).
+    \[ Gini_{false} \approx 1 - ( (1/3)^2 + (2/3)^2 ) \approx 1 - (0.11 + 0.44) = 0.45 \]
+\end{itemize}
+Gini có trọng số sau khi chia:
+\[ Gini_{split} = (5/8) \times Gini_{true} + (3/8) \times Gini_{false} = 0.625 \times 0.32 + 0.375 \times 0.45 \approx 0.369 \]
+Lợi ích (Information Gain) của phép chia này là: $Gini_{root} - Gini_{split} = 0.5 - 0.369 = 0.131$.
+Thuật toán sẽ tính toán tương tự cho tất cả các phép chia khả dĩ khác (ví dụ: Age $\leq$ 56? hay ChestPain = 1?) và chọn phép chia có lợi ích lớn nhất.
+
+\subsection{Ưu và Nhược Điểm}
+\begin{itemize}
+    \item \textbf{Ưu điểm:}
+    \begin{itemize}
+        \item \textbf{Dễ diễn giải:} Đây là mô hình "hộp trắng" (white-box), cho phép chúng ta hiểu rõ logic ra quyết định.
+        \item \textbf{Không yêu cầu chuẩn hóa dữ liệu:} Vì các quyết định dựa trên ngưỡng, việc co giãn thang đo của đặc trưng không ảnh hưởng đến kết quả.
+    \end{itemize}
+    \item \textbf{Nhược điểm:}
+    \begin{itemize}
+        \item \textbf{Phương sai cao (High Variance):} Cây rất nhạy cảm với những thay đổi nhỏ trong dữ liệu huấn luyện. Một vài điểm dữ liệu khác biệt có thể tạo ra một cấu trúc cây hoàn toàn khác.
+        \item \textbf{Dễ bị quá khớp (Overfitting):} Cây có xu hướng phát triển rất phức tạp để khớp hoàn hảo với dữ liệu huấn luyện, dẫn đến việc hoạt động kém trên dữ liệu mới.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Phân Tích Chuyên Sâu}
+Nhược điểm chí mạng về overfitting là động lực chính cho sự ra đời của các thuật toán tiếp theo. Một cây quyết định đơn lẻ giống như một chuyên gia chỉ giỏi về một lĩnh vực rất hẹp và có nhiều định kiến; nó có thể ghi nhớ tất cả các chi tiết của dữ liệu đã thấy nhưng lại bối rối trước các tình huống mới. Để khắc phục điều này và có một quyết định khách quan hơn, chúng ta cần một "hội đồng chuyên gia". Đây chính là ý tưởng đằng sau Random Forest.
+
+\section{Chương 2: Random Forest - Sức Mạnh Của "Hội Đồng Cây"}
+\label{sec:tree-random-forest}
+
+\subsection{Ý Tưởng Cải Tiến}
+Random Forest giải quyết bài toán overfitting của Decision Tree bằng cách xây dựng một "khu rừng" gồm hàng trăm, hàng nghìn cây quyết định khác nhau và lấy kết quả dự đoán bằng cách bỏ phiếu theo số đông. Chìa khóa ở đây là làm cho các cây trong rừng trở nên \textbf{đa dạng} và \textbf{ít tương quan} với nhau. Sự đa dạng này được tạo ra bởi hai kỹ thuật cốt lõi.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\linewidth]{projects/FastAPI/image/FastAPI_5.png}
-    \caption{Sơ đồ khái quát một vòng đời MLOps}
-    \label{fig:fastapi5}
+    \includegraphics[width=0.9\textwidth]{projects/Tree_Review/images/random_forest_voting.png}
+    \caption{Random Forest kết hợp dự đoán từ nhiều cây.}
+    \label{fig:random_forest_voting}
 \end{figure}
 
-Triển khai mô hình học máy chỉ là một bước trong hành trình đưa AI vào sản xuất. Để một dự án AI vận hành bền vững, ta cần áp dụng các thực hành MLOps (Machine Learning Operations) – kết hợp giữa DevOps và ML để tự động hóa và quản lý vòng đời của mô hình. Một số khía cạnh quan trọng của MLOps gồm: quản lý phiên bản cho dữ liệu và mô hình, đảm bảo tái hiện được kết quả (reproducibility) khi huấn luyện lại, quy trình CI/CD để tự động kiểm thử và triển khai mô hình mới, và giám sát mô hình khi chạy thực tế nhằm phát hiện drift hoặc suy giảm độ chính xác.
-
-Với ứng dụng FastAPI của chúng ta, sau khi code API ổn định, bước tiếp theo nên làm là đóng gói nó bằng Docker. Docker cho phép ta tạo một container chứa toàn bộ môi trường (code FastAPI + mô hình + thư viện), đảm bảo khi triển khai trên server hay cloud, ứng dụng sẽ chạy đồng nhất như khi phát triển. Việc đóng gói này giúp ứng dụng portable và dễ mở rộng, đồng thời là nền tảng để triển khai trên các dịch vụ như Kubernetes về sau. Song song, tích hợp CI/CD (Continuous Integration/ Continuous Deployment) sẽ giúp tự động hóa từ khâu kiểm thử code, build container đến deploy lên môi trường staging/production mỗi khi có phiên bản mới. Chẳng hạn, ta có thể thiết lập pipeline (GitHub Actions, GitLab CI hoặc Jenkins) để mỗi lần có mô hình mới hoặc code API thay đổi, pipeline sẽ tự chạy test (ví dụ dùng pytest với FastAPI TestClient), sau đó build Docker image và đẩy lên registry, cuối cùng cập nhật container đang chạy. Nhờ CI/CD, thời gian đưa mô hình từ phòng thí nghiệm ra dịch vụ thực tế được rút ngắn đáng kể, giảm thiểu lỗi do triển khai thủ công.
-
-Trong môi trường sản xuất, kiến trúc microservices thường được ưa chuộng cho ứng dụng AI. Mỗi mô hình hoặc mỗi thành phần xử lý có thể là một service độc lập (triển khai bằng FastAPI hoặc một công cụ chuyên biệt), giao tiếp với nhau qua API. Cách tiếp cận này giúp hệ thống linh hoạt và dễ mở rộng: nếu mô hình nào cần tài nguyên lớn hoặc lượng request cao, ta có thể nhân bản (scale out) service đó mà không ảnh hưởng phần khác. Tuy nhiên, microservices cũng đòi hỏi một số hạ tầng phức tạp (như service discovery, gateway, monitoring phân tán). Với dự án nhỏ, đôi khi kiến trúc monolith (gộp tất cả vào một ứng dụng) có thể đủ dùng; nhưng khi hệ thống lớn dần, việc tách ra nhiều service là xu hướng tất yếu để đảm bảo khả năng mở rộng và bảo trì.
-
-Cuối cùng, một thành phần không thể thiếu của MLOps là monitoring và logging. 
-\begin{minted}{python}
-import time
-from fastapi import Request
-
-@app.middleware("http")
-async def add_process_time_header(request: Request, call_next):
-    start_time = time.time()
-    response = await call_next(request)
-    process_time = time.time() - start_time
-    response.headers["X-Process-Time"] = str(process_time)
-    
-    # Log request details
-    logger.info(f"Request: {request.method} {request.url} - Time: {process_time:.4f}s")
-    return response
-\end{minted}
-Sau khi triển khai, hãy liên tục theo dõi các chỉ số như latency (độ trễ), throughput (lượng request xử lý), và quan trọng với mô hình ML là độ chính xác trên dữ liệu thực. Nếu phát hiện mô hình bắt đầu đoán sai nhiều (có thể do dữ liệu đầu vào thay đổi so với dữ liệu huấn luyện – hiện tượng data drift), nhóm ML cần sớm thu thập dữ liệu mới và huấn luyện cập nhật. Việc thiết kế sẵn cơ chế log input/output của model (tuân thủ quy định bảo mật dữ liệu) sẽ hỗ trợ phân tích những trường hợp mô hình dự đoán sai, phục vụ cho cải tiến về sau. Một ví dụ thực tế: hệ thống đề xuất phim có thể ghi nhận phản hồi người dùng (họ có xem phim được gợi ý không), từ đó điều chỉnh mô hình cho phù hợp thị hiếu thay đổi.
-
-\section{Kết luận}
-FastAPI là một framework mạnh mẽ và hiện đại để xây dựng API, đặc biệt phù hợp cho việc deploy các mô hình AI và machine learning. Với những tính năng như automatic documentation, built-in validation, async support và performance cao, FastAPI giúp developers có thể nhanh chóng xây dựng và deploy các API production-ready.
-
-Qua case study về AI text classification, chúng ta đã thấy được cách FastAPI có thể được sử dụng để tạo ra một API hoàn chỉnh với tất cả các tính năng cần thiết cho một ứng dụng thực tế: validation, error handling, logging, monitoring và documentation tự động.
-
-Để tiếp tục hành trình phát triển web, tác giả khuyến khích tìm hiểu thêm về các tính năng nâng cao khác của FastAPI:
+\subsection{Phương Pháp}
 \begin{itemize}
-\item \textbf{Dependency Injection}: Một hệ thống mạnh mẽ cho phép quản lý các thành phần phụ thuộc như kết nối cơ sở dữ liệu hoặc xác thực người dùng một cách hiệu quả và gọn gàng. 
-\item \textbf{Background Tasks}: Cho phép xử lý các tác vụ dài mà không làm block HTTP request chính.  
-\item \textbf{Triển khai Production}: Học cách đóng gói ứng dụng bằng Docker và triển khai lên các dịch vụ đám mây như Render hoặc Porter.  
+    \item \textbf{Bagging (Bootstrap Aggregating):} Mỗi cây trong rừng không được huấn luyện trên toàn bộ dữ liệu gốc. Thay vào đó, nó được huấn luyện trên một mẫu con được lấy ngẫu nhiên \textit{có lặp lại} từ dữ liệu gốc (bootstrap sample). Điều này đảm bảo mỗi cây sẽ "nhìn" vào một phiên bản hơi khác của dữ liệu.
+    \item \textbf{Feature Randomness (Ngẫu nhiên hóa đặc trưng):} Tại mỗi nút của mỗi cây, khi tìm kiếm điểm chia tốt nhất, thuật toán không xem xét tất cả các đặc trưng. Thay vào đó, nó chỉ chọn một \textit{tập con ngẫu nhiên} các đặc trưng. Ví dụ, thay vì xét cả \texttt{Age, MaxHeartRate, ChestPain}, nó có thể chỉ chọn ngẫu nhiên \texttt{Age} và \texttt{ChestPain} để tìm điểm chia tốt nhất.
 \end{itemize}
 
-Với những kiến thức nền tảng vững chắc này, độc giả đã sẵn sàng để xây dựng các API mạnh mẽ và sẵn sàng cho môi trường production trong tương lai.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{projects/Tree_Review/images/bagging_feature_randomness.png}
+    \caption{Kỹ thuật Bagging và Feature Randomness trong Random Forest.}
+    \label{fig:bagging_feature_randomness}
+\end{figure}
+
+Sự ngẫu nhiên kép này (cả trên mẫu và trên đặc trưng) tạo ra một tập hợp các cây rất đa dạng và \textbf{ít tương quan (de-correlated)} với nhau. Mỗi cây sẽ có những điểm mạnh và điểm yếu riêng, nhưng khi kết hợp lại, các sai sót của chúng sẽ tự triệt tiêu lẫn nhau.
+
+\subsection{Ưu và Nhược Điểm}
+\begin{itemize}
+    \item \textbf{Điểm cải tiến:}
+    \begin{itemize}
+        \item \textbf{Giảm phương sai mạnh mẽ:} Bằng cách lấy trung bình dự đoán từ nhiều cây khác nhau, các lỗi riêng lẻ của từng cây sẽ tự triệt tiêu, giúp mô hình trở nên ổn định và chống overfitting cực kỳ hiệu quả.
+    \end{itemize}
+    \item \textbf{Ưu điểm:}
+    \begin{itemize}
+        \item Độ chính xác thường cao hơn nhiều so với một cây đơn.
+        \item Ít cần tinh chỉnh siêu tham số và hoạt động tốt ngay từ đầu.
+    \end{itemize}
+    \item \textbf{Nhược điểm:}
+    \begin{itemize}
+        \item \textbf{Mất tính diễn giải:} Mô hình trở thành "hộp đen" (black-box). Khó để hiểu tại sao hàng trăm cây lại đưa ra một quyết định cụ thể.
+        \item Tốn nhiều tài nguyên tính toán hơn để huấn luyện và dự đoán.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Phân Tích Chuyên Sâu: Bài Toán Cân Bằng Bias-Variance}
+Trong học máy, lỗi của một mô hình có thể được phân rã thành \textbf{Bias (độ chệch)} và \textbf{Variance (phương sai)}.
+\begin{itemize}
+    \item \textbf{Bias} là sai số do các giả định đơn giản hóa của mô hình. Mô hình có bias cao không thể nắm bắt được quy luật phức tạp của dữ liệu.
+    \item \textbf{Variance} là sai số do độ nhạy của mô hình với những thay đổi nhỏ trong dữ liệu huấn luyện. Mô hình có phương sai cao bị overfitting.
+\end{itemize}
+Một cây quyết định đơn lẻ (để sâu) thường có \textbf{bias thấp} (vì nó có thể khớp với mọi chi tiết) nhưng \textbf{phương sai rất cao} (rất không ổn định). Random Forest là một kỹ thuật \textbf{giảm phương sai (variance reduction)} điển hình. Nó chấp nhận một mô hình cơ sở có phương sai cao và dùng phương pháp Bagging để kiểm soát phương sai đó. Tuy nhiên, nó không làm gì để giảm độ chệch (bias) của mô hình. Nếu mô hình cơ sở vốn đã chệch, thì việc lấy trung bình nhiều mô hình chệch cũng sẽ chỉ cho ra một kết quả chệch.
+
+Điều này đặt ra một câu hỏi mới: Liệu có cách nào xây dựng một mô hình mà có thể chủ động \textit{giảm cả bias} không? Câu trả lời nằm ở họ thuật toán Boosting.
+
+\section{Chương 3: AdaBoost - Học Từ Sai Lầm}
+\label{sec:tree-adaboost}
+\subsection{Ý Tưởng Cải Tiến}
+Thay vì xây dựng các cây một cách độc lập như Random Forest, họ thuật toán Boosting tiếp cận theo hướng khác: xây dựng cây một cách \textbf{tuần tự}, trong đó \textit{mô hình sau sẽ học cách khắc phục sai lầm của toàn bộ các mô hình trước đó}. AdaBoost (Adaptive Boosting) là một trong những thuật toán tiên phong cho ý tưởng này.
+
+\subsection{Phương Pháp}
+AdaBoost tập trung vào những mẫu dữ liệu bị phân loại sai.
+\begin{enumerate}
+    \item \textbf{Khởi tạo:} Ban đầu, tất cả các mẫu dữ liệu có \textbf{trọng số (sample weight)} bằng nhau (ví dụ: 1/N).
+    \item \textbf{Lặp:}
+    \begin{enumerate}
+        \item Huấn luyện một mô hình yếu (thường là một cây quyết định rất nông, gọi là \textbf{stump}) trên dữ liệu có trọng số.
+        \item Đánh giá mô hình. Tính toán tổng lỗi có trọng số ($\epsilon$) và xác định "tiếng nói" hay tầm quan trọng ($\alpha$) của mô hình này. Mô hình nào ít lỗi hơn sẽ có tiếng nói lớn hơn.
+        \[ \alpha = \frac{1}{2} \ln \left( \frac{1 - \epsilon}{\epsilon} \right) \]
+        \item \textbf{Cập nhật trọng số:} Tăng trọng số của các mẫu bị phân loại sai và giảm trọng số của các mẫu đúng. Điều này buộc mô hình tiếp theo phải tập trung hơn vào các mẫu "khó".
+    \end{enumerate}
+    \item \textbf{Dự đoán cuối cùng:} Là một cuộc bỏ phiếu có trọng số của tất cả các mô hình yếu, với trọng số là "tầm quan trọng" ($\alpha$) của chúng.
+\end{enumerate}
+
+\subsection{Áp dụng vào ví dụ}
+\begin{itemize}
+    \item \textbf{Vòng 1:} Tất cả 8 bệnh nhân có trọng số 1/8. Giả sử stump đầu tiên chia theo \texttt{MaxHeartRate <= 156} và phân loại sai bệnh nhân số 8 (dự đoán là 0 trong khi thực tế là 1).
+    \item \textbf{Vòng 2:} Trọng số của bệnh nhân số 8 sẽ được tăng lên đáng kể, trong khi trọng số của 7 người kia giảm xuống. Stump tiếp theo sẽ phải nỗ lực nhiều hơn để phân loại đúng cho bệnh nhân số 8, có thể bằng cách tìm ra một quy luật khác, ví dụ như \texttt{Age > 67?}.
+\end{itemize}
+
+\subsection{Ưu và Nhược Điểm}
+\begin{itemize}
+    \item \textbf{Điểm cải tiến:} Đây là một cách tiếp cận hoàn toàn khác, tập trung vào việc \textbf{giảm độ chệch (bias)} bằng cách tuần tự sửa lỗi. Nó biến một tập hợp các mô hình yếu thành một mô hình mạnh duy nhất.
+    \item \textbf{Ưu điểm:}
+    \begin{itemize}
+        \item Thường cho độ chính xác cao và dễ triển khai.
+        \item Linh hoạt với nhiều loại mô hình yếu khác nhau.
+    \end{itemize}
+    \item \textbf{Nhược điểm:}
+    \begin{itemize}
+        \item \textbf{Nhạy cảm với nhiễu và outliers:} Nếu có một mẫu bị gán nhãn sai, AdaBoost sẽ cố gắng "vét cạn" để học cho đúng mẫu đó, có thể làm hỏng mô hình tổng thể.
+        \item Huấn luyện tuần tự nên không thể song song hóa, làm chậm quá trình huấn luyện.
+    \end{itemize}
+\end{itemize}
+
+\section{Chương 4: Gradient Boosting - Tổng Quát Hóa Ý Tưởng Sửa Lỗi}
+\label{sec:tree-gradient-boosting}
+
+\subsection{Ý Tưởng Cải Tiến}
+AdaBoost sửa lỗi bằng cách thay đổi trọng số dữ liệu. Gradient Boosting (GB) đưa ý tưởng này lên một tầm cao mới bằng cách tiếp cận nó như một bài toán tối ưu hóa: thay vì tập trung vào các mẫu bị phân loại sai, GB tập trung trực tiếp vào \textbf{sai số (error)} của mô hình.
+
+\subsection{Phương Pháp}
+Ý tưởng cốt lõi là mỗi cây mới sẽ được huấn luyện để dự đoán \textbf{phần dư (residual)} – tức là sự khác biệt giữa giá trị thực và giá trị dự đoán của toàn bộ các cây trước đó. Sai số này được gọi là \textbf{phần dư giả (pseudo-residual)}.
+
+\begin{enumerate}
+    \item \textbf{Khởi tạo:} Bắt đầu với một dự đoán ban đầu đơn giản ($F_0$), ví dụ: giá trị trung bình của nhãn trong bài toán hồi quy, hoặc log-odds trong bài toán phân loại.
+    \item \textbf{Lặp (từ m = 1 đến M):}
+    \begin{enumerate}
+        \item Tính toán phần dư giả cho mỗi mẫu ($r_{im}$): Phần dư này chính là \textbf{gradient âm của hàm mất mát} đối với dự đoán của vòng trước.
+        \[ r_{im} = - \left[ \frac{\partial L(y_i, F(x_i))}{\partial F(x_i)} \right]_{F(x)=F_{m-1}(x)} \]
+        \item Xây dựng một cây quyết định mới ($f_m$) để học cách dự đoán các phần dư này, thay vì dự đoán nhãn gốc.
+        \item Cập nhật dự đoán tổng thể: Cộng dự đoán của cây mới này vào dự đoán tổng thể của vòng trước, nhưng có điều chỉnh bởi một \textbf{hệ số học (learning rate, $\eta$)}.
+        \[ F_m(x) = F_{m-1}(x) + \eta \cdot f_m(x) \]
+    \end{enumerate}
+\end{enumerate}
+Learning rate ($\eta$) đóng vai trò điều chỉnh, buộc mô hình phải học một cách từ từ và thận trọng, giúp chống overfitting hiệu quả. Quá trình này lặp lại, với mỗi cây mới sẽ cố gắng sửa những sai số còn lại của toàn bộ chuỗi cây trước đó.
+
+\subsection{Ưu và Nhược Điểm}
+\begin{itemize}
+    \item \textbf{Điểm cải tiến:}
+    \begin{itemize}
+        \item \textbf{Tổng quát hóa:} Bằng cách tối ưu hóa trực tiếp một hàm mất mát bất kỳ, GB có thể áp dụng cho vô số bài toán (hồi quy, phân loại, xếp hạng) với các thước đo lỗi khác nhau.
+    \end{itemize}
+    \item \textbf{Ưu điểm:}
+    \begin{itemize}
+        \item Thường cho độ chính xác rất cao, là một trong những thuật toán "sẵn dùng" tốt nhất.
+    \end{itemize}
+    \item \textbf{Nhược điểm:}
+    \begin{itemize}
+        \item Tinh chỉnh siêu tham số (số cây, độ sâu, learning rate) có thể phức tạp và tốn thời gian.
+        \item Tốc độ huấn luyện có thể chậm do tính tuần tự.
+    \end{itemize}
+\end{itemize}
+
+\section{Chương 5: XGBoost - Đỉnh Cao Của Tối Ưu Hóa}
+\label{sec:tree-xgboost}
+
+\subsection{Ý Tưởng Cải Tiến}
+XGBoost (eXtreme Gradient Boosting) không phải là một thuật toán hoàn toàn mới, mà là một phiên bản \textbf{tối ưu hóa đến cực đoan} của Gradient Boosting, cải tiến cả về công thức toán học và hiệu năng hệ thống.
+
+\subsection{Phương Pháp và Phân Tích Chuyên Sâu}
+XGBoost kế thừa ý tưởng học trên phần dư của GB nhưng tinh vi hơn rất nhiều.
+\begin{itemize}
+    \item \textbf{Xấp xỉ Taylor Bậc Hai:} Thay vì chỉ dùng Gradient (đạo hàm bậc nhất) như GB truyền thống, XGBoost sử dụng cả \textbf{Gradient ($g_i$)} và \textbf{Hessian ($h_i$, đạo hàm bậc hai)} trong hàm mục tiêu.
+    \begin{itemize}
+        \item \textit{Trực quan:} Gradient cho biết \textit{hướng dốc} của hàm lỗi, còn Hessian cho biết \textit{độ cong}. Việc biết cả độ cong giúp XGBoost tìm đến điểm lỗi tối thiểu một cách nhanh và chính xác hơn, giống như một hệ thống định vị thông minh thay vì chỉ đi theo la bàn.
+    \end{itemize}
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{projects/Tree_Review/images/xgboost_gradient_hessian.png}
+    \caption{Sử dụng cả Gradient và Hessian trong XGBoost.}
+    \label{fig:xgboost_gradient_hessian}
+\end{figure}
+\begin{itemize}
+    \item \textbf{Hàm Mục Tiêu Có Điều Chuẩn (Regularized Objective Function):} Đây là cải tiến quan trọng nhất, giúp XGBoost chống overfitting một cách tự nhiên. Mục tiêu của XGBoost không chỉ là giảm thiểu hàm mất mát, mà là giảm thiểu:
+    \[ Obj^{(t)} = \sum_{i=1}^{n} [g_i f_t(x_i) + \frac{1}{2} h_i f_t^2(x_i)] + \Omega(f_t) \]
+    Trong đó, $\Omega(f_t) = \gamma T + \frac{1}{2} \lambda \sum_{j=1}^{T} w_j^2$ là thành phần "phạt" cho độ phức tạp.
+    \begin{itemize}
+        \item $\gamma$ (gamma): Phạt cho việc thêm một lá mới, hoạt động như một ngưỡng cắt tỉa. Một nhánh chỉ được tách nếu lợi ích giảm lỗi lớn hơn chi phí $\gamma$.
+        \item $\lambda$ (lambda): Phạt điều chuẩn L2 lên trọng số của các nút lá ($w_j$). Nó làm các giá trị dự đoán của mỗi cây trở nên "dè dặt" hơn, tránh việc quá phụ thuộc vào một cây nào.
+    \end{itemize}
+\end{itemize}
+\begin{itemize}
+    \item \textbf{Xử lý Dữ liệu Thiếu (Sparsity-aware):} XGBoost không yêu cầu tiền xử lý giá trị thiếu. Thay vào đó, nó tự \textit{học} hướng đi mặc định (trái hay phải) cho các giá trị thiếu tại mỗi nút để tối đa hóa lợi ích.
+    \item \textbf{Tối ưu Hệ thống:} Tận dụng triệt để phần cứng thông qua các kỹ thuật như song song hóa quá trình tìm điểm chia, sắp xếp dữ liệu theo khối để tối ưu cache, và tính toán ngoài bộ nhớ (out-of-core) cho các tập dữ liệu khổng lồ.
+\end{itemize}
+
+\subsection{Ưu và Nhược Điểm}
+\begin{itemize}
+    \item \textbf{Điểm cải tiến:} Là một gói hoàn chỉnh kết hợp độ chính xác thuật toán (Taylor bậc hai, điều chuẩn) và tốc độ hệ thống (song song hóa, tối ưu cache).
+    \item \textbf{Ưu điểm:}
+    \begin{itemize}
+        \item \textbf{Hiệu suất đỉnh cao:} Thường xuyên là thuật toán chiến thắng trong các cuộc thi khoa học dữ liệu trên Kaggle.
+        \item \textbf{Tốc độ và khả năng mở rộng:} Nhanh hơn đáng kể so với GB truyền thống.
+        \item \textbf{Tính năng tích hợp:} Tự xử lý giá trị thiếu, điều chuẩn tích hợp sẵn.
+    \end{itemize}
+    \item \textbf{Nhược điểm:}
+    \begin{itemize}
+        \item Số lượng siêu tham số cần tinh chỉnh khá lớn, đòi hỏi người dùng có kiến thức sâu để khai thác tối đa hiệu năng.
+    \end{itemize}
+\end{itemize}
+
+\section{Chương 6: Vượt Ra Ngoài XGBoost - Xu Hướng Hiện Tại}
+Sự tiến hóa không dừng lại ở XGBoost. Dựa trên những nguyên tắc của nó, các thư viện mới đã ra đời với những cải tiến riêng:
+\begin{itemize}
+    \item \textbf{LightGBM (Light Gradient Boosting Machine):} Phát triển bởi Microsoft, thường nhanh hơn XGBoost. Thay vì phát triển cây theo từng tầng (level-wise), LightGBM phát triển theo từng lá (leaf-wise), giúp hội tụ nhanh hơn. Nó cũng sử dụng các kỹ thuật lấy mẫu thông minh (Gradient-based One-Side Sampling - GOSS) để tập trung vào các mẫu có gradient lớn, giúp tăng tốc độ mà không ảnh hưởng nhiều đến độ chính xác.
+    \item \textbf{CatBoost (Categorical Boosting):} Phát triển bởi Yandex, cực kỳ mạnh mẽ trong việc xử lý \textbf{đặc trưng dạng chuỗi (categorical features)} một cách tự động và hiệu quả. Nó sử dụng một phương pháp hoán vị thông minh (ordered boosting) để mã hóa các đặc trưng này mà không gây ra hiện tượng rò rỉ mục tiêu (target leakage), một vấn đề phổ biến mà các thuật toán khác thường gặp phải.
+\end{itemize}
+
+\section{Kết Luận}
+\label{sec:tree-conclusion}
+Hành trình từ một Cây Quyết Định đơn giản đến các hệ thống Boosting phức tạp như XGBoost là một minh chứng tuyệt vời cho sự phát triển của ngành học máy. Chúng ta đã đi từ một mô hình dễ diễn giải nhưng yếu và không ổn định, đến một "khu rừng" vững chắc có khả năng giảm phương sai (Random Forest), rồi đến một chuỗi các mô hình liên tục sửa sai để giảm độ chệch (Boosting). Cuối cùng, XGBoost và các hậu duệ của nó đã kết hợp những gì tốt nhất của các ý tưởng này và tối ưu chúng đến cực hạn, tạo ra những công cụ mạnh mẽ, linh hoạt và hiệu quả bậc nhất cho các bài toán trên dữ liệu dạng bảng ngày nay.
+% Tạo danh mục tài liệu tham khảo từ file references.bib
+\bibliographystyle{plain}
+\bibliography{projects/Tree_Review/references}

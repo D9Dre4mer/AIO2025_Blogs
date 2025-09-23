@@ -1,427 +1,1111 @@
+
 \begin{center}
-    \Large\textbf{Gradient Boosting}
+    {\LARGE\bfseries LightGBM: Từ Cơ Bản đến Nâng Cao với SHAP}\\[0.5em]
 \end{center}
 
 \begin{center}
-    \Large\textit{Vương Nguyệt Bình}
+    \Large\textit{Đàm Nguyên Khánh}
 \end{center}
 
-\section{Gradient Boosting là gì?}
-\label{sec:gradient-boosting-hand}
+\vspace{1em}
 
-Hãy tưởng tượng bạn đang học chơi đàn piano. Ban đầu, bản nhạc bạn gõ nghe khá chệch choạc -- nhiều nốt sai, nhịp chưa chuẩn. Nhưng thay vì bỏ cuộc, bạn nghe lại, phát hiện lỗi và chỉnh dần từng chỗ: nhấn nhẹ hơn ở đây, giữ nhịp đều hơn ở kia. Sau vài lần tập, bản nhạc dần trở nên mượt mà, tròn trịa.  
+\begin{abstract}
+\textbf{LightGBM} (Light Gradient Boosting Machine) đại diện cho một bước tiến đột phá trong lĩnh vực Gradient Boosting, được phát triển bởi Microsoft để giải quyết những thách thức về tốc độ và hiệu quả bộ nhớ của các thuật toán truyền thống. Bài viết này trình bày một cách toàn diện về LightGBM, từ các khái niệm cơ bản đến các kỹ thuật tối ưu hóa tiên tiến, kết hợp với SHAP (SHapley Additive exPlanations) để giải thích mô hình.
 
-Gradient Boosting cũng học theo cách tương tự. Nó bắt đầu với một mô hình đơn giản -- gần như ``ngây ngô''. Rồi ở mỗi vòng lặp, nó soi lại lỗi (\textit{residuals}), học cách ``sửa sai'' bằng cách thêm một cây quyết định nhỏ để khắc phục. Lặp đi lặp lại, mô hình ngày càng chính xác, giống như bản nhạc dần vang lên hoàn hảo.  
+\textbf{Các kỹ thuật cốt lõi} được phân tích chi tiết bao gồm: (1) \textbf{Leaf-wise Growth} - phát triển cây theo hướng lá thay vì level-wise, giúp giảm overfitting và tăng tốc huấn luyện; (2) \textbf{Histogram-based Split} - sử dụng histogram để tối ưu hóa việc tìm điểm chia, giảm đáng kể số phép tính từ hàng triệu xuống còn hàng trăm; (3) \textbf{Exclusive Feature Bundling (EFB)} - gom các đặc trưng categorical hiếm khi xuất hiện cùng nhau, tiết kiệm 60-80\% bộ nhớ; (4) \textbf{Gradient-based One-Side Sampling (GOSS)} - lấy mẫu thông minh dựa trên gradient, giảm 80\% thời gian huấn luyện mà vẫn giữ được thông tin quan trọng.
 
-Về bản chất, Gradient Boosting thuộc họ \textbf{Boosting} -- một kỹ thuật \textit{ensemble learning} nơi các mô hình yếu (weak learners) được xây dựng tuần tự, và mỗi mô hình mới đều có nhiệm vụ sửa sai cho mô hình trước đó.  
+\textbf{Kết quả thực nghiệm} trên hai dataset lớn cho thấy hiệu quả vượt trội của LightGBM: (1) \textbf{NYC Taxi Trip Duration} (1.4M mẫu) - LightGBM đạt RMSE 0.3473 trong 3.67s, nhanh hơn GradientBoosting 200x; (2) \textbf{HEPMASS Classification} (3.5M mẫu) - đạt Accuracy 0.9179 và AUC-ROC 0.9711 trong 21.55s, cạnh tranh trực tiếp với XGBoost. \textbf{SHAP analysis} tiết lộ tác động phi tuyến của các đặc trưng, đặc biệt là tuổi trung niên (30-60) có ảnh hưởng mạnh nhất đến dự đoán mô hình.
 
-Điểm đặc biệt là Gradient Boosting không chỉ đoán mò. Nó biết dùng \textbf{Gradient Descent trong không gian hàm} để tìm hướng đi đúng nhất nhằm giảm sai số. Nói cách khác, mỗi ``cây nông'' được thêm vào không phải ngẫu nhiên, mà chính là bước đi có tính toán, được dẫn dắt bởi đạo hàm của hàm lỗi.  
+Bài viết cung cấp hướng dẫn thực hành chi tiết với code Python, so sánh hiệu suất với XGBoost và GradientBoosting, và minh họa cách sử dụng SHAP để giải thích các quyết định của mô hình. Kết quả cho thấy LightGBM là lựa chọn tối ưu cho các bài toán tabular data lớn, đặc biệt khi có nhiều đặc trưng categorical và yêu cầu tốc độ xử lý cao.
+\end{abstract}
 
-\begin{quote}
-Nếu AdaBoost giống như việc ``chú ý nhiều hơn vào những bài tập khó'', thì Gradient Boosting lại giống như một học trò kiên nhẫn, cẩn thận phân tích lỗi sai và chỉnh sửa chúng từng chút một cho đến khi đạt kết quả tốt nhất.
-\end{quote}
+\vspace{1em}
 
+\section{Giới thiệu}
+\label{sec:lightgbm-intro}
+\textbf{LightGBM} (Light Gradient Boosting Machine) là một thư viện mạnh mẽ được phát triển bởi Microsoft, giúp huấn luyện mô hình Gradient Boosting nhanh hơn và tiết kiệm bộ nhớ hơn so với các phương pháp truyền thống.
 
-\section{Gradient Boosting -- Học từ phần dư}
-\label{subsec:gradient-boosting-residuals}
-
-Gradient Boosting là một trong những phương pháp \textbf{Boosting} nổi bật nhất trong học máy. 
-Khác với \textbf{Bagging} (như Random Forest) – nơi các mô hình được huấn luyện song song và độc lập – Boosting xây dựng mô hình theo cách tuần tự, 
-trong đó mỗi mô hình mới tập trung vào việc \textbf{sửa lỗi còn lại} của các mô hình trước.  
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.8\linewidth]{projects/Gradient_Boosting__Hoc_qua_vi_du_tinh_tay/images/bagging_vs_boosting.png}
-\caption{Boosting (sửa lỗi tuần tự) so với Bagging (trung bình song song).}
-\end{figure}
-
-
-Điểm then chốt của Gradient Boosting là \textbf{học từ phần dư (residuals)} và sử dụng 
-\textbf{Gradient Descent trong không gian hàm} để dần tối ưu hoá hàm lỗi. 
-Thay vì cố gắng dự đoán trực tiếp nhãn $y$, mỗi vòng lặp mô hình học cách sửa phần sai số còn lại của dự đoán hiện tại.  
-
-Một cách dễ hình dung: hãy tưởng tượng bạn muốn vẽ lại một đường cong dữ liệu bằng nhiều “nét bút nhỏ”:
+Trong blog này, chúng ta sẽ:
 \begin{itemize}
-    \item Nét bút đầu tiên khá thô, còn lệch nhiều so với đường cong gốc.
-    \item Các nét sau không vẽ lại từ đầu, mà chỉ tập trung sửa vào những chỗ bị lệch: thêm vào đoạn còn thiếu, chỉnh nhẹ những chỗ thừa.
-    \item Sau nhiều lần chỉnh sửa, bức tranh dần tiệm cận với đường cong thật.
-\end{itemize}
-
-\noindent Gradient Boosting cũng vận hành như vậy: bắt đầu bằng một mô hình đơn giản, 
-sau đó liên tục bổ sung những cây nhỏ để sửa dần các phần sai sót, 
-và cuối cùng tạo ra một mô hình mạnh mẽ, chính xác hơn nhiều so với từng thành phần riêng lẻ.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.8\linewidth]{projects/Gradient_Boosting__Hoc_qua_vi_du_tinh_tay/images/gradient_boosting_progress.png}
-\caption{Quá trình Gradient Boosting dần cải thiện dự đoán. 
-Ban đầu (đường đỏ, sau 1 cây) mô hình còn thô, 
-sau nhiều vòng (20–100 cây) mô hình bám sát dữ liệu hơn, 
-minh họa cách “sửa sai dần dần” của thuật toán.}
-\end{figure}
-
-\subsection{Nguyên lý hoạt động}
-\label{subsec:gradient-boosting-principle}
-
-
-Giả sử sau $(m-1)$ vòng boosting, ta có một mô hình dự đoán $F_{m-1}(x)$.  
-
-Sau mỗi vòng lặp, điều quan trọng là xác định mô hình hiện tại còn sai ở đâu.  
-Ta đo sai số còn lại thông qua \textit{pseudo-residuals}, tức là gradient âm của hàm lỗi:
-\[
-r_{im} = - \frac{\partial L(y_i, F_{m-1}(x_i))}{\partial F_{m-1}(x_i)}.
-\]
-
-Một số ví dụ cụ thể:
-\begin{itemize}
-    \item \textbf{Hồi quy (MSE):} 
-    \[
-    r_{im} = y_i - F_{m-1}(x_i).
-    \]
-    \item \textbf{Phân loại nhị phân (Logistic Loss):}
-    \[
-    r_{im} = y_i - p_{m-1}(x_i),
-    \]
-    với $p_{m-1}(x_i)$ là xác suất dự đoán từ mô hình trước đó.
-\end{itemize}
-
-Tiếp theo, một cây quyết định nhỏ $h_m(x)$ được huấn luyện để dự đoán các residuals này.  
-Trong thực tế, cây mới chỉ cho ta \emph{hướng sửa lỗi}.  
-Để biết nên “bước bao xa” theo hướng đó, ta tìm một hệ số $\gamma_m$ bằng \textit{line search}, 
-giúp mô hình điều chỉnh vừa đủ — không quá ít, cũng không quá nhiều.  
-
-Mô hình sau đó được cập nhật theo công thức:
-\[
-F_m(x) = F_{m-1}(x) + \nu \cdot \gamma_m \cdot h_m(x),
-\]
-trong đó $\nu$ là \textit{learning rate} (0.01–0.1).  
-
-\begin{quote}
-Gradient Boosting không xây dựng sự hoàn hảo ngay từ đầu, 
-mà tiến gần tới nó bằng cách liên tục sửa chữa những sai sót còn lại.
-\end{quote}
-
-
-\begin{figure}[H]
-\centering
-\begin{tikzpicture}[
-    node distance=1.6cm,
-    box/.style={rectangle, draw=black, rounded corners, minimum width=3.5cm, minimum height=1cm, fill={rgb:red,0.2;green,0.6;blue,0.2}, text=white},
-    special/.style={rectangle, draw=black, rounded corners, minimum width=3.5cm, minimum height=1cm, fill={rgb:red,0.8;green,0.4;blue,0.1}, text=white},
-    arrow/.style={-Latex, thick, color={rgb:red,0.6;green,0.4;blue,0.1}}
-]
-\node[box] (input) {Dữ liệu $(x,y)$};
-\node[box, right=of input] (model) {Mô hình hiện tại $F_{m-1}(x)$};
-\node[box, below=of model] (resid) {Tính residuals $r_{im}$};
-\node[box, left=of resid] (tree) {Huấn luyện cây $h_m(x)$};
-\node[special, below=of resid] (gamma) {Tìm hệ số $\gamma_m$ (line search)};
-\node[special, below=of gamma] (update) {Cập nhật $F_m(x) = F_{m-1}(x) + \nu \gamma_m h_m(x)$};
-
-\draw[arrow] (input) -- (model);
-\draw[arrow] (model) -- (resid);
-\draw[arrow] (resid) -- (tree);
-\draw[arrow] (resid) -- (gamma);
-\draw[arrow] (tree) -- (gamma);
-\draw[arrow] (gamma) -- (update);
-\end{tikzpicture}
-\caption{Pipeline một vòng lặp Gradient Boosting.}
-\end{figure}
-
-\subsection{Pseudocode}
-
-Các bước trên có thể tóm tắt lại bằng giả mã như sau:
-
-\begin{algorithm}[H]
-\caption{Gradient Boosting}
-\begin{algorithmic}[1]
-\Require Dữ liệu $\{(x_i, y_i)\}$, loss $L$, số vòng $M$, learning rate $\nu$
-\State Khởi tạo $F_0(x) = \arg\min_c \sum_i L(y_i, c)$
-\For{$m = 1$ đến $M$}
-    \State Tính residuals $r_i^{(m)} = - \frac{\partial L(y_i, F_{m-1}(x_i))}{\partial F_{m-1}(x_i)}$
-    \State Huấn luyện cây $h_m(x)$ để dự đoán $r_i^{(m)}$
-    \State Tìm $\gamma_m = \arg\min_\gamma \sum_i L\big(y_i, F_{m-1}(x_i) + \gamma h_m(x_i)\big)$
-    \State Cập nhật $F_m(x) = F_{m-1}(x) + \nu \cdot \gamma_m \cdot h_m(x)$
-\EndFor
-\State \Return $F_M(x)$
-\end{algorithmic}
-\end{algorithm}
-
-
-
-\subsection{Các khái niệm cơ bản}
-\label{subsec:gradient-boosting-concepts}
-
-\subsubsection{Học viên yếu (Weak Learner)}
-
-Trong học máy, một \textbf{học viên yếu} là mô hình rất đơn giản, chỉ dự đoán tốt hơn một chút so với việc chọn ngẫu nhiên. Ý tưởng cốt lõi của Boosting là: \emph{nhiều học viên yếu, khi kết hợp khéo léo, có thể tạo thành một học viên mạnh}.  
-
-Trong Gradient Boosting, học viên yếu phổ biến nhất là \textbf{cây quyết định nông} (shallow decision trees), thường có độ sâu chỉ từ 1--5 mức. Một trường hợp đặc biệt là \textbf{decision stump} — cây chỉ có một nút chia, tương đương với một “câu hỏi có/không” trên một đặc trưng.  
-
-Đặc điểm của những cây này:
-\begin{itemize}
-    \item \textbf{Độ lệch cao (high bias)}: chúng không đủ phức tạp để khớp toàn bộ dữ liệu.
-    \item \textbf{Phương sai thấp (low variance)}: do cấu trúc đơn giản, chúng ít nhạy cảm với nhiễu.
-\end{itemize}
-
-Khi được kết hợp trong Gradient Boosting:
-\begin{itemize}
-    \item Mỗi cây nhỏ giống như một “nét bút” tinh chỉnh mô hình hiện tại, sửa một phần lỗi còn sót lại.
-    \item Qua nhiều vòng lặp, dãy cây này dần dần giảm sai số, từ một mô hình thô sơ thành một mô hình mạnh mẽ.
-\end{itemize}
-
-\begin{quote}
-Nếu coi quá trình học là việc vẽ một bức tranh: mỗi cây quyết định nông chỉ vẽ được vài nét đơn giản, nhưng khi chồng ghép hàng trăm nét lại với nhau, ta có thể tái tạo được toàn bộ bức tranh phức tạp.
-\end{quote}
- 
-
-\subsubsection{Hàm lỗi (Loss Function)}
-
-Cốt lõi của Gradient Boosting là \textbf{học từ sai lầm}. Nhưng để biết “sai” ở đâu và “sai” bao nhiêu, ta cần một thước đo — đó chính là \textbf{hàm lỗi (loss function)}.  
-
-Hàm lỗi đóng vai trò như chiếc \textit{la bàn}: nó chỉ ra hướng mà mô hình cần điều chỉnh. Mỗi vòng lặp, Gradient Boosting tính đạo hàm của hàm lỗi để biết cần thêm một “bước sửa” như thế nào. Nếu không có hàm lỗi, mô hình sẽ không biết mình cần cải thiện ở đâu.  
-
-Một số ví dụ phổ biến:
-
-\begin{itemize}
-    \item \textbf{Hồi quy (Regression):} thường dùng \textbf{Mean Squared Error (MSE)} vì nó phạt nặng những sai số lớn, khuyến khích mô hình dự đoán sát giá trị thật:
-    \[
-    MSE = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2,
-    \]
-    với $y_i$ là giá trị thực tế, $\hat{y}_i$ là giá trị dự đoán.  
-
-    \emph{Ý tưởng:} nếu dự đoán sai nhiều, ta muốn “kéo mạnh” mô hình về gần giá trị thật hơn.  
-
-    \item \textbf{Phân loại nhị phân (Classification):} thường dùng \textbf{Cross-Entropy (CE) / Logistic Loss}, vì nó so sánh phân phối xác suất dự đoán với nhãn thật, đảm bảo mô hình không chỉ dự đoán đúng/ sai, mà còn tự tin hợp lý:
-    \[
-    CE = - \frac{1}{n} \sum_{i=1}^{n} \Big[ y_i \log \hat{y}_i + (1-y_i) \log(1-\hat{y}_i) \Big],
-    \]
-    trong đó $y_i \in \{0,1\}$ là nhãn thật, $\hat{y}_i \in [0,1]$ là xác suất dự đoán.  
-
-    \emph{Ý tưởng:} nếu mô hình dự đoán xác suất thấp cho nhãn đúng, hàm lỗi sẽ phạt rất nặng, buộc mô hình phải học “tự tin hơn ở chỗ đúng”.
-\end{itemize}
-
-\noindent Nhờ tính linh hoạt trong việc chọn hàm lỗi, Gradient Boosting có thể áp dụng cho nhiều bài toán khác nhau: từ hồi quy, phân loại, cho đến ranking hay survival analysis.
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.8\linewidth]{projects/Gradient_Boosting__Hoc_qua_vi_du_tinh_tay/images/loss_functions.png}
-\caption{Trực quan hoá hai hàm lỗi phổ biến: 
-\textbf{MSE} (trái) có dạng parabol, sai số càng lớn thì bị phạt mạnh; 
-\textbf{Cross-Entropy} (phải) phạt rất nặng khi mô hình dự đoán xác suất thấp cho nhãn đúng.}
-\end{figure}
-
-
-
-
-\subsubsection{Pseudo-residuals}
-Trung tâm của Gradient Boosting nằm ở khái niệm \textit{pseudo-residuals} -- 
-gradient âm của hàm lỗi tại dự đoán hiện tại:
-\[
-r_{im} = - \frac{\partial L(y_i, F(x_i))}{\partial F(x_i)}.
-\]
-Ví dụ:
-\begin{itemize}
-    \item Với MSE: $r_{im} = y_i - F(x_i)$, đây chính là residuals truyền thống.
-    \item Với Logistic Loss: $r_{im} = y_i - p_{m-1}(x_i)$, trong đó $p_{m-1}(x_i)$ là xác suất dự đoán từ mô hình trước đó.
-\end{itemize}
-
-\subsubsection{Cập nhật mô hình (Model Update)}
-Sau khi có residuals, một cây $h_m(x)$ được huấn luyện để dự đoán chúng. 
-Mô hình sau đó được cập nhật:
-\[
-F_m(x) = F_{m-1}(x) + \nu \cdot h_m(x),
-\]
-trong đó:
-\begin{itemize}
-    \item $F_{m-1}(x)$: mô hình trước đó.
-    \item $\nu$: learning rate (0.01–0.1) để kiểm soát bước tiến, giảm nguy cơ overfitting.
-    \item $h_m(x)$: cây mới học residuals.
-\end{itemize}
-\subsubsection{Tiêu chí dừng (Stopping criteria)}
-\begin{itemize}
-    \item \textbf{Giới hạn số vòng lặp} \(M\): đặt trước số lần mô hình được phép học thêm (ví dụ 100 hoặc 500 vòng).
-    \item \textbf{Dừng sớm (early stopping)}: nếu trong \(k\) vòng liên tiếp, điểm số trên tập validation không được cải thiện, thì dừng lại để tránh lãng phí thời gian và bị quá khớp.
-    \item \textbf{Ngưỡng cải thiện rất nhỏ}: nếu tổng hàm mất mát (loss) giữa hai vòng liên tiếp thay đổi ít hơn một ngưỡng đặt trước, thì coi như mô hình đã hội tụ và dừng lại.
-\end{itemize}
-
-\subsubsection{Gradient Descent trong không gian hàm}
-Điểm khác biệt cốt lõi là Gradient Boosting áp dụng Gradient Descent không phải trên tham số riêng lẻ, 
-mà trong \textbf{không gian hàm}. 
-Mỗi cây mới được thêm vào tương ứng với một bước đi theo hướng giảm dốc nhất của hàm lỗi. 
-Qua nhiều vòng, mô hình dần tiến tới nghiệm tối ưu toàn cục hoặc cục bộ tốt.
-
-\section{So sánh AdaBoost và Gradient Boosting}
-\label{subsec:gradient-boosting-comparison}
-
-\begin{itemize}
-    \item \textbf{AdaBoost:} Huấn luyện nhiều học viên yếu, sau đó tăng trọng số cho các mẫu bị phân loại sai, buộc mô hình sau tập trung vào chúng.
-    \item \textbf{Gradient Boosting:} Không thay đổi trọng số dữ liệu, mà trực tiếp tối thiểu hoá hàm lỗi bằng cách học residuals.  
-\end{itemize}
-
-\section{Kỹ thuật điều chuẩn và các cải tiến}
-
-Gradient Boosting rất mạnh nhưng cũng dễ bị \textit{overfitting} nếu không được kiểm soát. Vì vậy, nhiều kỹ thuật điều chuẩn đã được phát triển:
-
-\begin{itemize}
-    \item \textbf{Learning rate (shrinkage):} giảm mức đóng góp của mỗi cây. Ví dụ, thay vì cộng thẳng \(h_m(x)\), ta chỉ cộng một phần nhỏ \(\nu h_m(x)\). Learning rate nhỏ giúp mô hình học chậm hơn nhưng tổng quát tốt hơn.
-    
-    \item \textbf{Subsampling (stochastic gradient boosting):} huấn luyện mỗi cây trên một tập con ngẫu nhiên (ví dụ 70--80\% dữ liệu). Kỹ thuật này vừa giảm phương sai, vừa tăng tốc, tương tự như “bagging nhẹ”.
-    
-    \item \textbf{Tree constraints:} áp các giới hạn để cây không quá phức tạp:
-    \begin{itemize}
-        \item Độ sâu tối đa (\textit{max depth})
-        \item Số lá tối đa (\textit{max leaves})
-        \item Số mẫu tối thiểu trong mỗi lá (\textit{min samples per leaf})
-    \end{itemize}
-    Các giới hạn này giữ cây ở mức “yếu” (weak learner) đúng nghĩa, tránh việc cây học quá chi tiết.
-    
-    \item \textbf{Early stopping:} theo dõi loss trên tập validation, nếu sau \(k\) vòng liên tiếp không cải thiện thì dừng sớm. Điều này giúp tiết kiệm thời gian và tránh mô hình “học thuộc” dữ liệu huấn luyện.
+    \item \textbf{Ôn lại các mô hình nền tảng}: Decision Tree, Random Forest, AdaBoost, Gradient Boosting, XGBoost
+    \item \textbf{Hiểu rõ cải tiến cốt lõi của LightGBM}: Leaf-wise Growth, Histogram-based Split, GOSS, EFB
+    \item \textbf{Trình bày qua các ví dụ chi tiết}: HEPMASS dataset (phân loại) và NYC Taxi Trip dataset (hồi quy)
+    \item \textbf{Minh họa kết quả}: Sử dụng TikZ và gợi ý thêm hình ảnh thực tế
+    \item \textbf{Giải thích mô hình}: Sử dụng SHAP để hiểu rõ đóng góp của từng đặc trưng
 \end{itemize}
 
 \begin{figure}[H]
-\centering
-\includegraphics[width=0.75\linewidth]{projects/Gradient_Boosting__Hoc_qua_vi_du_tinh_tay/images/early_stopping_curve.png}
-\caption{Learning curve minh họa Early Stopping: 
-Validation loss ngừng cải thiện sau khoảng 100 vòng, trong khi training loss tiếp tục giảm.}
+    \centering
+    \includegraphics[width=0.8\textwidth]{projects/LightGBM_SHAP/images/The-general-proposed-model_Q320.jpg}
+    \caption{Quy trình tổng thể huấn luyện và đánh giá mô hình LightGBM: Bên trái (Extract and Splitting) - trích xuất dữ liệu từ CERT R4.2 Data Set và chia thành tập huấn luyện/kiểm thử. Bên phải (LightGBM Training and Evaluation) - huấn luyện với Cross Validation sử dụng 3 thuật toán chính: GOSS (chọn mẫu theo gradient), EFB (gom đặc trưng), GBDT (cây tăng cường), sau đó đánh giá trên tập test độc lập.}
+    \label{fig:lightgbm-overview}
 \end{figure}
 
-\subsection*{Các cải tiến hiện đại}
-Dựa trên ý tưởng Gradient Boosting, nhiều biến thể đã được phát triển để tăng tốc và tăng độ chính xác:
+\begin{tcolorbox}[title=Chuẩn bị môi trường, colback=green!10, colframe=green!50!black]
+Các thư viện cần thiết: \code{pandas}, \code{numpy}, \code{scikit-learn}, \code{xgboost}, \code{lightgbm}, \code{shap}.\\
+\textbf{Cài đặt nhanh}:
+\begin{minted}{bash}
+pip install pandas numpy scikit-learn xgboost lightgbm shap
+\end{minted}
+\end{tcolorbox}
 
-\begin{itemize}
-    \item \textbf{XGBoost}: bổ sung regularization L1/L2 trên trọng số lá, hỗ trợ tính toán song song, tối ưu bộ nhớ.
-    \item \textbf{LightGBM}: dùng kỹ thuật \textit{leaf-wise growth} (phát triển cây theo lá thay vì theo mức), kết hợp với histogram để xử lý nhanh dữ liệu lớn.
-    \item \textbf{CatBoost}: tối ưu cho dữ liệu phân loại (categorical features), giảm hiện tượng overfitting nhờ kỹ thuật \textit{ordered boosting}.
-\end{itemize}
+\section{Ôn tập nhanh: Các mô hình trước LightGBM}
+\label{sec:lightgbm-background}
 
-\noindent Các cải tiến này giúp Gradient Boosting không chỉ chính xác mà còn khả thi với tập dữ liệu lớn, phức tạp trong thực tế.
-
-\section{So sánh với các thuật toán khác}
+Trước khi đi sâu vào LightGBM, hãy ôn lại các mô hình nền tảng trong họ Boosting:
 
 \begin{table}[H]
 \centering
-\begin{tabular}{p{4cm} p{3cm} p{3.5cm} p{3cm}}
+\begin{tabular}{p{2.5cm} p{2.5cm} p{2.5cm} p{2.5cm} p{3cm}}
 \toprule
-\textbf{Tiêu chí} 
-& \textbf{Random Forest} 
-& \textbf{Gradient Boosting} 
-& \textbf{AdaBoost} \\
+\textbf{Mô hình} & \textbf{Hàm loss Regression} & \textbf{Hàm loss Classification} & \textbf{Cách phát triển cây} & \textbf{Điểm mới chính} \\
 \midrule
-\textbf{Phong cách huấn luyện} 
-& Song song 
-& Tuần tự 
-& Tuần tự \\
-\textbf{Mục tiêu chính} 
-& Giảm variance 
-& Giảm bias 
-& Tập trung mẫu khó \\
-\textbf{Tinh chỉnh tham số} 
-& Ít 
-& Nhiều 
-& Trung bình \\
-\textbf{Nguy cơ overfitting} 
-& Thấp 
-& Cao (nếu không regularize) 
-& Trung bình \\
-\textbf{Tốc độ huấn luyện} 
-& Nhanh 
-& Chậm hơn 
-& Trung bình \\
-\textbf{Ứng dụng điển hình} 
-& Baseline mạnh, dữ liệu nhiễu 
-& Dữ liệu bảng sạch, cần chính xác cao 
-& Dữ liệu nhỏ, dễ huấn luyện \\
+Decision Tree & MSE & Gini/Entropy & Level-wise (top-down) & Chia theo split tốt nhất \\
+Random Forest & MSE & Gini/Entropy & Level-wise + Bagging & Giảm variance qua sampling \\
+AdaBoost & MSE & Exponential Loss & Sequential boosting & Tăng trọng số điểm sai \\
+Gradient Boosting & Any diff. loss & Log-loss & Sequential boosting & Boosting theo gradient \\
+XGBoost & Any diff. loss + Reg & Log-loss + Reg & Level-wise + Reg. & Taylor bậc 2, regularization \\
+LightGBM & Any diff. loss + Reg & Log-loss + Reg & Leaf-wise + Histogram & Tăng tốc, giảm bộ nhớ, GOSS, EFB \\
 \bottomrule
 \end{tabular}
-\caption{So sánh giữa Random Forest, Gradient Boosting và AdaBoost.}
+\caption{So sánh các mô hình trong họ Boosting. LightGBM giữ nền tảng boosting nhưng tối ưu tốc độ và hiệu quả bộ nhớ.}
 \end{table}
 
+\noindent \textbf{Ý tưởng cốt lõi}: LightGBM giữ nền tảng boosting nhưng tối ưu tốc độ và hiệu quả bộ nhớ thông qua các kỹ thuật đột phá.
 
-\section{Từ thuật toán nền tảng đến các thư viện hiện đại}
+\section{Cách LightGBM xây dựng cây}
+\label{sec:lightgbm-core}
 
-Sự ra đời của các thư viện mới đã mở rộng sức mạnh của Gradient Boosting:
+LightGBM sử dụng một cách tiếp cận hoàn toàn khác biệt để xây dựng cây quyết định so với các thuật toán truyền thống. Thay vì mở rộng cây theo từng tầng (level-wise), LightGBM chọn chiến lược \textbf{leaf-wise growth} - một phương pháp thông minh hơn, hiệu quả hơn.
+
+\subsection{Level-wise vs. Leaf-wise: Sự khác biệt cốt lõi}
+\label{subsec:level-vs-leaf}
+
+\subsubsection{Cách tiếp cận truyền thống (Level-wise)}
+Hầu hết các thuật toán cây quyết định (bao gồm XGBoost, Gradient Boosting) sử dụng chiến lược \textbf{level-wise}:
 \begin{itemize}
-    \item \textbf{XGBoost:} regularization L1/L2, tính toán song song, tối ưu bộ nhớ.  
-    \item \textbf{LightGBM:} chiến lược tăng trưởng theo lá, GOSS và EFB giúp huấn luyện nhanh hơn trên dữ liệu lớn.  
-    \item \textbf{CatBoost:} xử lý biến phân loại tự động, Ordered Boosting, cây đối xứng giúp tăng tốc inference.  
+    \item Mở rộng \textbf{tất cả các nút} ở cùng một mức độ sâu
+    \item Tạo ra cây \textbf{cân bằng} (balanced tree)
+    \item Đảm bảo mọi nhánh đều có cùng độ sâu
 \end{itemize}
-\section{Ví dụ bằng Python}
 
-Để thấy rõ cách Gradient Boosting hoạt động trong thực tế, ta thử áp dụng 
-thuật toán này trên một bài toán hồi quy đơn giản bằng thư viện \texttt{scikit-learn}.
-\begin{minted}{python}
-    
-from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.datasets import make_regression
-from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
+\textbf{Ví dụ minh họa}: Giả sử ta có một cây với độ sâu 3:
+\begin{enumerate}
+    \item \textbf{Tầng 1}: Tạo 2 nút con từ nút gốc
+    \item \textbf{Tầng 2}: Tạo 4 nút con từ 2 nút tầng 1
+    \item \textbf{Tầng 3}: Tạo 8 nút con từ 4 nút tầng 2
+\end{enumerate}
 
-X, y = make_regression(n_samples=300, n_features=1, noise=20, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+\subsubsection{Cách tiếp cận LightGBM (Leaf-wise)}
+LightGBM sử dụng chiến lược \textbf{leaf-wise}:
+\begin{itemize}
+    \item Chỉ mở rộng \textbf{một lá} có tiềm năng giảm loss lớn nhất
+    \item Tạo ra cây \textbf{không cân bằng} (unbalanced tree)
+    \item Tập trung vào những nhánh quan trọng nhất
+\end{itemize}
 
-gbr = GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=3)
-gbr.fit(X_train, y_train)
-
-plt.scatter(X_test, y_test, color="blue", label="Thực tế")
-plt.scatter(X_test, gbr.predict(X_test), color="red", label="Dự đoán")
-plt.legend(); plt.show()
-\end{minted}
-
-\begin{figure}[H] % H yêu cầu ảnh "ngay tại đây"
+\begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{projects/Gradient_Boosting__Hoc_qua_vi_du_tinh_tay/images/gbr_output.png}
-    \caption{Kết quả dự đoán của Gradient Boosting Regressor}
-    \label{fig:gbr_output}
+        \begin{tikzpicture}[
+            level 1/.style={level distance=1.5cm, sibling distance=4cm},
+            level 2/.style={level distance=1.5cm, sibling distance=2cm},
+            level 3/.style={level distance=1.5cm, sibling distance=1cm},
+            every node/.style={circle, draw, minimum size=0.8cm, font=\small},
+            leaf/.style={fill=green!10, draw=green!50!black},
+            selected/.style={fill=orange!30, draw=orange!50!black},
+            edge from parent/.style={draw, thick, green!50!black}
+        ]
+        
+        % Level-wise tree (left side)
+        \node[above] at (-4, 3.5) {\textbf{Level-wise Growth}};
+        \node[fill=green!20, draw=green!50!black] at (-4, 2.5) {1}
+            child {node[leaf] {2}
+                child {node[leaf] {4}}
+                child {node[leaf] {5}}
+            }
+            child {node[leaf] {3}
+                child {node[leaf] {6}}
+                child {node[leaf] {7}}
+            };
+        
+        % Level indicators for level-wise
+        \draw[dashed, gray] (-6, 2.5) -- (-0.5, 2.5) node[right, gray] {Root};
+        \draw[dashed, gray] (-6, 1) -- (-0.5, 1) node[right, gray] {Branch};
+        \draw[dashed, gray] (-6, -0.5) -- (-0.5, -0.5) node[right, gray] {Leaf};
+        
+        % Leaf-wise tree (right side)
+        \node[above] at (4, 3.5) {\textbf{Leaf-wise Growth}};
+        \node[fill=orange!20, draw=orange!50!black] at (4, 2.5) {1}
+            child {node[selected] {2}
+                child {node[leaf] {4}}
+                child {node[selected] {5}
+                    child {node[leaf] {8}}
+                    child {node[leaf] {9}}
+                }
+            }
+            child {node[leaf] {3}};
+        
+        % Arrow showing selective expansion
+        \draw[->, thick, orange!50!black] (3.5, 1) -- (2.5, 1) node[midway, above, orange!50!black] {\scriptsize Chọn lọc};
+        \draw[->, thick, orange!50!black] (4.5, -0.5) -- (3.5, -0.5) node[midway, above, orange!50!black] {\scriptsize Tốt nhất};
+        
+         \end{tikzpicture}
+         
+         % Legend bên ngoài TikZ
+         \vspace{0.5cm}
+         \begin{center}
+             \begin{tabular}{ll}
+                 \textcolor{green!10!black}{\rule{0.4cm}{0.4cm}} & Nút thường \\
+                 \textcolor{orange!30}{\rule{0.4cm}{0.4cm}} & Nút được chọn mở rộng (Leaf-wise)
+             \end{tabular}
+         \end{center}
+        \caption{Level-wise mở rộng tất cả nút lá cùng level, Leaf-wise chỉ mở rộng nút lá có tiềm năng nhất (đỏ).}
+        \label{fig:level-vs-leaf}
+    \end{figure}
+
+\subsubsection{Tại sao Leaf-wise hiệu quả hơn?}
+
+\textbf{1. Tập trung vào những gì quan trọng:}
+\begin{itemize}
+    \item Không phải mọi nhánh đều có tiềm năng cải thiện mô hình như nhau
+    \item Một số nhánh có thể giảm loss đáng kể, số khác thì không
+    \item Leaf-wise chỉ đầu tư vào những nhánh "có triển vọng"
+\end{itemize}
+
+\textbf{2. Giảm overfitting:}
+\begin{itemize}
+    \item Cây không cân bằng tự nhiên có xu hướng ít phức tạp hơn
+    \item Tránh việc tạo ra quá nhiều nút không cần thiết
+    \item Mô hình tổng quát hóa tốt hơn trên dữ liệu mới
+\end{itemize}
+
+\textbf{3. Tăng tốc huấn luyện:}
+\begin{itemize}
+    \item Ít phép tính hơn vì không cần mở rộng tất cả nhánh
+    \item Tập trung tài nguyên vào những nút quan trọng
+    \item Đạt được kết quả tốt với ít cây hơn
+\end{itemize}
+
+\subsubsection{Thuật toán Leaf-wise Growth}
+
+Quá trình xây dựng cây trong LightGBM diễn ra như sau:
+
+\begin{algorithm}[H]
+\caption{Leaf-wise Tree Building}
+\begin{algorithmic}[1]
+\Require Dữ liệu huấn luyện $D$, số lá tối đa $K$
+\State Khởi tạo cây với một nút gốc chứa toàn bộ dữ liệu
+\State $leaves = \{root\}$ \Comment{Tập các lá hiện tại}
+\For{$i = 1$ đến $K-1$}
+    \State $best\_leaf = \arg\max_{l \in leaves} \text{Gain}(l)$
+    \State $best\_split = \text{FindBestSplit}(best\_leaf)$
+    \If{$\text{Gain}(best\_split) > \text{threshold}$}
+        \State Tạo 2 nút con từ $best\_leaf$
+        \State Cập nhật $leaves$: loại bỏ $best\_leaf$, thêm 2 nút con
+    \Else
+        \State \textbf{break} \Comment{Dừng nếu không có split tốt}
+    \EndIf
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Giải thích từng bước:}
+\begin{enumerate}
+    \item \textbf{Bước 1}: Bắt đầu với một nút gốc chứa toàn bộ dữ liệu
+    \item \textbf{Bước 2}: Tính toán \textit{gain} (lợi ích) cho mỗi lá hiện tại
+    \item \textbf{Bước 3}: Chọn lá có gain lớn nhất để chia
+    \item \textbf{Bước 4}: Tìm cách chia tốt nhất cho lá đó
+    \item \textbf{Bước 5}: Nếu gain đủ lớn, thực hiện chia và cập nhật danh sách lá
+    \item \textbf{Bước 6}: Lặp lại cho đến khi đạt số lá tối đa hoặc không còn split tốt
+\end{enumerate}
+
+\subsection{Histogram-based Split: Tối ưu hóa việc tìm điểm chia}
+\label{subsec:histogram-split}
+
+Một trong những thách thức lớn nhất khi xây dựng cây quyết định là tìm \textbf{điểm chia tốt nhất} (best split point) cho mỗi đặc trưng. Cách tiếp cận truyền thống phải kiểm tra tất cả các giá trị có thể, điều này rất tốn kém về mặt tính toán.
+
+\subsubsection{Vấn đề với cách tiếp cận truyền thống}
+
+\textbf{Thuật toán thông thường:}
+\begin{enumerate}
+    \item Sắp xếp tất cả giá trị của đặc trưng
+    \item Kiểm tra từng điểm chia có thể
+    \item Tính toán gain cho mỗi điểm chia
+    \item Chọn điểm chia có gain lớn nhất
+\end{enumerate}
+
+\textbf{Ví dụ}: Với đặc trưng \texttt{Petal\_Width} có 6 giá trị: \{0.2, 0.5, 0.6, 0.7, 0.9, 1.3\}
+\begin{itemize}
+    \item Số điểm chia cần kiểm tra: 5 (giữa các giá trị liên tiếp)
+    \item Với 1000 đặc trưng, mỗi đặc trưng có 100 giá trị: 1000 × 99 = 99,000 phép tính
+    \item Với 1 triệu mẫu: 1,000,000 × 99,000 = 99 tỷ phép tính!
+\end{itemize}
+
+\subsubsection{Giải pháp Histogram-based của LightGBM}
+
+LightGBM giải quyết vấn đề này bằng cách \textbf{gom nhóm} (binning) các giá trị liên tục thành các \textbf{bin} rời rạc:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{2cm} p{3cm} p{4cm}}
+\toprule
+\textbf{Bin} & \textbf{Khoảng giá trị} & \textbf{Các giá trị thực tế} \\
+\midrule
+1 & [0.2–0.567] & \{0.2, 0.5\} \\
+2 & (0.567–0.933] & \{0.6, 0.7, 0.9\} \\
+3 & (0.933–1.3] & \{1.3\} \\
+\bottomrule
+\end{tabular}
+\caption{Ví dụ Histogram-based Split: Thay vì kiểm tra 5 điểm chia, chỉ cần kiểm tra 2 điểm chia giữa các bin.}
+\end{table}
+
+\subsubsection{Thuật toán tạo Histogram}
+
+\begin{algorithm}[H]
+\caption{Histogram Construction}
+\begin{algorithmic}[1]
+\Require Đặc trưng $X$ với $n$ giá trị, số bin $B$
+\State Sắp xếp các giá trị: $x_1 \leq x_2 \leq ... \leq x_n$
+\State Tính khoảng cách bin: $\Delta = \frac{x_{max} - x_{min}}{B}$
+\For{$i = 1$ đến $n$}
+    \State $bin\_id = \lfloor \frac{x_i - x_{min}}{\Delta} \rfloor$
+    \State $histogram[bin\_id] \mathrel{+}= 1$
+\EndFor
+\State \Return $histogram$
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Tìm điểm chia tốt nhất trên Histogram}
+
+Thay vì kiểm tra tất cả điểm chia, LightGBM chỉ kiểm tra các điểm chia \textbf{giữa các bin}:
+
+\begin{enumerate}
+    \item \textbf{Bước 1}: Tạo histogram cho đặc trưng
+    \item \textbf{Bước 2}: Chỉ xem xét các điểm chia giữa bin $i$ và bin $i+1$
+    \item \textbf{Bước 3}: Tính gain cho mỗi điểm chia này
+    \item \textbf{Bước 4}: Chọn điểm chia có gain lớn nhất
+\end{enumerate}
+
+\textbf{Ví dụ cụ thể}: Với 3 bin, chỉ cần kiểm tra 2 điểm chia:
+\begin{itemize}
+    \item Điểm chia 1: Giữa bin 1 và bin 2
+    \item Điểm chia 2: Giữa bin 2 và bin 3
+\end{itemize}
+
+\subsubsection{Lợi ích của Histogram-based Split}
+
+\textbf{1. Giảm đáng kể số phép tính:}
+\begin{itemize}
+    \item Thay vì kiểm tra $n-1$ điểm chia, chỉ kiểm tra $B-1$ điểm chia
+    \item Với $B = 255$ (mặc định), giảm từ hàng triệu xuống còn 254 phép tính
+    \item Tốc độ tăng lên hàng nghìn lần
+\end{itemize}
+
+\textbf{2. Tiết kiệm bộ nhớ:}
+\begin{itemize}
+    \item Chỉ cần lưu trữ histogram (mảng 255 phần tử)
+    \item Không cần lưu trữ toàn bộ dữ liệu gốc
+    \item Có thể xử lý dataset rất lớn
+\end{itemize}
+
+\textbf{3. Tăng tốc song song:}
+\begin{itemize}
+    \item Mỗi đặc trưng có thể xử lý độc lập
+    \item Dễ dàng song song hóa trên nhiều CPU
+    \item Tận dụng tối đa tài nguyên máy tính
+\end{itemize}
+
+\subsubsection{Công thức toán học}
+
+Gain của một điểm chia được tính như sau:
+\[
+\text{Gain} = \frac{1}{2} \left[ \frac{(\sum_{i \in L} g_i)^2}{\sum_{i \in L} h_i + \lambda} + \frac{(\sum_{i \in R} g_i)^2}{\sum_{i \in R} h_i + \lambda} - \frac{(\sum_{i \in I} g_i)^2}{\sum_{i \in I} h_i + \lambda} \right]
+\]
+
+Trong đó:
+\begin{itemize}
+    \item $g_i$: gradient của mẫu thứ $i$
+    \item $h_i$: hessian của mẫu thứ $i$
+    \item $L, R$: tập mẫu bên trái và bên phải điểm chia
+    \item $I$: tập mẫu gốc
+    \item $\lambda$: tham số regularization
+\end{itemize}
+
+Với histogram, ta có thể tính nhanh:
+\[
+\sum_{i \in L} g_i = \sum_{b=1}^{split\_bin} histogram[b].sum\_gradients
+\]
+\[
+\sum_{i \in L} h_i = \sum_{b=1}^{split\_bin} histogram[b].sum\_hessians
+\]
+
+\subsection{Exclusive Feature Bundling (EFB): Tối ưu hóa đặc trưng Categorical}
+\label{subsec:efb}
+
+Một thách thức lớn trong học máy là xử lý \textbf{đặc trưng categorical} (phân loại). Khi có nhiều đặc trưng categorical, việc one-hot encoding có thể tạo ra hàng nghìn cột, gây ra vấn đề về bộ nhớ và tốc độ tính toán.
+
+\subsubsection{Vấn đề với One-Hot Encoding truyền thống}
+
+\textbf{Ví dụ thực tế}: Dataset về khách hàng có các đặc trưng:
+\begin{itemize}
+    \item \texttt{Country}: 200 quốc gia → 200 cột one-hot
+    \item \texttt{City}: 1000 thành phố → 1000 cột one-hot  
+    \item \texttt{Category}: 50 danh mục → 50 cột one-hot
+    \item \texttt{Color}: 10 màu sắc → 10 cột one-hot
+\end{itemize}
+
+\textbf{Tổng cộng}: 1260 cột chỉ từ 4 đặc trưng gốc!
+
+\textbf{Vấn đề phát sinh}:
+\begin{itemize}
+    \item \textbf{Bộ nhớ}: Cần lưu trữ ma trận 1M × 1260 = 1.26 tỷ số
+    \item \textbf{Tốc độ}: Mỗi lần tính toán phải xử lý 1260 cột
+    \item \textbf{Sparse data}: Hầu hết các cột có giá trị 0
+\end{itemize}
+
+\subsubsection{Ý tưởng cốt lõi của EFB}
+
+LightGBM nhận ra rằng \textbf{không phải tất cả đặc trưng categorical đều cần thiết cùng lúc}. Một số đặc trưng có tính chất \textbf{exclusive} (loại trừ lẫn nhau):
+
+\begin{itemize}
+    \item \textbf{Country} và \textbf{City}: Một khách hàng chỉ ở một quốc gia và một thành phố
+    \item \textbf{Color} và \textbf{Size}: Một sản phẩm chỉ có một màu và một kích thước
+    \item \textbf{Day\_of\_week} và \textbf{Month}: Một ngày chỉ thuộc một thứ và một tháng
+\end{itemize}
+
+\subsubsection{Thuật toán EFB}
+
+\begin{algorithm}[H]
+\caption{Exclusive Feature Bundling}
+\begin{algorithmic}[1]
+\Require Tập đặc trưng categorical $F = \{f_1, f_2, ..., f_n\}$
+\State Tạo đồ thị $G$ với các nút là đặc trưng
+\For{mỗi cặp đặc trưng $(f_i, f_j)$}
+    \If{$f_i$ và $f_j$ không bao giờ cùng $\neq 0$}
+        \State Thêm cạnh $(f_i, f_j)$ vào $G$
+    \EndIf
+\EndFor
+\State Tìm các thành phần liên thông của $G$
+\For{mỗi thành phần liên thông $C$}
+    \State Tạo bundle $B$ chứa tất cả đặc trưng trong $C$
+    \State Gán mã số duy nhất cho mỗi tổ hợp giá trị trong $B$
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Ví dụ minh họa chi tiết}
+
+Xét dataset về sản phẩm với 3 đặc trưng màu sắc:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{1.5cm} p{1.5cm} p{1.5cm} p{1.5cm} p{1cm} p{3cm}}
+\toprule
+\textbf{Product ID} & \textbf{Red} & \textbf{Blue} & \textbf{Green} & \textbf{→} & \textbf{Color\_bundle} \\
+\midrule
+P1 & 1 & 0 & 0 & → & 0 \\
+P2 & 0 & 1 & 0 & → & 1 \\
+P3 & 0 & 0 & 1 & → & 2 \\
+P4 & 1 & 0 & 0 & → & 0 \\
+P5 & 0 & 1 & 0 & → & 1 \\
+\bottomrule
+\end{tabular}
+\caption{EFB: Gom 3 cột one-hot thành 1 cột bundle, tiết kiệm 67\% bộ nhớ.}
+\end{table}
+
+\subsubsection{Quá trình tạo Bundle}
+
+\textbf{Bước 1: Phân tích tính exclusive}
+\begin{itemize}
+    \item Red = 1 → Blue = 0, Green = 0
+    \item Blue = 1 → Red = 0, Green = 0  
+    \item Green = 1 → Red = 0, Blue = 0
+\end{itemize}
+
+\textbf{Bước 2: Tạo đồ thị}
+\begin{figure}[H]
+\centering
+    \begin{tikzpicture}[
+        node/.style={circle, draw, minimum size=1.2cm, font=\small\bfseries},
+        edge/.style={line width=3pt, opacity=0.7},
+        exclusive/.style={line width=2pt, dashed, red!70!black},
+        bundle/.style={rectangle, draw, rounded corners, minimum width=2.5cm, minimum height=1cm, fill=blue!10, draw=blue!50!black, align=center}
+    ]
+    % Các đặc trưng gốc
+    \node[node, fill=red!10, draw=red!50!black] (red) at (0,0) {Red};
+    \node[node, fill=blue!10, draw=blue!50!black] (blue) at (3,0) {Blue};
+    \node[node, fill=green!20, draw=green!50!black] (green) at (1.5,-2) {Green};
+    
+    % Các cạnh exclusive (loại trừ lẫn nhau)
+    \draw[exclusive] (red) -- (blue) node[midway, above, red!70!black, font=\scriptsize] {Exclusive};
+    \draw[exclusive] (red) -- (green) node[midway, left, red!70!black, font=\scriptsize] {Exclusive};
+    \draw[exclusive] (blue) -- (green) node[midway, right, red!70!black, font=\scriptsize] {Exclusive};
+    
+    % Mũi tên chỉ quá trình bundling
+    \draw[->, thick, blue!50!black] (4.5, -1) -- (6, -1) node[midway, above, blue!50!black, font=\scriptsize] {Bundling};
+    
+    % Kết quả sau bundling
+    \node[bundle] (bundle) at (7.5, -1) {Color\_Bundle};
+    \node[below=0.2cm of bundle, font=\scriptsize] {Red=0, Blue=1, Green=2};
+    
+    % Chú thích
+    \node[below=0.5cm of green, font=\scriptsize] {Các đặc trưng loại trừ lẫn nhau};
+    \node[below=0.5cm of bundle, font=\scriptsize] {Gom thành 1 đặc trưng};
+    \end{tikzpicture}
+    \caption{Quy trình Exclusive Feature Bundling (EFB): Các đặc trưng màu sắc (Red, Blue, Green) loại trừ lẫn nhau được gom thành một bundle duy nhất với mã số tương ứng (0, 1, 2), giảm từ 3 cột xuống 1 cột.}
 \end{figure}
 
-\section{Ứng dụng thực tiễn}
-
-Gradient Boosting đặc biệt hiệu quả trên dữ liệu dạng bảng (tabular data).  
-Một số ứng dụng:
+\textbf{Bước 3: Tạo bundle}
 \begin{itemize}
-    \item \textbf{Tài chính:} chấm điểm tín dụng, phát hiện gian lận.  
-    \item \textbf{Marketing:} dự đoán churn, tối ưu chiến dịch.  
-    \item \textbf{Y tế:} mô hình nguy cơ bệnh, phân tích dữ liệu lâm sàng.  
-    \item \textbf{Công nghiệp:} dự báo nhu cầu, mô phỏng, xếp hạng.  
+    \item Tất cả 3 đặc trưng thuộc cùng một thành phần liên thông
+    \item Gom thành 1 bundle: \texttt{Color\_bundle}
+    \item Gán mã: Red=0, Blue=1, Green=2
 \end{itemize}
 
+\subsubsection{Lợi ích của EFB}
 
-\subsection*{Ví dụ: Dự đoán churn khách hàng}
+\textbf{1. Tiết kiệm bộ nhớ đáng kể:}
+\begin{itemize}
+    \item Từ 3 cột → 1 cột (giảm 67\%)
+    \item Với 1000 đặc trưng categorical: có thể giảm từ 1000 → 200-300 cột
+    \item Tiết kiệm hàng GB bộ nhớ với dataset lớn
+\end{itemize}
 
-Sử dụng LightGBM trên dữ liệu churn - dự đoán khách hàng nào có nguy cơ rời bỏ dịch vụ (unsubscribe, ngừng sử dụng). Đây là một ứng dụng kinh điển của học máy trong marketing và chăm sóc khách hàng.  
+\textbf{2. Tăng tốc tính toán:}
+\begin{itemize}
+    \item Ít cột hơn → ít phép tính hơn
+    \item Tận dụng cache hiệu quả hơn
+    \item Giảm thời gian truy cập bộ nhớ
+\end{itemize}
+
+\textbf{3. Giữ nguyên thông tin:}
+\begin{itemize}
+    \item Không mất thông tin gì so với one-hot encoding
+    \item Có thể khôi phục lại đặc trưng gốc
+    \item Kết quả mô hình không thay đổi
+\end{itemize}
+
+\subsubsection{Ứng dụng thực tế}
+
+\textbf{Ví dụ 1: E-commerce}
+\begin{itemize}
+    \item \texttt{Product\_category} (1000 loại) + \texttt{Product\_brand} (500 thương hiệu)
+    \item Có thể bundle vì mỗi sản phẩm chỉ thuộc 1 loại và 1 thương hiệu
+    \item Giảm từ 1500 cột xuống còn 1 cột
+\end{itemize}
+
+\textbf{Ví dụ 2: Time series}
+\begin{itemize}
+    \item \texttt{Hour} (24 giá trị) + \texttt{Day\_of\_week} (7 giá trị) + \texttt{Month} (12 giá trị)
+    \item Có thể bundle vì mỗi thời điểm chỉ có 1 giờ, 1 thứ, 1 tháng
+    \item Giảm từ 43 cột xuống còn 1 cột
+\end{itemize}
+
+\subsubsection{Công thức tính toán Bundle}
+
+Với bundle chứa $k$ đặc trưng, mỗi đặc trưng có $n_i$ giá trị:
+\[
+\text{Bundle\_value} = \sum_{i=1}^{k} f_i \times \prod_{j=1}^{i-1} n_j
+\]
+
+Ví dụ với Red(2), Blue(2), Green(2):
+    \begin{itemize}
+    \item Red=1, Blue=0, Green=0 → Bundle = 1×1 + 0×2 + 0×4 = 1
+    \item Red=0, Blue=1, Green=0 → Bundle = 0×1 + 1×2 + 0×4 = 2  
+    \item Red=0, Blue=0, Green=1 → Bundle = 0×1 + 0×2 + 1×4 = 4
+    \end{itemize}
+
+\subsection{Gradient-based One-Side Sampling (GOSS): Lấy mẫu thông minh}
+\label{subsec:goss}
+
+Khi làm việc với dataset rất lớn (hàng triệu mẫu), việc sử dụng toàn bộ dữ liệu cho mỗi cây có thể rất tốn kém. Tuy nhiên, không phải tất cả mẫu đều quan trọng như nhau. LightGBM sử dụng kỹ thuật \textbf{GOSS} để lấy mẫu một cách thông minh.
+
+\subsubsection{Ý tưởng cốt lõi}
+
+Trong Gradient Boosting, mỗi cây mới được huấn luyện để sửa lỗi của các cây trước đó. Những mẫu có \textbf{gradient lớn} (lỗi lớn) là những mẫu "khó học" và quan trọng hơn. Ngược lại, những mẫu có \textbf{gradient nhỏ} (lỗi nhỏ) đã được học tốt và ít quan trọng hơn.
+
+\textbf{Quan sát quan trọng}: 
+\begin{itemize}
+    \item Mẫu có gradient lớn → Cần được học nhiều hơn
+    \item Mẫu có gradient nhỏ → Đã học tốt, có thể bỏ qua một phần
+\end{itemize}
+
+\subsubsection{Thuật toán GOSS}
+
+\begin{algorithm}[H]
+\caption{Gradient-based One-Side Sampling}
+\begin{algorithmic}[1]
+\Require Dataset $D$ với $n$ mẫu, tỉ lệ lấy mẫu $a$, $b$
+\State Tính gradient $g_i$ cho mỗi mẫu $i$
+\State Sắp xếp mẫu theo $|g_i|$ giảm dần
+\State Chọn top $a \times n$ mẫu có gradient lớn nhất
+\State Lấy mẫu ngẫu nhiên $b \times n$ mẫu từ phần còn lại
+\State Tạo dataset mới $D'$ từ 2 nhóm trên
+\State Huấn luyện cây trên $D'$ với trọng số điều chỉnh
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Ví dụ minh họa chi tiết}
+
+Giả sử có dataset với 1000 mẫu, gradient của một số mẫu:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{2cm} p{2cm} p{2cm} p{3cm}}
+\toprule
+\textbf{Mẫu ID} & \textbf{Gradient} & \textbf{Loại} & \textbf{Quyết định} \\
+\midrule
+1 & 0.95 & Lớn & ✓ Giữ (top 10\%) \\
+2 & 0.87 & Lớn & ✓ Giữ (top 10\%) \\
+3 & 0.82 & Lớn & ✓ Giữ (top 10\%) \\
+... & ... & ... & ... \\
+100 & 0.12 & Nhỏ & ? Lấy mẫu ngẫu nhiên \\
+101 & 0.08 & Nhỏ & ? Lấy mẫu ngẫu nhiên \\
+... & ... & ... & ... \\
+1000 & 0.01 & Nhỏ & ? Lấy mẫu ngẫu nhiên \\
+\bottomrule
+\end{tabular}
+\caption{Ví dụ GOSS: Giữ tất cả mẫu có gradient lớn, lấy mẫu ngẫu nhiên từ mẫu có gradient nhỏ.}
+\end{table}
+
+\subsubsection{Quá trình lấy mẫu}
+
+\textbf{Bước 1: Tính gradient}
+Với mỗi mẫu $(x_i, y_i)$, tính gradient:
+\[
+g_i = \frac{\partial L(y_i, F(x_i))}{\partial F(x_i)}
+\]
+
+\textbf{Bước 2: Sắp xếp theo độ lớn gradient}
+\[
+|g_1| \geq |g_2| \geq ... \geq |g_n|
+\]
+
+\textbf{Bước 3: Chia thành 2 nhóm}
+\begin{itemize}
+    \item \textbf{Nhóm A} (top $a \times n$): Mẫu có gradient lớn nhất
+    \item \textbf{Nhóm B} (còn lại): Mẫu có gradient nhỏ hơn
+\end{itemize}
+
+\textbf{Bước 4: Lấy mẫu từ nhóm B}
+\begin{itemize}
+    \item Lấy ngẫu nhiên $b \times n$ mẫu từ nhóm B
+    \item Tỉ lệ lấy mẫu: $b = 0.1$ (10\%)
+\end{itemize}
+
+\textbf{Bước 5: Tạo dataset mới}
+\[
+D' = A \cup \text{random\_sample}(B, b \times n)
+\]
+
+\subsubsection{Điều chỉnh trọng số}
+
+Để đảm bảo tính không thiên lệch (unbiased), GOSS điều chỉnh trọng số:
+
+\[
+w_i = \begin{cases}
+1 & \text{nếu } i \in A \\
+\frac{1 - a}{b} & \text{nếu } i \in \text{random\_sample}(B)
+\end{cases}
+\]
+
+\textbf{Giải thích}:
+\begin{itemize}
+    \item Mẫu trong nhóm A: trọng số = 1 (giữ nguyên)
+    \item Mẫu được lấy mẫu từ nhóm B: trọng số = $\frac{1-a}{b}$ (tăng lên)
+\end{itemize}
+
+\subsubsection{Ví dụ tính toán trọng số}
+
+Với $a = 0.1$, $b = 0.1$:
+\begin{itemize}
+    \item Nhóm A (100 mẫu): $w = 1$
+    \item Nhóm B được lấy mẫu (100 mẫu): $w = \frac{1-0.1}{0.1} = 9$
+\end{itemize}
+
+Tổng trọng số hiệu dụng:
+\[
+\text{Effective weight} = 100 \times 1 + 100 \times 9 = 1000
+\]
+
+\subsubsection{Lợi ích của GOSS}
+
+\textbf{1. Giảm đáng kể kích thước dataset:}
+\begin{itemize}
+    \item Từ 1M mẫu → 200K mẫu (với $a=0.1, b=0.1$)
+    \item Giảm 80\% thời gian huấn luyện
+    \item Tiết kiệm bộ nhớ đáng kể
+\end{itemize}
+
+\textbf{2. Giữ được thông tin quan trọng:}
+\begin{itemize}
+    \item Tất cả mẫu "khó học" được giữ lại
+    \item Mẫu "dễ học" vẫn được đại diện qua lấy mẫu
+    \item Chất lượng mô hình không giảm đáng kể
+\end{itemize}
+
+\textbf{3. Tăng tốc song song:}
+\begin{itemize}
+    \item Mỗi cây có thể huấn luyện trên dataset nhỏ hơn
+    \item Dễ dàng phân tán trên nhiều máy
+    \item Tận dụng tài nguyên hiệu quả hơn
+\end{itemize}
+
+\subsubsection{So sánh với các phương pháp lấy mẫu khác}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{3cm} p{3cm} p{3cm} p{3cm}}
+\toprule
+\textbf{Phương pháp} & \textbf{Cách lấy mẫu} & \textbf{Ưu điểm} & \textbf{Nhược điểm} \\
+\midrule
+Random Sampling & Ngẫu nhiên đều & Đơn giản & Có thể bỏ sót mẫu quan trọng \\
+Stratified Sampling & Theo nhóm & Cân bằng nhóm & Phức tạp, không tối ưu \\
+\textbf{GOSS} & \textbf{Theo gradient} & \textbf{Thông minh, hiệu quả} & \textbf{Phức tạp hơn} \\
+\bottomrule
+\end{tabular}
+\caption{So sánh các phương pháp lấy mẫu trong Gradient Boosting.}
+\end{table}
+
+\subsubsection{Tham số GOSS trong LightGBM}
+
 \begin{minted}{python}
-    
-import lightgbm as lgb
-train_data = lgb.Dataset(X_train, label=y_train)
-valid_data = lgb.Dataset(X_test, label=y_test)
-
+# Cấu hình GOSS trong LightGBM
 params = {
-    "objective": "binary",
-    "learning_rate": 0.05,
-    "num_leaves": 31,
-    "metric": "auc"
+    'boosting_type': 'goss',  # Sử dụng GOSS
+    'top_rate': 0.1,          # Tỉ lệ mẫu gradient lớn (a)
+    'other_rate': 0.1,        # Tỉ lệ lấy mẫu từ mẫu còn lại (b)
+    'verbose': -1
 }
-model = lgb.train(params, train_data, valid_sets=[valid_data],
-                  num_boost_round=500, early_stopping_rounds=50)
+\end{minted}
 
-print("Best AUC:", model.best_score["valid_0"]["auc"])
+\textbf{Khuyến nghị tham số}:
+\begin{itemize}
+    \item \texttt{top\_rate}: 0.1-0.2 (10-20\% mẫu quan trọng)
+    \item \texttt{other\_rate}: 0.1-0.2 (10-20\% mẫu ngẫu nhiên)
+    \item Tổng cộng: 20-40\% dataset gốc
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{projects/LightGBM_SHAP/images/Screenshot 2025-09-22 202732.jpg}
+    \caption{Các thuật toán tối ưu trong LightGBM (EFB và GOSS): EFB sử dụng histogram để mã hóa đặc trưng, gom các đặc trưng hiếm khi xuất hiện cùng nhau để giảm chiều từ M features → m features. GOSS thực hiện sorting theo gradient, lấy Top a\% mẫu có gradient lớn nhất và ngẫu nhiên chọn thêm (1-a\%)b\% từ phần còn lại, giúp tăng tốc huấn luyện mà vẫn giữ thông tin quan trọng.}
+    \label{fig:efb-goss-optimization}
+\end{figure}
+
+\subsection{Tổng kết: Bốn cải tiến cốt lõi của LightGBM}
+\label{subsec:lightgbm-summary}
+
+LightGBM đạt được hiệu suất vượt trội nhờ sự kết hợp của bốn kỹ thuật đột phá:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{3cm} p{4cm} p{4cm} p{3cm}}
+\toprule
+\textbf{Kỹ thuật} & \textbf{Vấn đề giải quyết} & \textbf{Cách hoạt động} & \textbf{Lợi ích} \\
+\midrule
+\textbf{Leaf-wise Growth} & Cây không cân bằng, overfitting & Mở rộng lá có gain lớn nhất & Giảm overfitting, tăng tốc \\
+\textbf{Histogram-based Split} & Tìm điểm chia tốn kém & Gom giá trị thành bins & Tăng tốc hàng nghìn lần \\
+\textbf{Exclusive Feature Bundling} & One-hot encoding tạo nhiều cột & Gom đặc trưng exclusive & Tiết kiệm bộ nhớ 60-80\% \\
+\textbf{Gradient-based Sampling} & Dataset quá lớn & Lấy mẫu theo gradient & Giảm 80\% thời gian huấn luyện \\
+\bottomrule
+\end{tabular}
+\caption{Tổng kết bốn cải tiến cốt lõi của LightGBM.}
+\end{table}
+
+\subsubsection{Sự kết hợp hoàn hảo}
+
+Bốn kỹ thuật này không hoạt động độc lập mà \textbf{bổ sung cho nhau}:
+
+\begin{enumerate}
+    \item \textbf{Histogram} giúp tìm điểm chia nhanh chóng
+    \item \textbf{Leaf-wise} quyết định nên chia nút nào
+    \item \textbf{EFB} giảm số đặc trưng cần xử lý
+    \item \textbf{GOSS} giảm số mẫu cần xử lý
+\end{enumerate}
+
+\textbf{Kết quả}: LightGBM có thể xử lý dataset lớn gấp 10-100 lần so với các thuật toán truyền thống mà vẫn đạt độ chính xác cao.
+
+\subsubsection{Khi nào sử dụng LightGBM}
+
+\textbf{LightGBM phù hợp nhất với dataset lớn (>100K mẫu), nhiều đặc trưng categorical, cần tốc độ huấn luyện nhanh và bộ nhớ hạn chế. Ngược lại, với dataset rất nhỏ (<10K mẫu) hoặc chỉ có đặc trưng numerical, các thuật toán khác có thể phù hợp hơn.}
+
+\begin{tcolorbox}[title=Kết luận về LightGBM, colback=green!10, colframe=green!50!black]
+LightGBM đại diện cho một bước tiến lớn trong lĩnh vực Gradient Boosting. Bằng cách kết hợp bốn kỹ thuật đột phá - Leaf-wise Growth, Histogram-based Split, Exclusive Feature Bundling, và Gradient-based One-Side Sampling - LightGBM đã giải quyết được những thách thức lớn nhất của các thuật toán truyền thống: tốc độ chậm, tiêu tốn bộ nhớ, và khó xử lý dữ liệu categorical. Đây là lý do tại sao LightGBM trở thành lựa chọn hàng đầu cho các bài toán tabular data trong thực tế.
+\end{tcolorbox}
+
+\section{Dữ liệu sử dụng}
+\label{sec:lightgbm-data}
+
+\subsection*{Phân loại (HEPMASS)}
+\begin{itemize}
+    \item \textbf{Mục tiêu}: phân biệt tín hiệu (signal) và nền (background) trong thí nghiệm vật lý năng lượng cao.
+    \item \textbf{Đặc trưng}: 27 biến đã chuẩn hoá, không thiếu dữ liệu.
+    \item \textbf{Định dạng}: CSV, cột đầu tiên là nhãn (0/1), theo sau là 27 cột đặc trưng.
+    \item \textbf{Kích thước}: 3.5 triệu mẫu (50\% signal, 50\% background)
+\end{itemize}
+
+\subsection*{Hồi quy (NYC Taxi Trip Duration)}
+\begin{itemize}
+    \item \textbf{Mục tiêu}: dự đoán thời lượng chuyến đi taxi từ đặc trưng thời gian và toạ độ. \footnote{Mô tả bài toán: \href{https://www.kaggle.com/competitions/nyc-taxi-trip-duration}{NYC Taxi Trip Duration (Kaggle)}.}
+    \item \textbf{Định dạng}: CSV gồm \code{pickup\_datetime}, \code{passenger\_count}, toạ độ đón/trả, \code{trip\_duration} (mục tiêu), v.v.
+    \item \textbf{Kích thước}: 1.4 triệu chuyến taxi
+\end{itemize}
+
+\begin{tcolorbox}[title=Đặt dữ liệu ở đâu?, colback=green!10, colframe=green!50!black]
+Đặt các file CSV vào thư mục \code{projects/LightGBM\_SHAP/content/} và cập nhật đường dẫn trong mã nếu khác. Với dữ liệu lớn, nên chạy cục bộ thay vì môi trường hạn chế tài nguyên.
+\end{tcolorbox}
+
+\section{Pipeline Phân loại: HEPMASS}
+\label{sec:lightgbm-classification}
+Notebook thực hiện: tách nhãn/đặc trưng, chia train/test theo tỉ lệ 80/20 có \emph{stratify}, sau đó huấn luyện ba mô hình và so sánh \textbf{Accuracy} và \textbf{AUC-ROC}. Mã rút gọn minh hoạ:
+\begin{minted}{python}
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, roc_auc_score
+from sklearn.ensemble import GradientBoostingClassifier
+import xgboost as xgb
+import lightgbm as lgb
+
+df = pd.read_csv('projects/LightGBM_SHAP/content/particles.csv')
+y = df.iloc[:, 0].values
+X = df.iloc[:, 1:].values
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+# 1) GradientBoosting (sklearn)
+gb = GradientBoostingClassifier(n_estimators=100, max_depth=6, learning_rate=0.1,
+                                subsample=0.8, random_state=42)
+gb.fit(X_train, y_train)
+
+# 2) XGBoost (DMatrix API)
+dtrain, dtest = xgb.DMatrix(X_train, label=y_train), xgb.DMatrix(X_test, label=y_test)
+xgb_params = {'objective': 'binary:logistic', 'eval_metric': 'auc', 'max_depth': 6,
+              'learning_rate': 0.1, 'subsample': 0.8, 'colsample_bytree': 0.8,
+              'random_state': 42}
+xgb_model = xgb.train(xgb_params, dtrain, num_boost_round=100)
+
+# 3) LightGBM
+lgb_train = lgb.Dataset(X_train, label=y_train)
+lgb_model = lgb.train({'objective': 'binary', 'metric': 'auc', 'learning_rate': 0.1,
+                       'num_leaves': 63, 'max_depth': 6, 'feature_fraction': 0.8,
+                       'bagging_fraction': 0.8, 'bagging_freq': 5, 'random_state': 42},
+                      lgb_train, num_boost_round=100)
+
+# Đánh giá
+from sklearn.metrics import roc_auc_score
+gb_auc = roc_auc_score(y_test, gb.predict_proba(X_test)[:, 1])
+xgb_auc = roc_auc_score(y_test, xgb_model.predict(dtest))
+lgb_auc = roc_auc_score(y_test, lgb_model.predict(X_test))
+print({'gb_auc': gb_auc, 'xgb_auc': xgb_auc, 'lgb_auc': lgb_auc})
+\end{minted}
+
+\subsection*{Minh hoạ: Level-wise vs Leaf-wise}
+LightGBM phát triển cây theo \textbf{lá} (leaf-wise), ưu tiên \emph{giảm loss nhanh nhất} thay vì tăng đều theo mức (level-wise). Xem minh hoạ chi tiết ở Hình \ref{fig:level-vs-leaf}.
+
+\section{Pipeline Hồi quy: NYC Taxi}
+\label{sec:lightgbm-regression}
+Notebook thực hiện các bước làm sạch và \emph{feature engineering} sau, sau đó so sánh RMSE:
+\begin{itemize}
+    \item Loại bỏ cột không hữu ích (\code{dropoff\_datetime}, \code{store\_and\_fwd\_flag}).
+    \item Lọc toạ độ trong phạm vi thành phố (bounding box NYC) và reset index.
+    \item Trích chọn đặc trưng thời gian: \code{hour}, \code{day\_of\_week}, \code{month}, \code{day\_of\_month}.
+    \item Tính \textit{Haversine distance}, \textit{Manhattan distance}; gom cụm toạ độ bằng \code{MiniBatchKMeans}.
+    \item Biến đổi mục tiêu \code{log\_trip\_duration} để ổn định phương sai.
+\end{itemize}
+Mã rút gọn minh hoạ:\
+\begin{minted}{python}
+import pandas as pd, numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+from sklearn.cluster import MiniBatchKMeans
+import xgboost as xgb, lightgbm as lgb
+from sklearn.ensemble import GradientBoostingRegressor
+
+df = pd.read_csv('projects/LightGBM_SHAP/content/taxi_trip.csv')
+df = df.drop(columns=[c for c in ['dropoff_datetime','store_and_fwd_flag'] if c in df])
+
+# Giới hạn toạ độ NYC
+lon_min, lon_max = -74.03, -73.75
+lat_min, lat_max = 40.63, 40.85
+df = df[(df['pickup_longitude'].between(lon_min, lon_max)) &
+        (df['dropoff_longitude'].between(lon_min, lon_max)) &
+        (df['pickup_latitude'].between(lat_min, lat_max)) &
+        (df['dropoff_latitude'].between(lat_min, lat_max))].reset_index(drop=True)
+
+# Time features
+df['pickup_datetime'] = pd.to_datetime(df['pickup_datetime'])
+df['hour'] = df['pickup_datetime'].dt.hour
+df['day_of_week'] = df['pickup_datetime'].dt.dayofweek
+df['month'] = df['pickup_datetime'].dt.month
+df['day_of_month'] = df['pickup_datetime'].dt.day
+
+# Khoảng cách
+def haversine(lat1, lon1, lat2, lon2):
+    R=6371
+    lat1, lon1, lat2, lon2 = map(np.radians, [lat1, lon1, lat2, lon2])
+    dlat, dlon = lat2-lat1, lon2-lon1
+    a = np.sin(dlat/2)**2 + np.cos(lat1)*np.cos(lat2)*np.sin(dlon/2)**2
+    return 2*R*np.arcsin(np.sqrt(a))
+
+df['distance_haversine'] = haversine(df['pickup_latitude'], df['pickup_longitude'],
+                                     df['dropoff_latitude'], df['dropoff_longitude'])
+df['distance_manhattan'] = (
+    haversine(df['pickup_latitude'], df['pickup_longitude'], df['pickup_latitude'], df['dropoff_longitude']) +
+    haversine(df['pickup_latitude'], df['pickup_longitude'], df['dropoff_latitude'], df['pickup_longitude'])
+)
+
+# Gom cụm vị trí
+kmeans = MiniBatchKMeans(n_clusters=50, random_state=42, batch_size=5000)
+kmeans.fit(np.vstack([
+    df[['pickup_latitude','pickup_longitude']].values,
+    df[['dropoff_latitude','dropoff_longitude']].values
+]))
+df['pickup_cluster'] = kmeans.predict(df[['pickup_latitude','pickup_longitude']])
+df['dropoff_cluster'] = kmeans.predict(df[['dropoff_latitude','dropoff_longitude']])
+
+df['log_trip_duration'] = np.log(df['trip_duration'] + 1)
+
+features = ['vendor_id','passenger_count','pickup_longitude','pickup_latitude',
+            'dropoff_longitude','dropoff_latitude','hour','day_of_week','month',
+            'day_of_month','distance_haversine','distance_manhattan',
+            'pickup_cluster','dropoff_cluster']
+X, y = df[features].copy(), df['log_trip_duration'].copy()
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Huấn luyện nhanh 3 mô hình
+gb = GradientBoostingRegressor(n_estimators=100, max_depth=6, learning_rate=0.1,
+                               subsample=0.8, random_state=42).fit(X_train, y_train)
+xgb_model = xgb.train({'objective':'reg:squarederror','eval_metric':'rmse',
+                       'max_depth':6,'learning_rate':0.1,'subsample':0.8,
+                       'colsample_bytree':0.8,'random_state':42},
+                      xgb.DMatrix(X_train,label=y_train), num_boost_round=100)
+lgb_model = lgb.train({'objective':'regression','metric':'rmse','learning_rate':0.1,
+                       'num_leaves':63,'max_depth':6,'feature_fraction':0.8,
+                       'bagging_fraction':0.8,'bagging_freq':5,'random_state':42},
+                      lgb.Dataset(X_train,label=y_train), num_boost_round=100)
+
+import numpy as np
+from sklearn.metrics import mean_squared_error
+rmse_gb = np.sqrt(mean_squared_error(y_test, gb.predict(X_test)))
+rmse_xgb = np.sqrt(mean_squared_error(y_test, xgb_model.predict(xgb.DMatrix(X_test))))
+rmse_lgb = np.sqrt(mean_squared_error(y_test, lgb_model.predict(X_test)))
+print({'rmse_gb': rmse_gb, 'rmse_xgb': rmse_xgb, 'rmse_lgb': rmse_lgb})
+\end{minted}
+
+\section{Case Study: So sánh hiệu suất}
+\label{sec:lightgbm-case-study}
+
+\subsection{Taxi Trip Duration (NYC)}
+\label{subsec:case-taxi}
+
+\textbf{Dataset}: 1.4 triệu chuyến taxi từ New York City.\\
+\textbf{Nhiệm vụ}: Dự đoán thời gian chuyến đi dựa trên vị trí đón/trả, thời gian, số hành khách, v.v.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{3.5cm} p{3cm} p{3cm}}
+\toprule
+\textbf{Model} & \textbf{RMSE ↓} & \textbf{Training time ↓} \\
+\midrule
+GradientBoosting & 0.3457 & 504.61s \\
+XGBoost           & 0.3483 & 2.98s \\
+LightGBM          & 0.3473 & 3.67s \\
+\bottomrule
+\end{tabular}
+\caption{Kết quả NYC Taxi Trip Duration. LightGBM đạt tốc độ nhanh nhất, RMSE gần tốt nhất.}
+\end{table}
+
+\noindent \textbf{Phân tích}: LightGBM đạt tốc độ nhanh nhất (3.67s), RMSE gần tốt nhất (0.3473). XGBoost nhanh nhất nhưng RMSE cao hơn một chút.
+
+\subsection{HEPMASS (High Energy Physics)}
+\label{subsec:case-hepmass}
+
+\textbf{Dataset}: 3.5 triệu sự kiện va chạm hạt trong thí nghiệm vật lý năng lượng cao.\\
+\textbf{Nhiệm vụ}: Phân loại tín hiệu (signal) vs. nhiễu (background).
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{3.5cm} p{2.5cm} p{2.5cm} p{2.5cm}}
+\toprule
+\textbf{Model} & \textbf{Accuracy ↑} & \textbf{AUC-ROC ↑} & \textbf{Training time ↓} \\
+\midrule
+GradientBoosting & 0.9181 & 0.9711 & 4031.84s \\
+XGBoost           & 0.9178 & 0.9712 & 19.77s \\
+LightGBM          & 0.9179 & 0.9711 & 21.55s \\
+\bottomrule
+\end{tabular}
+\caption{Kết quả HEPMASS Classification. Với dữ liệu số liệu dày đặc, XGBoost nhỉnh hơn một chút.}
+\end{table}
+
+\noindent \textbf{Phân tích}: Với dữ liệu số liệu dày đặc (dense numeric), XGBoost nhỉnh hơn một chút về AUC-ROC (0.9712 vs 0.9711). Tuy nhiên, LightGBM vẫn rất cạnh tranh và nhanh hơn đáng kể so với GradientBoosting.
+
+\subsection{Tổng kết so sánh}
+\label{subsec:comparison-summary}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        bar/.style={rectangle, draw, minimum width=1.5cm, minimum height=0.8cm},
+        arrow/.style={-Latex, thick}
+    ]
+    % Speed comparison
+    \node[bar, fill=green!20, draw=green!50!black] (gb-slow) at (0,0) {GB: 4031s};
+    \node[bar, fill=orange!20, draw=orange!50!black] (xgb-fast) at (2,0) {XGB: 20s};
+    \node[bar, fill=green!30, draw=green!50!black] (lgb-fast) at (4,0) {LGB: 22s};
+    
+    \node[below=0.5cm of gb-slow, green!50!black] {Chậm nhất};
+    \node[below=0.5cm of xgb-fast, orange!50!black] {Nhanh nhất};
+    \node[below=0.5cm of lgb-fast, green!50!black] {Rất nhanh};
+    
+    \node[above=1cm of lgb-fast] {\textbf{Tốc độ huấn luyện}};
+    \end{tikzpicture}
+    \caption{So sánh tốc độ huấn luyện: LightGBM và XGBoost vượt trội so với GradientBoosting.}
+    \label{fig:speed-comparison}
+\end{figure}
+
+\textbf{Ưu điểm của LightGBM}:
+\begin{itemize}
+    \item \textbf{Tốc độ}: Nhanh hơn GradientBoosting 200x, cạnh tranh với XGBoost
+    \item \textbf{Bộ nhớ}: Hiệu quả hơn nhờ Histogram và EFB
+    \item \textbf{Độ chính xác}: Tương đương với các mô hình khác
+    \item \textbf{Categorical features}: Xử lý tốt nhờ EFB
+\end{itemize}
+
+\textbf{Khi nào nên dùng LightGBM}:
+\begin{itemize}
+    \item Dataset lớn (>100K mẫu)
+    \item Nhiều đặc trưng categorical
+    \item Cần tốc độ huấn luyện nhanh
+    \item Bộ nhớ hạn chế
+\end{itemize}
+
+\section{Giải thích mô hình bằng SHAP}
+\label{sec:lightgbm-shap}
+SHAP biểu diễn dự đoán \(\hat{y}\) như tổng của \textbf{base value} và \textbf{đóng góp} từ từng đặc trưng. Minh hoạ cộng dồn:
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        box/.style={rectangle, draw, rounded corners, minimum width=1.8cm, minimum height=0.8cm},
+        arrow/.style={-Latex}
+    ]
+    \node[box, fill=green!10, draw=green!50!black] (base) {Base};
+    \node[right=8mm of base, box, fill=orange!10, draw=orange!50!black] (f1) {+ f1};
+    \node[right=8mm of f1, box, fill=green!20, draw=green!50!black] (f2) {+ f2};
+    \node[right=8mm of f2, box, fill=orange!20, draw=orange!50!black] (f3) {- f3};
+    \node[right=8mm of f3, box, fill=green!30, draw=green!50!black] (out) {$\hat{y}$};
+    \draw[arrow, green!50!black] (base) -- (f1);
+    \draw[arrow, orange!50!black] (f1) -- (f2);
+    \draw[arrow, green!50!black] (f2) -- (f3);
+    \draw[arrow, orange!50!black] (f3) -- (out);
+    \end{tikzpicture}
+    \caption{Tư duy cộng dồn của SHAP: \(\hat{y} = \text{base} + \sum_j \phi_j\).}
+    \label{fig:shap_add}
+\end{figure}
+
+Mã minh hoạ tính SHAP cho XGBoost/LightGBM (nên lấy \emph{subset} để hiển thị nhanh):
+\begin{minted}{python}
+import shap, numpy as np
+import xgboost as xgb, lightgbm as lgb
+
+# Với XGBoost (binary/regression):
+expl_xgb = shap.Explainer(xgb_model)
+X_sample = xgb.DMatrix(X_test[:200])  # lấy 200 mẫu để vẽ
+sv_xgb = expl_xgb(X_sample)
+shap.plots.waterfall(sv_xgb[0])
+
+# Với LightGBM:
+expl_lgb = shap.Explainer(lgb_model)
+sv_lgb = expl_lgb(X_test[:200])
+shap.plots.beeswarm(sv_lgb)
 \end{minted}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.45\textwidth]{projects/Gradient_Boosting__Hoc_qua_vi_du_tinh_tay/images/roc_curve.png}
-    \hfill
-    \includegraphics[width=0.45\textwidth]{projects/Gradient_Boosting__Hoc_qua_vi_du_tinh_tay/images/feature_importance.png}
-    \caption{(Trái) Đường cong ROC minh họa khả năng phân biệt của mô hình LightGBM 
-    trong việc dự đoán churn. AUC càng cao, mô hình càng tốt (ở đây $\approx 0.99$). 
-    (Phải) Biểu đồ tầm quan trọng đặc trưng (Feature Importance) cho thấy các yếu tố 
-    có ảnh hưởng mạnh nhất đến dự đoán khách hàng rời bỏ dịch vụ.}
+    \includegraphics[width=0.9\textwidth]{projects/LightGBM_SHAP/images/The-feature-importance-bar-plot-and-the-SHAP-summary-plot-The-left.png}
+    \caption{Biểu đồ tầm quan trọng đặc trưng (Feature Importance với SHAP): Trái - Mean Absolute SHAP value cho các đặc trưng quan trọng nhất (thính lực: Audiogram shape, Initial hearing; sức khỏe: BUN, Tg, Age, Weight, BMI, NLR, Hb). Phải - SHAP summary plot với mỗi chấm là một mẫu, màu đỏ (High) và xanh (Low) biểu thị giá trị đặc trưng, vị trí trên trục X thể hiện mức độ tác động. Mô hình phụ thuộc nhiều vào đặc trưng thính lực và yếu tố sinh lý.}
+    \label{fig:shap-feature-importance}
 \end{figure}
-Kết quả cho thấy mô hình đạt AUC rất cao, chứng tỏ khả năng phân biệt tốt giữa nhóm khách hàng có nguy cơ rời bỏ và nhóm ở lại. 
-Biểu đồ Feature Importance giúp đội ngũ marketing hiểu rõ những yếu tố nào (ví dụ như mức độ sử dụng dịch vụ, thời gian gắn bó, 
-chi phí hàng tháng, v.v.) có ảnh hưởng nhiều nhất đến hành vi churn, từ đó đưa ra các chiến lược giữ chân khách hàng hiệu quả.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{projects/LightGBM_SHAP/images/Screenshot 2025-09-22 203102.jpg}
+    \caption{Biểu đồ SHAP giải thích mô hình theo độ tuổi: Trục X biểu diễn giá trị SHAP cho đặc trưng age (SHAP > 0: tuổi góp phần tăng xác suất dự đoán, SHAP < 0: giảm xác suất dự đoán). Trục Y là tuổi. Quan sát: tuổi < 25 có SHAP âm mạnh, tuổi 30-60 có SHAP tăng dần đạt đỉnh (ảnh hưởng tích cực mạnh), trên 70 tuổi SHAP giảm và biến động lớn. Tuổi trung niên có tác động lớn nhất đến kết quả dự đoán.}
+    \label{fig:shap-age-dependence}
+\end{figure}
+
+\begin{tcolorbox}[title=Lưu ý hiệu năng, colback=green!10, colframe=green!50!black]
+Tính SHAP trên tập lớn có thể tốn thời gian/bộ nhớ. Lấy mẫu một phần (ví dụ 100–1{,}000 hàng) để minh hoạ đồ thị \textit{waterfall}, \textit{beeswarm}.
+\end{tcolorbox}
+
+\section{Mẹo tham số LightGBM (tham khảo tài liệu)}
+\label{sec:lgbm-tips}
+Một số gợi ý thường dùng (xem thêm \href{https://lightgbm.readthedocs.io/en/stable/Parameters.html}{LightGBM Parameters}):
+\begin{itemize}
+    \item \textbf{num\_leaves}: kiểm soát độ phức tạp cây; quy tắc ngón tay: \(\text{num\_leaves} \approx 2^{\text{max\_depth}}\).
+    \item \textbf{feature\_fraction, bagging\_fraction, bagging\_freq}: giảm phương sai, tăng tốc; giá trị 0.7–0.9 thường ổn định.
+    \item \textbf{min\_child\_samples}: tăng để tránh overfitting trên lá quá nhỏ.
+    \item \textbf{early\_stopping\_rounds}: dùng tập validation để dừng sớm (ví dụ 50–100 vòng).
+\end{itemize}
 
 \section{Kết luận}
+\label{sec:lightgbm-conclusion}
 
-Gradient Boosting là một thuật toán vừa thanh lịch vừa thực dụng: bằng cách học từ phần dư và cập nhật có kiểm soát, nó tạo ra một mô hình có khả năng dự đoán vượt trội.  
-Hiểu rõ cơ chế và kỹ thuật điều chuẩn giúp tận dụng được sức mạnh này.  
-Trong hầu hết các bài toán học máy trên dữ liệu dạng bảng, Gradient Boosting (và các biến thể hiện đại như XGBoost, LightGBM, CatBoost) thường là lựa chọn hàng đầu.  
+Qua việc so sánh ba mô hình Boosting trên hai dataset khác nhau, chúng ta có thể rút ra những kết luận quan trọng:
+
+\subsection{Ưu điểm của LightGBM}
+\label{subsec:lgbm-advantages}
+
+\textbf{LightGBM vượt trội trong các trường hợp}:
+\begin{itemize}
+    \item \textbf{Dataset lớn}: Với >100K mẫu, LightGBM nhanh hơn GradientBoosting 200x
+    \item \textbf{Nhiều đặc trưng categorical}: EFB giúp xử lý hiệu quả
+    \item \textbf{Bộ nhớ hạn chế}: Histogram và EFB tiết kiệm đáng kể
+    \item \textbf{Cần tốc độ huấn luyện nhanh}: Leaf-wise growth tối ưu
+\end{itemize}
+
+\subsection{So sánh với XGBoost}
+\label{subsec:vs-xgboost}
+
+\textbf{Khi nào chọn LightGBM}:
+\begin{itemize}
+    \item Dataset có nhiều đặc trưng categorical
+    \item Cần tiết kiệm bộ nhớ
+    \item Dataset rất lớn (>1M mẫu)
+\end{itemize}
+
+\textbf{Khi nào chọn XGBoost}:
+\begin{itemize}
+    \item Dataset nhỏ đến trung bình
+    \item Chỉ có đặc trưng numerical
+    \item Cần regularization mạnh
+\end{itemize}
+
+\subsection{Tầm quan trọng của SHAP}
+\label{subsec:shap-importance}
+
+Với nhu cầu giải thích mô hình, \textbf{SHAP kết hợp cùng LightGBM} là lựa chọn mạnh mẽ:
+\begin{itemize}
+    \item Giải thích dự đoán cho từng mẫu cụ thể
+    \item So sánh feature importance giữa các mô hình
+    \item Kiểm chứng tính nhất quán của kết quả
+    \item Truyền thông kết quả đến stakeholders
+\end{itemize}
+
+\subsection{Triển vọng tương lai}
+\label{subsec:future}
+
+LightGBM tiếp tục phát triển với:
+\begin{itemize}
+    \item Hỗ trợ GPU training
+    \item Cải tiến thuật toán GOSS và EFB
+    \item Tích hợp sâu hơn với các framework ML
+    \item Tối ưu cho edge computing
+\end{itemize}
+
+\begin{tcolorbox}[title=Khuyến nghị cuối cùng, colback=green!10, colframe=green!50!black]
+\textbf{LightGBM} là lựa chọn hàng đầu cho các bài toán tabular data lớn, đặc biệt khi có nhiều đặc trưng categorical. Kết hợp với SHAP, bạn có được một công cụ mạnh mẽ vừa chính xác vừa có thể giải thích được.
+\end{tcolorbox}

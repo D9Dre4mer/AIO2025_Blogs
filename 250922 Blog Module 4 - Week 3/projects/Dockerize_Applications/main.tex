@@ -1,210 +1,362 @@
 
 \begin{center}
-    \Large\textbf{XGBoost: The most underatted algorithm}
+    \Large\textbf{Dựng môi trường phát triển bằng Docker trên máy cá nhân}
 \end{center}
 
 \begin{center}
     \Large\textit{Võ Hoàng}
 \end{center}
 
-\begin{quote}
-Nếu bạn từng tham gia Kaggle – cộng đồng thi đấu dữ liệu lớn nhất thế giới – chắc hẳn bạn sẽ nhận ra một cái tên quen thuộc xuất hiện trong hầu hết các solution top đầu: XGBoost.
+\section*{Giới thiệu}
+\label{sec:docker-intro}
+Bài viết này là một tutorial thực chiến giúp bạn thiết kế \textbf{môi trường phát triển (dev env)} dùng Docker ngay trên máy cá nhân. 
+Mục tiêu: \textbf{nhanh, tái lập, ít ``cồng kềnh'', dễ debug}, và tương thích nhóm.
 
-Không phải deep learning, cũng chẳng cần GPU khủng, XGBoost vẫn chinh phục trái tim của nhiều data scientist nhờ sự cân bằng tuyệt vời giữa tốc độ – độ chính xác – khả năng ứng dụng rộng rãi. Từ dự báo giá nhà, phát hiện gian lận thẻ tín dụng, cho đến dự báo nhu cầu năng lượng trong các thành phố lớn… đâu đâu cũng có dấu chân của XGBoost.
-
-Điều thú vị là, đằng sau cái tên nghe khá “ngầu” ấy lại là một ý tưởng không hề xa lạ: Boosting – kỹ thuật kết hợp nhiều mô hình yếu để tạo nên một mô hình mạnh. Vậy điều gì đã biến XGBoost thành “ngôi sao” của giới Machine Learning, vượt xa so với những người tiền nhiệm như Random Forest hay AdaBoost?
-\end{quote}
-
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{projects/XGBoost/image/XGBoost_logo.png}
-    \caption{XGBoost: In General}
-    \label{fig:xgboost-logo}
-\end{figure}
-
-\section{XGBoost là gì?}
-\label{sec:xgboost}
-
-Nói một cách ngắn gọn, XGBoost (Extreme Gradient Boosting) là một thuật toán học máy thuộc họ ensemble learning – tức là kết hợp nhiều mô hình nhỏ để tạo thành một mô hình mạnh mẽ hơn.
-
-Nếu Random Forest giống như việc "hội ý" của nhiều cái cây độc lập để ra quyết định, thì XGBoost lại chọn con đường khác: nó xây dựng từng cây một cách tuần tự, và mỗi cây mới được sinh ra để sửa lỗi của cây trước đó.
-
-\subsection*{3.2. Classification – phân loại nhãn}
-Ngược lại, khi bài toán là “có bệnh hay không?”, “khách hàng churn hay không?”, ta cần classification.
-
-Thay vì trực tiếp dự đoán giá trị, XGBoost sẽ dự đoán log(odds) – một cách biến đổi xác suất sang dạng dễ tính toán hơn.
-
-Sau đó, log(odds) được chuyển ngược lại thành xác suất (ví dụ: 70\% khách hàng sẽ rời bỏ dịch vụ).
-
-Các cây liên tiếp giúp mô hình ngày càng phân biệt rõ ràng đâu là “có” và đâu là “không”.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{projects/XGBoost/image/Classification.png}
-    \caption{XGBoost Classification}
-    \label{fig:xgboost-classification}
-\end{figure}
-
-\subsection*{3.3. Điểm khác biệt tinh tế}
-Regression tập trung giảm khoảng cách dự đoán (residuals).
-
-Classification thì tinh chỉnh log(odds) và tối ưu dựa trên xác suất.
-
-Nói cách khác, XGBoost giống như một người huấn luyện giỏi: khi gặp học trò “sai số ít”, nó nhắc nhẹ; khi gặp học trò “sai số nhiều”, nó dồn sức chỉnh sửa. Và dù ở regression hay classification, nguyên lý “học từ lỗi sai” vẫn là trái tim của thuật toán này.
-
-\section{Behind the Scenes – Bí mật dưới nắp capo của XGBoost}
-\label{subsec:xgboost-behind}
-
-Nếu phần trước giống như việc quan sát một chiếc xe đang chạy trên đường, thì giờ đây chúng ta mở nắp capo và nhìn vào “động cơ” – nơi XGBoost thực sự tạo nên sức mạnh.
-
-\paragraph{4.1. Loss function – trái tim của XGBoost}
-XGBoost học cách dự đoán bằng cách tối thiểu hóa hàm mất mát (loss function).
-
-Với Regression, loss function thường là Mean Squared Error (MSE).
-
-Với Classification, loss function là Log Loss, dựa trên xác suất đúng/sai.
-
-Điểm đặc biệt: XGBoost không chỉ nhìn vào gradient bậc 1 (giống như Gradient Boosting truyền thống) mà còn dùng thêm hessian (đạo hàm bậc 2). Nhờ đó, quá trình tối ưu trở nên chính xác hơn – giống như việc bạn không chỉ biết mình đang leo dốc, mà còn biết độ dốc thay đổi nhanh thế nào.
-
-\paragraph{4.2. Regularization – bí quyết tránh overfitting}
-Nếu chỉ tối ưu loss, mô hình dễ “học vẹt” dữ liệu huấn luyện (overfitting). Để ngăn điều đó, XGBoost thêm vào 2 “chiếc phanh”:
-
-λ (lambda): giảm độ phức tạp bằng cách kéo các giá trị về gần 0.
-
-γ (gamma): yêu cầu một mức “lợi ích tối thiểu” trước khi tạo thêm nhánh mới trên cây.
-
-Kết quả: cây gọn gàng, dễ tổng quát hơn cho dữ liệu mới.
-
-\paragraph{4.3. Cover \& Similarity Score – cách XGBoost đánh giá một nhánh}
-Trong lúc chia nhánh, XGBoost tính Similarity Score – thước đo cho biết việc gom nhóm residuals có “đáng” hay không. Ngoài ra, nó còn dùng Cover để đảm bảo mỗi nhánh có đủ dữ liệu đại diện, thay vì chỉ dựa vào một vài điểm lẻ loi.
-
-\paragraph{4.4. Taylor Expansion – bí kíp toán học}
-Tối ưu loss function trực tiếp là cực khó. Vì vậy, XGBoost dùng Khai triển Taylor bậc 2 để gần đúng. Đây chính là mấu chốt giúp thuật toán vừa nhanh, vừa chính xác.
-
-Nói vui thì, XGBoost giống như một đầu bếp: Loss function là công thức nấu ăn, Gradient \& Hessian là nguyên liệu, còn Regularization là gia vị giúp món ăn không bị “quá mặn” (overfit).
-
-\section{Case Study – Time Series Forecasting với XGBoost}
-\label{subsec:xgboost-case-study}
-
-Để thấy XGBoost “ra trận” như thế nào, hãy thử một bài toán thực tế: dự báo nhu cầu năng lượng của một thành phố.
-
-\subsubsection*{5.1. Bài toán đặt ra}
-Giả sử ta có dữ liệu về mức tiêu thụ điện hằng ngày của các hộ gia đình. Nhiệm vụ là dự đoán nhu cầu năng lượng trong tương lai – một công việc vô cùng quan trọng cho ngành điện lực, vì nó giúp tối ưu hoá việc sản xuất, phân phối và lưu trữ.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{projects/XGBoost/image/Electronic.jpg}
-    \caption{Mức điện tiêu thụ}
-    \label{fig:xgboost-electronic}
-\end{figure}
-
-\subsubsection*{5.2. Cách tiếp cận với XGBoost}
-Tiền xử lý dữ liệu: điền giá trị thiếu, làm sạch dữ liệu tiêu thụ điện.
-
-Huấn luyện mô hình: dùng XGBoost để học từ dữ liệu quá khứ.
-
-Đánh giá mô hình: các chỉ số như MAE (Mean Absolute Error), MSE (Mean Squared Error), và MAPE (Mean Absolute Percentage Error) cho thấy độ chính xác.
-
-\subsubsection*{5.3. Kết quả ban đầu}
-MAE: \textasciitilde0.77
-
-MSE: \textasciitilde1.50
-
-MAPE: \textasciitilde19.7\%
-
-Nói cách khác, mô hình đã dự đoán tương đối tốt, nhưng vẫn còn nhiều dư địa để cải thiện.
-
-\subsubsection*{5.4. Bí quyết cải thiện: thêm dữ liệu thời tiết}
-Khi nhóm nghiên cứu bổ sung dữ liệu thời tiết (từ London Weather Dataset), hiệu quả tăng vọt:
-
-MAE giảm từ 0.77 → 0.42
-
-MSE giảm từ 1.50 → 0.86
-
-MAPE giảm từ 19.7\% → 16.4\%
-
-Kết quả này minh chứng một điều quan trọng: trong học máy, dữ liệu thường quan trọng không kém – thậm chí còn quan trọng hơn – mô hình.
-
-\subsubsection*{5.5. Thông điệp rút ra}
-XGBoost mạnh mẽ, nhưng nếu không có dữ liệu phù hợp, nó cũng khó lòng tạo ra dự đoán chính xác. Khi được “cho ăn” dữ liệu giàu thông tin hơn, XGBoost có thể biến thành một công cụ dự báo cực kỳ đáng tin cậy.
-
-\section{Ưu – Nhược điểm của XGBoost}
-\label{subsec:xgboost-pros-cons}
-
-Sau khi đi qua lý thuyết, cơ chế hoạt động và cả case study thực tế, giờ là lúc chúng ta “ngồi lại” để cân nhắc: XGBoost có thật sự phù hợp với mọi bài toán không?
-
-\subsection*{6.1 Ưu điểm}
-
-\paragraph{Hiệu năng cao}
-Tối ưu tốt, hỗ trợ tính toán song song, nên chạy nhanh hơn hẳn so với nhiều thuật toán boosting truyền thống.
-
-\paragraph{Độ chính xác vượt trội}
-Nhờ tận dụng gradient + hessian và regularization, XGBoost thường đạt độ chính xác cao, đặc biệt trên các bộ dữ liệu structured/tabular.
-
-\paragraph{Linh hoạt}
-Dùng được cho cả regression, classification, ranking, thậm chí time series.
-
-\paragraph{Chống overfitting khá tốt}
-Nhờ có λ (lambda) và γ (gamma) kiểm soát độ phức tạp của cây, giúp mô hình tổng quát hóa dữ liệu mới tốt hơn.
-
-\paragraph{Thân thiện với Kaggle-er và Data Scientist}
-Nhiều thư viện tích hợp sẵn (Python, R, Julia), cộng đồng đông đảo, tài liệu phong phú.
-
-\subsection*{6.2. Nhược điểm}
-
-\paragraph{Dễ bị “over-engineering”}
-Có quá nhiều hyperparameter để tune (learning rate, max\_depth, min\_child\_weight, subsample…), nên dễ khiến người mới rối rắm.
-
-\paragraph{Khó diễn giải}
-Mô hình ensemble nhiều cây → khó giải thích tại sao mô hình đưa ra quyết định (so với logistic regression chẳng hạn).
-
-\paragraph{Không phải lúc nào cũng tối ưu nhất}
-Với dữ liệu unstructured (ảnh, âm thanh, văn bản), deep learning thường vượt trội hơn.
-
-\paragraph{Tốn tài nguyên nếu dataset rất lớn}
-Dù nhanh hơn boosting truyền thống, XGBoost vẫn “ngốn” RAM/GPU đáng kể khi xử lý hàng trăm triệu dòng dữ liệu.
-
-\subsection*{6.3. So sánh nhanh}
+\section{Đối tượng \& mục tiêu}
+\label{sec:docker-objectives}
 \begin{itemize}
-    \item So với LightGBM: XGBoost thường ổn định hơn, nhưng LightGBM nhanh hơn trên dataset cực lớn.
-    \item So với CatBoost: CatBoost xử lý categorical features “out-of-the-box” tốt hơn, nhưng XGBoost vẫn phổ biến hơn nhờ cộng đồng rộng và tính linh hoạt.
+  \item \textbf{Đối tượng}: Dev backend/frontend, data/ML, sinh viên, team nhỏ cần môi trường đồng nhất.
+  \item \textbf{Mục tiêu}:
+  \begin{itemize}
+    \item Chạy dự án local bằng \verb|docker compose up| với hot-reload.
+    \item Tách biệt \textbf{dev} và \textbf{prod} bằng profiles.
+    \item Chuẩn hoá secrets, volumes, network.
+    \item Chạy tốt trên Windows (WSL2), macOS, Linux.
+  \end{itemize}
 \end{itemize}
 
-\section{Ứng dụng thực tế \& Kết luận}
-\label{subsec:xgboost-applications}
+\section{Kiến trúc tổng quan (host ↔ Docker)}
+\label{sec:docker-architecture}
+\begin{minted}{text}
+Host OS (Windows/macOS/Linux)
+  └─ (Tuỳ chọn) WSL2 (Windows)
+      └─ Docker Engine / Docker Desktop / Rancher Desktop
+          └─ Containers (app, db, cache, etc.)
+              └─ Volumes (bind/named) + Networks
+\end{minted}
 
-XGBoost đã chứng minh sức mạnh của mình trong vô số lĩnh vực:
-
+\textbf{Gợi ý:}
 \begin{itemize}
-    \item Tài chính: phát hiện gian lận thẻ tín dụng, dự đoán rủi ro khách hàng.
-    \item Y tế: dự đoán khả năng tái nhập viện, phân loại bệnh dựa trên hồ sơ bệnh án.
-    \item Marketing: phân khúc khách hàng, dự đoán hành vi mua sắm.
-    \item Năng lượng \& môi trường: dự báo nhu cầu điện, lượng khí thải, hay thậm chí xu hướng thời tiết.
+  \item Windows: WSL2 + Docker Desktop (dễ nhất). Nếu tối giản: cài Docker Engine rootless trong WSL2.
+  \item macOS: Docker Desktop hoặc Colima (nhẹ, nhanh, M-series friendly).
+  \item Linux: Cài Docker Engine chính chủ.
 \end{itemize}
 
-\subsection*{7.1. Khi nào nên dùng XGBoost?}
+\section{Chuẩn bị theo hệ điều hành}
+\label{sec:docker-setup}
+
+\subsection{Windows 10/11 (WSL2 + Docker Desktop)}
+\begin{minted}{powershell}
+wsl --install -d Ubuntu
+wsl --set-default-version 2
+\end{minted}
+Sau đó cài Docker Desktop, bật WSL 2 based engine, để project code trong WSL FS để tránh I/O chậm.
+Di chuyển dữ liệu Docker sang ổ D bằng thiết lập trong Docker Desktop hoặc \verb|wsl --export/--import|.
+
+\subsection{macOS (Intel/M-series)}
+\begin{minted}{bash}
+brew install colima docker
+colima start --cpu 4 --memory 8 --disk 50
+\end{minted}
+
+\subsection{Linux (Ubuntu/Debian)}
+\begin{minted}{bash}
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl gnupg lsb-release
+# Add Docker’s official GPG key & repo
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io \
+    docker-buildx-plugin docker-compose-plugin
+sudo usermod -aG docker $USER
+newgrp docker
+\end{minted}
+
+\section{Tiêu chuẩn hoá bố cục dự án}
+\label{sec:docker-project-structure}
+\begin{minted}{text}
+myapp/
+  backend/
+    app/
+      main.py
+    pyproject.toml
+    Dockerfile
+    Dockerfile.dev
+  db/
+    init.sql
+  .env
+  docker-compose.yml
+  Makefile
+  .dockerignore
+  .editorconfig
+  .gitattributes
+  .devcontainer/
+    devcontainer.json
+\end{minted}
+
+\textbf{Quy ước:} Bind mount cho mã nguồn (dev), named volume cho dữ liệu (db, cache), secrets qua \verb|.env|, 
+profiles để tách dev/prod.
+
+\section{Ví dụ : FastAPI + PostgreSQL (hot-reload)}
+\label{sec:docker-fastapi-example}
+
+\subsection{main.py}
+\begin{minted}{python}
+from fastapi import FastAPI
+from os import getenv
+import psycopg
+
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {"msg": "Hello Docker Dev!", "env": getenv("APP_ENV", "dev")}
+\end{minted}
+
+\subsection{pyproject.toml}
+\begin{minted}{toml}
+[project]
+name = "myapp-backend"
+version = "0.1.0"
+dependencies = [
+  "fastapi",
+  "uvicorn[standard]",
+  "psycopg[binary]",
+]
+\end{minted}
+
+\subsection{Dockerfile.dev}
+\begin{minted}{docker}
+FROM python:3.12-slim
+WORKDIR /app
+COPY pyproject.toml /app/
+RUN pip install --no-cache-dir uv pip-tools && \
+    pip install --no-cache-dir fastapi uvicorn[standard] psycopg[binary]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+\end{minted}
+
+\subsection{docker-compose.yml}
+\begin{minted}{yaml}
+version: "3.9"
+name: myapp
+
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8000:8000"
+    env_file: .env
+    volumes:
+      - ./backend:/app:rw
+    depends_on:
+      - db
+    profiles: ["dev"]
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+
+volumes:
+  pgdata:
+\end{minted}
+
+\vspace{1em}
+Chạy dev:
+\begin{verbatim}
+docker compose --profile dev up --build
+\end{verbatim}
+
+Mở: \url{http://localhost:8000}.
+
+\section{Ví dụ 2: Next.js + Redis (hot-reload)}
+\label{sec:docker-nextjs-example}
+
+\subsection{frontend/src/index.js}
+\begin{minted}{javascript}
+export default function Home() {
+  return <h1>Hello Docker Dev with Next.js!</h1>
+}
+\end{minted}
+
+\subsection{frontend/package.json}
+\begin{minted}{json}
+{
+  "name": "myapp-frontend",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "14.0.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  }
+}
+\end{minted}
+
+\subsection{frontend/Dockerfile.dev}
+\begin{minted}{docker}
+FROM node:20-slim
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm install
+CMD ["npm", "run", "dev"]
+\end{minted}
+
+\subsection{docker-compose.override.yml (mở rộng)}
+\begin{minted}{yaml}
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - redis
+    profiles: ["dev"]
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+
+volumes:
+  redisdata:
+\end{minted}
+
+Mở: \url{http://localhost:3000}. Hot reload hoạt động tự động.
+
+\section{CI/CD nâng cao (GitHub Actions + Docker Hub)}
+\label{sec:docker-cicd}
+\subsection{.github/workflows/deploy.yml}
+\begin{minted}{yaml}
+name: deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Login Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build & Push
+        run: |
+          docker build -t myorg/myapp-backend:latest ./backend
+          docker build -t myorg/myapp-frontend:latest ./frontend
+          docker push myorg/myapp-backend:latest
+          docker push myorg/myapp-frontend:latest
+\end{minted}
+
+\section{Triển khai thử nghiệm (Prod mini)}
+\label{sec:docker-deployment}
+
+Chạy trên một server (VD: VPS):
+
+\begin{verbatim}
+git pull origin main
+docker compose --profile prod up -d --build
+\end{verbatim}
+
+Muốn expose với domain + HTTPS:
 \begin{itemize}
-    \item Khi dữ liệu của bạn chủ yếu là structured/tabular (số liệu, bảng tính, giao dịch).
-    \item Khi bạn cần một mô hình mạnh mẽ, nhưng vẫn muốn huấn luyện tương đối nhanh và dễ triển khai.
-    \item Khi bài toán đòi hỏi giải thích mức độ vừa phải (dùng thêm SHAP/Feature Importance).
+  \item Dùng Traefik hoặc NGINX reverse proxy.
+  \item Dùng Caddy (tự động cấp TLS).
 \end{itemize}
 
-\subsection*{7.2. Khi nào nên cân nhắc giải pháp khác?}
+\subsection{Compose với Caddy}
+\begin{minted}{yaml}
+services:
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:
+\end{minted}
+
+\subsection{Caddyfile mẫu}
+\begin{minted}{text}
+myapp.localhost {
+    reverse_proxy frontend:3000
+}
+\end{minted}
+
+\section{So sánh Docker Desktop vs thay thế}
+\begin{center}
+\begin{tabular}{|l|c|c|c|}
+\hline
+Tính năng & Docker Desktop & Colima (macOS) & Rancher Desktop (Win/mac) \\
+\hline
+GUI quản lý container & ✓ & ✗ & ✓ \\
+Dễ cài trên Win/mac   & ✓ & ✗ & ✓ \\
+Hỗ trợ Kubernetes     & ✓ & ✗ & ✓ \\
+Dùng ít RAM hơn       & ✗ & ✓ & ✓ \\
+\hline
+\end{tabular}
+\end{center}
+
+\section{Best practices nâng cao}
+\label{sec:docker-best-practices}
 \begin{itemize}
-    \item Nếu dữ liệu là ảnh, âm thanh, văn bản dài → deep learning thường vượt trội.
-    \item Nếu bạn muốn dễ dàng giải thích quyết định của mô hình → logistic regression hoặc decision tree đơn giản có thể phù hợp hơn.
+  \item Luôn viết multi-stage build để image nhỏ gọn.
+  \item Tách dev/prod config.
+  \item Dùng linter + CI để check Dockerfile.
+  \item Dùng healthcheck để giám sát service.
+  \item Cache dependencies hợp lý (COPY requirements.txt trước).
 \end{itemize}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{projects/XGBoost/image/XGBoost.png}
-    \caption{XGBoost: Kết luận}
-    \label{fig:xgboost-conclusion}
-\end{figure}
 
-\subsection*{7.3. Kết luận}
-XGBoost không phải là “thuốc tiên” cho mọi bài toán, nhưng nó là một trong những công cụ đa năng và hiệu quả nhất trong hộp đồ nghề của một data scientist.
-Nó mạnh mẽ nhờ sự kết hợp giữa boosting + regularization + tối ưu toán học thông minh, và khi được cung cấp dữ liệu chất lượng, XGBoost có thể trở thành “chiếc xe phân khối lớn” đưa bạn băng qua những con đường dữ liệu phức tạp nhất.
+\section{Inclusion}
+\label{sec:docker-conclusion}
 
-Vậy lần tới, khi đứng trước một bài toán dự báo giá trị hay phân loại, hãy tự hỏi: “Liệu XGBoost có phải là chiếc chìa khoá mở ra lời giải nhanh và chuẩn xác cho mình không?”
+Qua toàn bộ hành trình trên, bạn đã thấy rằng Docker không chỉ là công cụ chạy container đơn lẻ 
+mà còn là nền tảng để chuẩn hoá môi trường phát triển. Khi biết cách tổ chức dự án, 
+tách cấu hình dev/prod, quản lý volumes, secrets, và sử dụng thêm các công cụ như 
+Makefile, Dev Containers, CI/CD pipeline, bạn sẽ có:
+
+\begin{itemize}
+  \item Một môi trường dev nhất quán, không còn cảnh ``works on my machine''.
+  \item Quy trình on-boarding nhanh chóng: chỉ cần \verb|git clone| và \verb|docker compose up|.
+  \item Khả năng mở rộng sang full-stack (backend + frontend + database + cache) 
+        chỉ với vài service trong Compose.
+  \item Dễ dàng nâng cấp: từ local $\to$ staging/prod $\to$ Kubernetes mà không phải viết lại quá nhiều.
+  \item Tích hợp liền mạch với các công cụ hiện đại: GitHub Actions, secret managers, GPU runtime cho AI/ML.
+\end{itemize}
+
+Điều quan trọng hơn cả: Docker giúp bạn tư duy theo hướng 
+\textit{infrastructure as code} – coi môi trường dev cũng là một phần của dự án, 
+được quản lý version control, test, và tối ưu như chính mã nguồn. Đây chính là nền tảng 
+để tiến tới CI/CD chuyên nghiệp và triển khai microservices ở quy mô lớn.
+
+Hãy thử áp dụng các mẫu cấu trúc trong bài viết cho dự án của bạn, tuỳ biến cho phù hợp. 
+Khi đã quen, bạn sẽ thấy việc tạo một môi trường dev hoàn chỉnh chỉ mất vài phút – 
+và lợi ích mang lại thì vô cùng lớn.

@@ -10,11 +10,11 @@
 
 \begin{center}
     \vspace*{2em}
-    {\LARGE\bfseries Blog Tuần 2 – Module 4 \par}
+    {\LARGE\bfseries Blog Tuần 3 – Module 4 \par}
     \vspace{0.5em}
-    {\Huge\bfseries Gradient Boosting, XGBoost, FastAPI và Data Project \par}
+    {\Huge\bfseries XGBoost, Tree Review, LightGBM, Docker và Sales Forecasting \par}
     \vspace{1em}
-    {\Large\itshape Từ gradient boosting cơ bản đến XGBoost nâng cao, FastAPI deployment và dự án thực tế \par}
+    {\Large\itshape Từ XGBoost cơ bản đến LightGBM nâng cao, containerization và dự án dự báo doanh số \par}
     \vspace{2em}
     {\large\textbf{Tác giả:} Team GRID034} \\
     \vspace{2em}
@@ -24,7 +24,7 @@
 
 
 \noindent
-Tuần thứ hai của Module 4 tập trung vào các \textbf{thuật toán boosting} tiên tiến và \textbf{triển khai API}, cùng với việc áp dụng vào \textbf{dự án thực tế}. Module này giúp người học nắm vững gradient boosting từ cơ bản đến nâng cao và cách triển khai mô hình ML thành API production.
+Tuần thứ ba của Module 4 tập trung vào các \textbf{thuật toán boosting tiên tiến}, \textbf{containerization} và \textbf{dự án dự báo doanh số}. Module này giúp người học nắm vững XGBoost, LightGBM, Docker và áp dụng vào dự án thực tế.
 
 \vspace{1em}
 \noindent
@@ -32,30 +32,30 @@ Cụ thể, blog tuần này sẽ bao gồm các chủ đề:
 
 \vspace{1em}
 \begin{enumerate}
-    \item \textbf{Gradient Boosting – Học qua ví dụ tính tay}  
-    Hiểu gradient boosting từ cơ bản thông qua các ví dụ tính toán chi tiết và minh họa trực quan.
+    \item \textbf{XGBoost – Học qua ví dụ tính tay}  
+    Hiểu XGBoost từ cơ bản thông qua các ví dụ tính toán chi tiết và minh họa trực quan.
 
-    \item \textbf{Gradient Boosting – Nâng cao}  
-    Các kỹ thuật tối ưu hóa, regularization và so sánh với các thuật toán ensemble khác.
+    \item \textbf{Tree Review – Tổng quan về Decision Trees}  
+    Các khái niệm cơ bản về decision trees, random forest và ensemble methods.
 
-    \item \textbf{XGBoost – Extreme Gradient Boosting}  
-    Thuật toán XGBoost hiện đại, ưu điểm vượt trội và ứng dụng trong các cuộc thi data science.
+    \item \textbf{LightGBM \& SHAP – Gradient Boosting hiện đại}  
+    Thuật toán LightGBM, SHAP explainability và so sánh với các thuật toán boosting khác.
 
-    \item \textbf{FastAPI – Xây dựng API cho ML Models}  
-    Triển khai mô hình ML thành API production-ready với FastAPI framework.
+    \item \textbf{Dockerize Applications – Containerization cho ML}  
+    Triển khai ứng dụng ML với Docker, containerization và deployment.
 
-    \item \textbf{Data Project – PG\&E Energy Analytics Challenge}  
-    Dự án thực tế dự báo tải điện sử dụng time-series analysis và machine learning.
+    \item \textbf{Project Sales Forecasting – Dự báo doanh số}  
+    Dự án thực tế dự báo doanh số sử dụng time-series analysis và machine learning.
 \end{enumerate}
 
 \vspace{1em}
 \noindent\textbf{ Giá trị nhận được sau khi đọc Blog}
 \begin{itemize}
-    \item Hiểu và triển khai được Gradient Boosting từ cơ bản đến nâng cao.  
-    \item Nắm vững thuật toán XGBoost và ứng dụng trong các dự án thực tế.  
-    \item Biết cách xây dựng API cho mô hình ML với FastAPI.  
-    \item Áp dụng được time-series analysis và feature engineering.  
-    \item Triển khai dự án ML hoàn chỉnh từ EDA đến production.  
+    \item Hiểu và triển khai được XGBoost từ cơ bản đến nâng cao.  
+    \item Nắm vững các khái niệm về decision trees và ensemble methods.  
+    \item Biết cách sử dụng LightGBM và SHAP cho model explainability.  
+    \item Triển khai ứng dụng ML với Docker và containerization.  
+    \item Áp dụng được time-series analysis cho dự báo doanh số.  
 \end{itemize}
 
 \vspace{1em}
@@ -67,79 +67,94 @@ Cụ thể, blog tuần này sẽ bao gồm các chủ đề:
 \vspace{1em}
 
 \noindent
-\textbf{Gradient Boosting – Học qua ví dụ tính tay} \dotfill \pageref{sec:gradient-boosting-hand}
+\textbf{XGBoost – Học qua ví dụ tính tay} \dotfill \pageref{sec:xgboost-intro}
 \begin{itemize}
-    \item Gradient Boosting là gì? \dotfill \pageref{sec:gradient-boosting-hand}
-    \item Gradient Boosting -- Học từ phần dư \dotfill \pageref{subsec:gradient-boosting-residuals}
-    \item Nguyên lý hoạt động \dotfill \pageref{subsec:gradient-boosting-principle}
-    \item Các khái niệm cơ bản \dotfill \pageref{subsec:gradient-boosting-concepts}
-    \item So sánh AdaBoost và Gradient Boosting \dotfill \pageref{subsec:gradient-boosting-comparison}
+    \item Ôn tập về Gradient Boosting \dotfill \pageref{sec:xgboost-gradient-boosting}
+    \item Giới thiệu về XGBoost \dotfill \pageref{sec:xgboost-intro}
+    \item Cách xây dựng XGBoost \dotfill \pageref{sec:xgboost-construction}
+    \item Các ví dụ về XGBoost \dotfill \pageref{sec:xgboost-examples}
+    \item Kết luận \dotfill \pageref{sec:xgboost-conclusion}
 \end{itemize}
 
 \vspace{0.5em}
 \noindent
-\textbf{Gradient Boosting – Nâng cao} \dotfill \pageref{sec:gradient-boosting-advanced}
+\textbf{Tree Review – Tổng quan về Decision Trees} \dotfill \pageref{sec:tree-intro}
 \begin{itemize}
-    \item Giới thiệu: Ngoài việc học từ sai lầm, hãy học đúng hướng! \dotfill \pageref{sec:gradient-boosting-advanced}
-    \item Trái tim của thuật toán: "Gradient" đến từ đâu? \dotfill \pageref{subsec:gradient-boosting-advanced-gradient}
-    \item Gradient Boosting cho Bài toán Hồi quy \dotfill \pageref{subsec:gradient-boosting-advanced-regression}
-    \item Gradient Boosting cho Bài toán Phân loại \dotfill \pageref{subsec:gradient-boosting-advanced-classification}
-    \item Thực hành với Python \dotfill \pageref{subsec:gradient-boosting-advanced-python}
+    \item Lời Dẫn Nhập \dotfill \pageref{sec:tree-intro}
+    \item Decision Tree - Nền Móng Của Trực Giác \dotfill \pageref{sec:tree-decision-tree}
+    \item Random Forest - Sức Mạnh Của "Hội Đồng Cây" \dotfill \pageref{sec:tree-random-forest}
+    \item AdaBoost - Học Từ Sai Lầm \dotfill \pageref{sec:tree-adaboost}
+    \item Gradient Boosting - Tổng Quát Hóa Ý Tưởng Sửa Lỗi \dotfill \pageref{sec:tree-gradient-boosting}
+    \item XGBoost - Đỉnh Cao Của Tối Ưu Hóa \dotfill \pageref{sec:tree-xgboost}
+    \item Kết Luận \dotfill \pageref{sec:tree-conclusion}
 \end{itemize}
 
 \vspace{0.5em}
 \noindent
-\textbf{XGBoost – Extreme Gradient Boosting} \dotfill \pageref{sec:xgboost}
+\textbf{LightGBM \& SHAP – Gradient Boosting hiện đại} \dotfill \pageref{sec:lightgbm-intro}
 \begin{itemize}
-    \item XGBoost là gì? \dotfill \pageref{sec:xgboost}
-    \item Behind the Scenes – Bí mật dưới nắp capo của XGBoost \dotfill \pageref{subsec:xgboost-behind}
-    \item Case Study – Time Series Forecasting với XGBoost \dotfill \pageref{subsec:xgboost-case-study}
-    \item Ưu – Nhược điểm của XGBoost \dotfill \pageref{subsec:xgboost-pros-cons}
-    \item Ứng dụng thực tế \& Kết luận \dotfill \pageref{subsec:xgboost-applications}
+    \item Giới thiệu \dotfill \pageref{sec:lightgbm-intro}
+    \item Ôn tập nhanh: Các mô hình trước LightGBM \dotfill \pageref{sec:lightgbm-background}
+    \item Cách LightGBM xây dựng cây \dotfill \pageref{sec:lightgbm-core}
+    \item Dữ liệu sử dụng \dotfill \pageref{sec:lightgbm-data}
+    \item Pipeline Phân loại: HEPMASS \dotfill \pageref{sec:lightgbm-classification}
+    \item Pipeline Hồi quy: NYC Taxi \dotfill \pageref{sec:lightgbm-regression}
+    \item Case Study: So sánh hiệu suất \dotfill \pageref{sec:lightgbm-case-study}
+    \item Giải thích mô hình bằng SHAP \dotfill \pageref{sec:lightgbm-shap}
+    \item Kết luận \dotfill \pageref{sec:lightgbm-conclusion}
 \end{itemize}
 
 \vspace{0.5em}
 \noindent
-\textbf{FastAPI – Xây dựng API cho ML Models} \dotfill \pageref{sec:fastapi}
+\textbf{Dockerize Applications – Containerization cho ML} \dotfill \pageref{sec:docker-intro}
 \begin{itemize}
-    \item Giới thiệu về FastAPI \dotfill \pageref{sec:fastapi}
-    \item Ứng dụng CRUD đơn giản với FastAPI \dotfill \pageref{subsec:fastapi-crud}
-    \item Nâng cao trải nghiệm với Response và Templating \dotfill \pageref{subsec:fastapi-advanced}
-    \item Case Study: AI Text Classification API \dotfill \pageref{subsec:fastapi-case-study}
-    \item MLOps cho dự án AI \dotfill \pageref{subsec:fastapi-mlops}
+    \item Giới thiệu \dotfill \pageref{sec:docker-intro}
+    \item Đối tượng \& mục tiêu \dotfill \pageref{sec:docker-objectives}
+    \item Kiến trúc tổng quan \dotfill \pageref{sec:docker-architecture}
+    \item Chuẩn bị theo hệ điều hành \dotfill \pageref{sec:docker-setup}
+    \item Tiêu chuẩn hoá bố cục dự án \dotfill \pageref{sec:docker-project-structure}
+    \item Ví dụ: FastAPI + PostgreSQL \dotfill \pageref{sec:docker-fastapi-example}
+    \item Ví dụ 2: Next.js + Redis \dotfill \pageref{sec:docker-nextjs-example}
+    \item CI/CD nâng cao \dotfill \pageref{sec:docker-cicd}
+    \item Triển khai thử nghiệm \dotfill \pageref{sec:docker-deployment}
+    \item Best practices nâng cao \dotfill \pageref{sec:docker-best-practices}
+    \item Inclusion \dotfill \pageref{sec:docker-conclusion}
 \end{itemize}
 
 \vspace{0.5em}
 \noindent
-\textbf{Data Project – PG\&E Energy Analytics Challenge} \dotfill \pageref{sec:data-project}
+\textbf{Project Sales Forecasting – Dự báo doanh số} \dotfill \pageref{sec:sales-intro}
 \begin{itemize}
-    \item Giới thiệu Dự án PG\&E Energy Analytics Challenge \dotfill \pageref{sec:data-project}
-    \item Phân tích Dữ liệu Thăm dò (EDA) \dotfill \pageref{subsec:data-project-eda}
-    \item Feature Engineering \dotfill \pageref{subsec:data-project-features}
-    \item Modeling và Evaluation \dotfill \pageref{subsec:data-project-modeling}
-    \item Kết quả và Đánh giá \dotfill \pageref{subsec:data-project-results}
+    \item Giới thiệu \dotfill \pageref{sec:sales-intro}
+    \item Các công nghệ cốt lõi sử dụng \dotfill \pageref{sec:sales-technologies}
+    \item Quy trình triển khai \dotfill \pageref{sec:sales-implementation}
+    \item Phân tích Khả năng Giải thích (XAI) \dotfill \pageref{sec:sales-xai}
+    \item Kết quả và Thảo luận \dotfill \pageref{sec:sales-results}
+    \item Hạn chế và Bài học Rút ra \dotfill \pageref{sec:sales-limitations}
+    \item Các Hướng Phát triển Tương lai \dotfill \pageref{sec:sales-future}
+    \item Kết luận \dotfill \pageref{sec:sales-conclusion}
 \end{itemize}
 
 \vspace{1em}
 \newpage
 
-\input{projects/Gradient_Boosting__Hoc_qua_vi_du_tinh_tay/main}
-\clearpage
-\setcounter{section}{0} % Reset section numbering
-
-\input{projects/GradientBoosting/main}
-\clearpage
-\setcounter{section}{0} % Reset section numbering
-
 \input{projects/XGBoost/main}
 \clearpage
 \setcounter{section}{0} % Reset section numbering
 
-\input{projects/FastAPI/main}
+\input{projects/Tree_Review/main}
 \clearpage
 \setcounter{section}{0} % Reset section numbering
 
-\input{projects/DataProject/main}
+\input{projects/LightGBM_SHAP/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\input{projects/Dockerize_Applications/main}
+\clearpage
+\setcounter{section}{0} % Reset section numbering
+
+\input{projects/project_sales_forecasting/main}
 \clearpage
 \setcounter{section}{0} % Reset section numbering
 

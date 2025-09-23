@@ -1,0 +1,301 @@
+\begin{center}
+    \Large\textbf{XGBoost: Từ lý thuyết Gradient Boosting đến một thuật toán thực chiến hàng đầu}
+\end{center}
+
+\begin{center}
+    \Large\textit{Trịnh Nguyễn Huy Hoàng}
+\end{center}
+
+% \begin{center}
+%     \large\textit{Hành trình rủ thêm đồng bọn của Decision Tree để tạo ra "hội đồng" mạnh hơn, hiệu quả hơn trong các bài toán phân loại và hồi quy.}
+% \end{center}
+
+\begin{abstract}
+    Trong bối cảnh khoa học dữ liệu hiện đại, việc xây dựng các mô hình dự đoán hiệu quả là một nhiệm vụ cốt yếu. Một trong những phương pháp mạnh mẽ nhất để đạt được điều này là học tập tổ hợp (ensemble learning), một kỹ thuật kết hợp nhiều mô hình học máy cơ bản (còn gọi là các mô hình "yếu" - weak learners) để tạo ra một mô hình tổng hợp duy nhất với hiệu suất vượt trội. Trong các kỹ thuật học tập tổ hợp, phương pháp Boosting nổi lên như một chiến lược đặc biệt hiệu quả, trong đó các mô hình yếu được xây dựng một cách tuần tự, mỗi mô hình mới được huấn luyện để sửa chữa những lỗi mà mô hình trước đó đã mắc phải.   
+    
+    Điểm đỉnh cao của Boosting chính là sự ra đời của Gradient Boosting, một thuật toán đã cách mạng hoá lĩnh vực học máy. Tiếp nối sự thành công đó, XGBoost (eXtreme Gradient Boosting) đã được giới thiệu như một phiên bản tối ưu hoá, nhanh hơn và hiệu quả hơn đáng kể. Kể từ khi ra mắt, XGBoost đã nhanh chóng trở thành một công cụ không thể thiếu đối với các nhà khoa học dữ liệu và kỹ sư học máy, thống trị các cuộc thi Kaggle và được ứng dụng rộng rãi trong nhiều bài toán thực tế trên dữ liệu có cấu trúc.   
+    
+    Bài viết này đi sâu vào cơ chế hoạt động của XGBoost, từ những nguyên lý nền tảng của Gradient Boosting, các cải tiến cốt lõi, đến việc phân tích chi tiết các thành phần toán học và minh họa bằng các ví dụ tính toán thủ công. Mục tiêu là cung cấp một góc nhìn toàn diện và chuyên sâu về thuật toán mạnh mẽ này.
+    \end{abstract}
+    
+    %\begin{minted}
+    % \tableofcontents
+    %\end{minted}
+    
+    \section{Ôn tập về Gradient Boosting}
+    \label{sec:xgboost-gradient-boosting}
+    
+    \subsection{Nguyên lý hoạt động}
+    
+    Gradient Boosting (GB) là một phương pháp học máy thuộc nhóm ensemble (học mô hình tập hợp) sử dụng kỹ thuật boosting. Thay vì huấn luyện một mô hình phức tạp duy nhất, boosting xây dựng một tập hợp các mô hình đơn giản (yếu) theo tuần tự, mỗi mô hình mới được thêm vào nhằm sửa các lỗi của mô hình trước đó. Cụ thể, thuật toán khởi đầu bằng một mô hình dự đoán cơ sở, sau đó ở mỗi bước lặp sẽ huấn luyện một mô hình đơn giản (ví dụ: cây quyết định nông) để dự đoán phần sai số (residual) của mô hình hiện tại, rồi cộng bổ sung mô hình mới vào mô hình tập hợp. Quá trình này lặp lại nhiều lần giúp giảm dần lỗi dự đoán trên tập huấn luyện.
+    
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\linewidth]{projects/XGBoost/image/XGB_1.png}
+        \caption{Minh họa khái niệm Gradient Boosting. Mỗi vòng lặp (Iteration 1, 2, 3) mô hình bổ sung một cây quyết định mới ($T_1$, $T_2$, $T_3$) nhằm dần dần sửa lỗi của mô hình trước. Cuối cùng, các cây yếu được cộng lại thành mô hình mạnh giúp dự đoán tốt hơn}
+    \end{figure}
+    
+    \subsection{Quy trình hoạt động}
+    
+    Quy trình hoạt động của thuật toán Gradient Boosting có thể được mô tả qua các bước lặp sau:
+    
+    \begin{enumerate}
+    \item \textbf{Khởi tạo mô hình ban đầu}: Thuật toán bắt đầu bằng một mô hình dự đoán đơn giản, thường là một hằng số. Trong bài toán hồi quy, mô hình khởi tạo này là giá trị trung bình của biến mục tiêu.  
+    \item \textbf{Tính toán phần dư (pseudo-residuals)}: Đây là một bước quan trọng. Phần dư được tính bằng hiệu số giữa giá trị thực tế của biến mục tiêu và giá trị dự đoán của mô hình hiện tại. Các giá trị phần dư này đại diện cho "lỗi" mà mô hình đang mắc phải.  
+    \item \textbf{Huấn luyện mô hình mới}: Một mô hình yếu mới, chẳng hạn như một cây quyết định đơn giản, được huấn luyện. Tuy nhiên, thay vì dự đoán biến mục tiêu ban đầu, cây này được huấn luyện để dự đoán các giá trị phần dư đã tính ở bước trước. Mục tiêu của nó là học các quy tắc để giải thích tại sao các dự đoán trước đó lại sai lệch.  
+    \item \textbf{Cập nhật mô hình tổng hợp}: Dự đoán của cây mới được cộng vào mô hình tổng hợp hiện có, nhưng được điều chỉnh bởi một tham số gọi là tốc độ học (learning rate), thường có giá trị nhỏ (từ 0 đến 1). Tốc độ học giúp kiểm soát mức độ đóng góp của mỗi cây, làm cho quá trình học diễn ra từ từ và chính xác hơn, từ đó giảm nguy cơ quá khớp (overfitting).  
+    \item \textbf{Lặp lại}: Các bước từ 2 đến 4 được lặp lại cho đến khi đạt được một tiêu chí dừng, chẳng hạn như số lượng cây tối đa đã được xây dựng hoặc sai số không còn giảm đáng kể.
+    \end{enumerate}
+    
+    \subsection{Ví dụ minh hoạ}
+    Giả sử ta có một bài toán hồi quy đơn giản dự đoán $y$ từ $x$. Với 1 mô hình ban đầu dự đoán chưa tốt, ta thêm mô hình thứ 2 để hiệu chỉnh. \\ 
+    Chẳng hạn, với một điểm dữ liệu có giá trị thực tế $y = 1$, mô hình đầu tiên dự đoán $\hat{y}^{(1)} = 0.6$. Sai số ở điểm này có thể đo bằng hàm MSE: $L = (1 - 0.6)^2 = 0.16$.
+    Gradient của loss so với dự đoán là $g = -2(y - \hat{y})$, và với MSE thì $g \propto (y - \hat{y})$. Ở ví dụ này $y - \hat{y} = 0.4$ chính là phần dư (residual) mà mô hình thứ hai cần học. Do đó, ta huấn luyện mô hình thứ hai để dự đoán giá trị 0.4 này từ đầu vào $x$. \\ 
+    Giả sử mô hình thứ hai cho đầu ra $\hat{y}^{(2)} = 0.3$ đối với điểm trên. Lúc này, ta cộng dự đoán của hai mô hình để thu được dự đoán cuối $y_{\text{ensemble}} = 0.6 + 0.3 = 0.9$. Giá trị 0.9 đã gần với nhãn thực tế 1 hơn so với 0.6 ban đầu. \\ 
+    Bằng cách đặt mục tiêu cho mô hình mới là gradient của lỗi (với MSE thì gradient tỉ lệ với phần dư $y - \hat{y}$), Gradient Boosting đảm bảo mỗi mô hình bổ sung sẽ tập trung sửa những lỗi còn lại của mô hình trước đó. Quá trình có thể lặp đi lặp lại với nhiều mô hình con, giúp mô hình tổng thể dần trở nên mạnh mẽ và chính xác hơn.
+    
+    \section{Giới thiệu về XGBoost}
+    \label{sec:xgboost-intro}
+    
+    \subsection{XGBoost là gì?}
+    
+    XGBoost (viết tắt của “Extreme Gradient Boosting”) là một triển khai nâng cao của thuật toán gradient boosting do Tianqi Chen và Carlos Guestrin phát triển (công bố năm 2016). Đúng như tên gọi, XGBoost vẫn tuân theo ý tưởng boosting trên nền gradient: huấn luyện tuần tự nhiều cây quyết định để tối ưu một hàm mất mát bất kỳ. Tuy nhiên, XGBoost được gọi là “cực đại” bởi nó đã mở rộng và cải tiến gradient boosting truyền thống trên nhiều phương diện, từ hàm mục tiêu, tối ưu toán học cho đến hiệu năng tính toán.
+    
+    \subsection{Vai trò của khai triển Taylor cấp hai đến XGBoost}
+    
+    %\begin{figure}[H]
+    \begin{tcolorbox}[title=Ôn tập về Gradient Descent và khai triển Taylor,coltitle =white,fonttitle=\large\bfseries,colback=green!10, colframe=green!50!black]
+    Gradient descent là một thuật toán tối ưu cơ bản dựa trên việc di chuyển theo hướng ngược độ dốc (negative gradient) để tìm giá trị nhỏ nhất của hàm mục tiêu. Trong gradient descent, update rule có dạng:
+    $$\boxed{\theta_{t+1}=\theta_t-\eta \nabla L \left(\theta_t \right)}$$
+    trong đó $\eta$ là tốc độ học (learning rate), và $\nabla L \left(\theta_t \right)$ là gradient của hàm mất mát tại $\theta_t$. \\
+    Khai triển Taylor là một công cụ toán học mạnh mẽ để xấp xỉ một hàm phức tạp bằng một đa thức. Khai triển Taylor của hàm $f(x)$ quanh điểm $a$ có dạng:
+    $$f(x)=f(a)+f'(a)(x-a)+\frac{f''(a)}{2!}(x-a)^2+\cdots$$
+    Trong học máy, người ta thường sử dụng xấp xỉ bậc hai:
+    $$\boxed{f(x+\Delta x) \approx f(x)+f'(x) \Delta x+\frac{1}{2} f''(x) \left(\Delta x \right)^2}$$
+    \end{tcolorbox}
+    %\end{figure}
+    
+    Điểm cốt lõi của XGBoost nằm ở việc nó tối ưu hàm mục tiêu bằng cách sử dụng khai triển Taylor bậc hai của hàm mất mát (tích hợp cả đạo hàm bậc nhất và bậc hai). Cần nhớ rằng, ở gradient boosting truyền thống, mỗi mô hình mới được thêm vào dựa trên gradient (đạo hàm bậc nhất) của hàm mất mát nhằm giảm lỗi (cách tiếp cận tương tự gradient descent). XGBoost tiến xa hơn một bước: tại mỗi bước thêm cây, XGBoost thực hiện xấp xỉ hàm mất mát bằng một đa thức bậc hai (sử dụng cả gradient và Hessian – đạo hàm bậc hai của hàm mất mát) quanh giá trị dự đoán hiện tại. Điều này cho phép sử dụng phương pháp tối ưu gần với phương pháp Newton-Raphson thay vì chỉ descent đơn thuần, giúp tìm bước cập nhật tối ưu chính xác hơn.
+    
+    Cụ thể, ký hiệu $g_i = \partial_{\hat{y}{i}^{(t-1)}} \, l\left(y_i, \hat{y}{i}^{(t-1)} \right)$ là gradient và $h_i = \partial^2_{\hat{y}{i}^{(t-1)}} \, l \left(y_i, \hat{y}{i}^{(t-1)} \right)$ là Hessian của hàm mất mát đối với dự đoán hiện tại của mẫu $i$. Khi thêm cây thứ $t$, XGBoost xấp xỉ sự giảm loss bằng công thức Taylor bậc hai như sau:
+    
+    $$\text{obj}^{(t)} \approx \sum_{i=1}^n \left[g_i f_i \left(x_i \right)+\dfrac{1}{2}h_i \left[f_i \left(x_i \right)^2 \right] \right]+\Omega \left(f_i \right)$$
+    
+    trong đó, $f_t(x)$ là cây quyết định mới được thêm ở bước $t$, và $\Omega(f_t)$ là hệ số phạt độ phức tạp của cây đó. Biểu thức trên cho thấy XGBoost chỉ phụ thuộc vào $g_i, \, h_i$ (tính từ mô hình hiện tại) chứ không phụ thuộc trực tiếp vào $y_i$. Nhờ đó, ta có một công thức tổng quát để tối ưu bất kỳ hàm mất mát nào (miễn là hàm đó khả vi tới cấp hai) – chỉ cần cung cấp công thức tính gradient và Hessian, XGBoost đều có thể booster hoá được (từ hồi quy MSE đến phân loại logistic).
+    
+    \subsection{So sánh XGBoost và Gradient Boosting truyền thống}
+    
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\linewidth]{projects/XGBoost/image/XGB_2.png}
+        \caption{Sơ đồ so sánh XGBoost và Gradient Boosting truyền thống}
+    \end{figure}
+    
+    XGBoost thừa hưởng ý tưởng cơ bản của gradient boosting, nhưng có nhiều cải tiến quan trọng khiến nó thường cho hiệu năng và tốc độ vượt trội so với các cách triển khai Gradient Boosting trước đây. Dưới đây là các điểm khác biệt chính:
+    
+    \begin{itemize}
+    \item \textbf{Regularization (Chính quy hoá)}: Thuật toán GBM truyền thống (như trong scikit-learn) thường chỉ tập trung tối thiểu hoá loss trên training, dễ dẫn đến overfitting nếu không kiểm soát độ phức tạp của cây. XGBoost tích hợp trực tiếp các thành phần chính quy $L_1$ và $L_2$ vào hàm mục tiêu để phạt các mô hình phức tạp. Cụ thể, XGBoost định nghĩa hàm phạt mô hình cây $$\Omega(f) = \gamma T + \frac{1}{2}\lambda \sum_{j=1}^T w_j^2$$ trong đó $T$ là số lá, $w_j$ là giá trị tại lá $j$. Tham số $\lambda$ kiểm soát độ lớn các giá trị lá ($L_2$ regularization), còn $\gamma$ quy định mức giảm loss tối thiểu để phép chia được chấp nhận (giống một dạng regularization về cấu trúc cây). Ngoài ra, XGBoost cũng hỗ trợ phạt $L_1$ (tham số $\alpha$) để khuyến khích nhiều giá trị lá bằng 0 (điều này tương tự việc tỉa bớt những lá không đóng góp nhiều). Nhờ regularization, mô hình XGBoost có xu hướng đơn giản hơn, tránh overfit tốt hơn GBM thường.
+    
+    \item \textbf{Parallelization (Song song hoá)}: Việc huấn luyện mô hình boosting là tuần tự qua các vòng lặp, nhưng bên trong việc xây dựng mỗi cây quyết định, XGBoost đã tối ưu để có thể tận dụng tính song song. Thuật toán chia dữ liệu và tìm kiếm điểm chia tốt nhất trên các thuộc tính có thể được thực hiện đồng thời trên nhiều lõi CPU, rút ngắn đáng kể thời gian huấn luyện so với các triển khai GBM thông thường. Thêm vào đó, XGBoost giới thiệu cấu trúc dữ liệu DMatrix tối ưu cho việc duyệt cây, giúp giảm truy cập bộ nhớ và tăng tốc tính toán.
+    
+    \item \textbf{Handling Missing Values (Xử lý dữ liệu khuyết)}: XGBoost có khả năng xử lý giá trị thiếu một cách tự động trong quá trình xây dựng cây. Thuật toán sử dụng phương pháp “sparsity-aware split finding” – khi gặp dữ liệu thưa (bao gồm giá trị thiếu, zero hoặc one-hot nhiều zero), XGBoost thử gán các mẫu khuyết vào nhánh trái hoặc phải, chọn cách gán nào tối ưu loss nhỏ nhất. Nhờ đó, ta không cần xử lý thiếu dữ liệu trước khi đưa vào XGBoost, trong khi GBM truyền thống yêu cầu tiền xử lý như điền giá trị trung bình hoặc tạo cờ đánh dấu.
+    
+    \item \textbf{Tree Pruning (Tỉa cây)}: Cả GBM và XGBoost đều có chiến lược tránh overfitting bằng cách giới hạn độ sâu tối đa của cây. Tuy nhiên, khi quyết định ngưng phát triển một nhánh, GBM truyền thống thường sử dụng chiến lược “dừng sớm tại chỗ” – nếu một split không giảm đủ lỗi thì ngừng chia tiếp tại nút đó. Cách này mang tính cục bộ và có thể bỏ lỡ những phân chia hữu ích ở tầng dưới. Ngược lại, XGBoost chọn cách xây cây “đầy đủ” đến độ sâu cho trước, sau đó hậu xử lý cắt tỉa các nhánh không hiệu quả (prune) dựa trên giá trị gain thực tế. Cụ thể, XGBoost tính độ giảm loss (Gain) của mỗi split và sẽ cắt bỏ các nhánh mà $\text{Gain} < \gamma$ (tham số phạt cấu trúc). Cách tiếp cận “lớn trước, cắt sau” này giúp xem xét bức tranh toàn cục, đảm bảo không bỏ sót các tương tác sâu có ý nghĩa.
+    
+    \item \textbf{In-built Cross-Validation}: Thêm một điểm tiện lợi là XGBoost hỗ trợ sẵn cơ chế cross-validation trong quá trình huấn luyện (thông qua API \verb|cv()|), giúp theo dõi trực tiếp độ lỗi trên tập kiểm tra sau mỗi vòng boosting để tìm điểm dừng tối ưu, thay vì phải tự tách tập và theo dõi ngoài như GBM thông thường.
+    \end{itemize}
+    
+    Tóm lại, XGBoost vẫn dựa trên nền tảng gradient boosting nhưng “extreme” ở chỗ bổ sung đầy đủ các yếu tố regularization, tối ưu tính toán và tiện ích, giúp nó trở thành một trong những thuật toán mạnh mẽ và phổ biến nhất cho dữ liệu bảng (tabular data).
+    
+    \section{Cách xây dựng XGBoost}
+    \label{sec:xgboost-construction}
+    
+    \subsection{Bài toán}
+    
+    Tương tự GBM, mục tiêu của XGBoost là tìm mô hình tổng $\displaystyle F(x) = \sum_{t=0}^T f_t(x)$ (tổng của mô hình cơ sở $F_0$ và $T$ cây quyết định $f_t$) sao cho hàm mục tiêu dưới đây được tối thiểu hoá:
+    $$\text{Obj}=\sum_{i=1}^n l \left(y_i, \, F \left(x_i \right) \right)+\sum_{i=1}^T\Omega \left(f_i \right)$$
+    trong đó $l\left(y, \hat{y} \right)$ là hàm mất mát (ví dụ MSE, log-loss, v.v.) và $\Omega \left(f_t \right)$ là hàm phạt độ phức tạp của cây $f_t$ như đã nêu (phụ thuộc vào số lá $T$ và độ lớn các giá trị lá $w_j$). So với bài toán của GBM thuần túy, XGBoost thêm vế thứ hai $\Omega$ để kiểm soát mô hình không quá phức tạp.
+    
+    \subsection{Cách xây dựng từng bước}
+    \begin{tcolorbox}[title=Xây dựng mô hình XGBoost,coltitle =white,fonttitle=\large\bfseries,colback=green!10, colframe=green!50!black]
+    \begin{enumerate}[noitemsep]
+    \item \textbf{Khởi tạo $F_0$}: $\displaystyle F_0(x)=\arg\min_{\theta} \sum_{i=1}^N l \left(y_i, \, \theta \right)$, chẳng hạn:
+    \begin{itemize}[noitemsep]
+        \item Với bài toán hồi quy với hàm mất mát MSE: $\displaystyle F_0=\frac{1}{N} \sum_i y_i$.
+        \item Với bài toán phân loại nhị phân với hàm mất mát logistics: $F_0=\log\dfrac{\hat{y}}{1-\hat{y}}$ với $\displaystyle \hat{y}=\sum_i y_i$.
+    \end{itemize}
+    \item \textbf{Lặp với $t=1, \, 2, \, \dots, \, M$}:
+    \begin{enumerate}[noitemsep]
+        \item \textbf{Tính gradient và Hessian}:
+        $$g_i = \left. \frac{\partial l \left(y_i, \hat{y} \right)}{\partial \hat{y}} \right|_{\hat{y} = F_{t-1}\left(x_i \right)}, \quad h_i = \left. \frac{\partial^2 l(y_i, \hat{y})}{\partial \hat{y}^2} \right|_{\hat{y} = F_{t-1}\left(x_i \right)}$$
+        Ví dụ:
+        \begin{itemize}[nolistsep]
+        \item Với bài toán hồi quy với hàm mất mát MSE: $g_i=\hat{y}_i-y_i, \, h_i=1$.
+        \item Với bài toán phân loại nhị phân với hàm mất mát logistics: $g_i=p_i-y_i$, $h_i=p_i \left(1-p_i \right)$ với $p_i=\sigma \left(\hat{y}_i \right)$.
+        \end{itemize}
+        \item \textbf{Xây cây $f_t$}:
+        \begin{enumerate}[nolistsep]
+            \item Tại mỗi nút chứa tập mẫu $I$, đặt $ G=\sum_{i \in I} g_i, \, H=\sum_{i \in I} h_i$.
+            \item Với mỗi đặc trưng $k$, sắp xếp toàn bộ các mẫu trong node theo giá trị của đặc trưng $k$. Ban đầu đặt $G_L=0, \, H_L=0, \, G_R=G, \, H_R=H$. Sau đó, thử từng ngưỡng là trung bình các cặp giá trị từ trái sang phải, mỗi ngưỡng tính toán gradient và hessian của các mẫu bên trái và bên phải.
+            \item Tính Gain: $\displaystyle \text{Gain}=\dfrac{1}{2} \left(\frac{G_L^2}{H_L+\lambda}+\frac{G_R^2}{H_R+\lambda}+\frac{\left(G_L+G_R \right)^2}{H_L+H_R+\lambda} \right)-\gamma$.
+            \item Giữ lại ngưỡng có gain lớn nhất. Nếu $\text{Gain} \leq 0$ hoặc đạt ngưỡng dừng, biến nút thành nút lá. Ngược lại, tách nút và lặp lại.
+        \end{enumerate}
+        \item \textbf{Tính trọng số lá}: Với mỗi lá $j$ có tập $I_j$: $$G_j=\sum_{i \in I_j} g_i, \ H_j=\sum_{i \in I_j} h_i, \ w_j^*=-\dfrac{G_j}{H_j+\lambda}$$
+        \item \textbf{Cập nhật mô hình}: $F_t(x)=F_{t-1}(x)+\eta f_t(x)$, trong đó $f_t(x)=w_{q_t(x)}$ là trọng số lá mà $x$ rơi vào.
+    \end{enumerate}
+    \item \textbf{Kết quả cuối cùng}: Sau $M$ vòng, ta thu được mô hình $F_M(x)$.
+    \end{enumerate}
+    \end{tcolorbox}
+    
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.7\linewidth]{projects/XGBoost/image/XGB_4.png}
+        \caption{Quy trình xây dựng XGBoost từng bước với tối ưu hàm mục tiêu}
+    \end{figure}
+    
+    Quy trình trên cho thấy cách XGBoost xây dựng cây tương tự như GBM nhưng thêm các yếu tố hình phạt và tối ưu Newton. Nhờ đó, mỗi bước thêm cây của XGBoost thường đạt được giảm loss nhiều hơn so với GBM thông thường (với cùng cấu trúc cây), đồng thời kiểm soát độ phức tạp để tránh overfit.
+    
+    \textbf{Hiệu quả của regularization $\lambda$}: Để hình dung tác động của tham số $\lambda$ (L2) lên giá trị lá, ta xét đồ thị hàm loss theo giá trị lá (với cấu trúc cây cố định). Nếu không có regularization ($\lambda=0$), giá trị tối ưu của lá chính là điểm đáy của parabol loss (thường có độ lớn lớn hơn). Khi tăng $\lambda$, đồ thị loss sẽ bị “phẳng” hơn (ít dốc hơn), làm điểm tối ưu dịch chuyển về gần 0 hơn. Nói cách khác, $\lambda$ cao buộc các giá trị lá gần 0 hơn, tức mô hình điều chỉnh ít hơn và tránh overfit.
+    
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.7\linewidth]{projects/XGBoost/image/XGB_3.png}
+        \caption{Ảnh hưởng của tham số regularization $\lambda$ đến giá trị tối ưu của một lá (minimize loss). Đường màu xanh ứng với $\lambda = 0$ có điểm tối ưu (đáy parabol) lệch xa 0 hơn so với đường màu đen ứng với $\lambda = 4$ – điểm tối ưu dịch chuyển rõ rệt về 0. Regularization làm mô hình “thận trọng” hơn khi điều chỉnh dự đoán.}
+    \end{figure}
+    
+    \section{Các ví dụ về XGBoost}
+    \label{sec:xgboost-examples}
+    
+    \subsection{Bài toán hồi quy}
+    
+    Xét một bài toán hồi quy đơn giản: dự đoán giá trị $y$ từ biến đầu vào $x$. Giả sử tập dữ liệu huấn luyện gồm 3 điểm: (x=1, y=3), (x=2, y=5), (x=3, y=7). Ta sẽ bước qua 2 vòng lặp của XGBoost (với tham số $\lambda=0$ để đơn giản việc tính toán, và tốc độ học $\eta=1$).
+    
+    \begin{enumerate}[noitemsep]
+        \item \textit{Vòng lặp 1:}
+        \begin{enumerate}[noitemsep]
+            \item \textbf{Khởi tạo $F_0(x)$}: Ở bài toán hồi quy, ta khởi đầu bằng dự đoán hằng bằng trung bình của các $y$. Do các giá trị $y$ là 3, 5, 7 nên trung bình $\bar{y} = 5$. Vậy mô hình ban đầu $F_0(x)$ dự đoán 5 cho tất cả các $x$. Lúc này vector dự đoán ban đầu: $\hat{y} = [5,\;5,\;5]$ cho các điểm 1,2,3.
+    \item \textbf{Tính residual 1}: Tính phần dư (residual) của từng điểm: $r_i = y_i - F_0 \left(x_i \right)$. \\ Vector residual đầu tiên là $[-2,\;0,\;2]$. Residual âm nghĩa là dự đoán đang cao hơn thực tế (cần điều chỉnh xuống), residual dương nghĩa là dự đoán đang thấp (cần điều chỉnh tăng).
+    \item \textbf{Xây dựng cây $f_1(x)$}: Dựa trên các residual này, ta huấn luyện một cây quyết định nhỏ (một gốc hai lá) để dự đoán $r$ từ $x$. Trực quan, residual có vẻ âm cho $x$ nhỏ và dương cho $x$ lớn, nên một cây quyết định với một split sẽ phù hợp. Giả sử thuật toán tìm được điểm chia tối ưu là \emph{x <= 2}:
+    \begin{itemize}[noitemsep]
+        \item Các điểm thỏa mãn \emph{x <= 2} gồm $x=1, \, 2$ (residual lần lượt $-2$ và $0$). Gọi tập này là $I_L$ (nhánh trái).
+    \item Các điểm \emph{x > 2} gồm $x=3$ (residual 2). Gọi tập này là $I_R$ (nhánh phải).
+    \end{itemize}
+    Giá trị lá tối ưu có thể tính nhanh bằng trung bình residual của mỗi nhánh (do đang minimize MSE và $\lambda=0$). 
+    \begin{itemize}
+    \item Nhánh trái $I_L$: trung bình $\dfrac{-2 + 0}{2} = -1$. 
+    \item Nhánh phải $I_R$: trung bình $\dfrac{2}{1} = 2$. 
+    \end{itemize}
+    Ta cũng có thể kiểm chứng bằng công thức đã nêu: $w_L^* = -\dfrac{\sum_{i \in I_L} g_i}{\sum_{i \in I_L} h_i}$, với MSE thì $g_i = F_0 \left(x_i \right) - y_i = -r_i$, $h_i = 1$. \\ 
+    Do đó $\displaystyle \sum_{I_L} g = (-(-2) + -(0)) = 2$, $\displaystyle \sum_{I_L} h = 2$, suy ra $w_L^* = -\dfrac{2}{2} = -1$. Tương tự $w_R^* = -\dfrac{\sum_{I_R} g}{\sum_{I_R} h} = -\dfrac{-2}{1} = 2$ – trùng khớp với kết quả trên. Vậy cây $f_1(x)$ sẽ dự đoán $-1$ với $x \le 2$ và $+2$ với $x > 2$.
+    \item \textbf{Cập nhật mô hình}: Mô hình mới $F_1(x) = F_0(x) + f_1(x)$ (vì $\eta=1$). Nghĩa là:
+    \begin{itemize}[noitemsep]
+    \item Với các điểm $x \le 2$: $;F_1(x) = 5 + (-1) = 4$.
+    \item Với $x > 2$: $;F_1(x) = 5 + 2 = 7$.
+    \end{itemize}
+    \textit{Áp dụng vào dữ liệu}:
+    \begin{itemize}[noitemsep]
+    \item Điểm $x=1$: $F_1(1) = 4$ (dự đoán giảm từ 5 xuống 4, gần với giá trị thực 3 hơn trước).
+    \item Điểm $x=2$: $F_1(2) = 4$ (dự đoán 4, trong khi thực tế 5, ta đã “tụt hơi quá đà” một chút).
+    \item Điểm $x=3$: $F_1(3) = 7$ (dự đoán tăng từ 5 lên 7, khớp đúng giá trị thực tế 7).
+    \end{itemize}
+    Sau vòng 1, tổng bình phương lỗi đã giảm đáng kể (trước đó điểm 1 lệch 2 đơn vị, điểm 3 lệch 2 đơn vị; nay điểm 3 đã khớp, điểm 1 lệch 1 đơn vị, điểm 2 lệch 1 đơn vị).
+        \end{enumerate}
+    \item \textit{Vòng lặp 2:}
+    \begin{enumerate}
+        \item \textbf{Tính residual 2}: Tính tiếp residual so với mô hình $F_1$: $r^{(2)} = y - F_1(x)$. Ta được:
+        \begin{itemize}
+        \item $x=1$: $3 - 4 = -1$,
+        \item $x=2$: $5 - 4 = 1$,
+        \item $x=3$: $7 - 7 = 0$.
+    \end{itemize}
+        Residual mới: $[-1,\; 1,\;0]$. (Điểm 1 dự đoán hơi cao, điểm 2 dự đoán hơi thấp, điểm 3 đã dự đoán đúng nên residual = 0).
+        \item \textbf{Xây dựng cây $f_2(x)$}: Lần này, ta huấn luyện cây để dự đoán các residual $[-1, 1, 0]$. Một lần nữa, rõ ràng có sự phân tách: điểm $x=1$ có residual âm $-1$, còn $x=2,3$ có residual không âm (1 và 0). Cây mới có thể lại chọn ngưỡng \emph{x <= 1.5} (tức tách điểm 1 riêng một nhánh). Nhánh trái $I_L$ (x=1) có residual -1, trung bình lá $w_L = -1$. Nhánh phải $I_R$ (x=2,3) residual trung bình $(1+0)/2 = 0.5$, nên $w_R = 0.5$. Vậy $f_2(x)$ dự đoán -1 cho $x \le 1.5$ và +0.5 cho $x > 1.5$.
+        \item \textbf{Cập nhật mô hình}: $F_2(x) = F_1(x) + f_2(x)$:
+    \begin{itemize}[noitemsep]
+    \item Điểm $x=1$: $F_2(1) = 4 + (-1) = 3$ (giờ khớp chính xác $y=3$).
+    \item Điểm $x=2$: $F_2(2) = 4 + 0.5 = 4.5$ (dự đoán 4.5 so với y=5, còn thiếu 0.5).
+    \item Điểm $x=3$: $F_2(3) = 7 + 0.5 = 7.5$ (dự đoán 7.5 so với y=7, hơi dư 0.5).
+    \end{itemize}
+    \end{enumerate}
+    Sau 2 vòng, dự đoán đã rất gần giá trị thực (sai số nhỏ 0.5). Nếu tiếp tục vòng 3, mô hình sẽ điều chỉnh những sai số nhỏ còn lại (với $\eta=1$ có thể điều chỉnh đúng luôn trong vòng 3). Trong thực tế, ta thường dùng $\eta < 1$ và nhiều vòng lặp để mô hình dần dần hội tụ ổn định.
+    \end{enumerate}
+    
+    \subsection{Bài toán phân loại nhị phân}
+    
+    Xét bài toán phân loại nhị phân đơn giản: dự đoán liệu một người có mua sản phẩm không ($y$) (1 - mua, 0 - không mua) dựa trên hai đặc trưng. Ví dụ, giả sử ta có 4 điểm dữ liệu huấn luyện:
+    \begin{center}
+    \begin{tabular}{|c|c|c|c|}
+    \hline
+    \textbf{ID} & \textbf{Thu nhập $\left(x_1 \right)$} & \textbf{Tuổi $\left(x_2 \right)$} & \textbf{Mua sản phẩm $(y)$} \\
+    \hline
+    1 & 15 & 25 & 1 \\
+    \hline
+    2 & 30 & 35 & 0 \\
+    \hline
+    3 & 25 & 30 & 1 \\
+    \hline
+    4 & 18 & 40 & 1 \\
+    \hline
+    \end{tabular}
+    \end{center}
+    
+    Ở đây, ta sẽ minh hoạ vòng lặp đầu tiên của XGBoost sử dụng hàm mất mát log-loss, tốc độ học $\eta=0.1$ và $\lambda=1$.
+    
+    \begin{enumerate}
+        \item \textbf{Khởi tạo dự đoán ban đầu}: Đối với phân loại nhị phân, dự đoán ban đầu thường là một giá trị log-odds. Để đơn giản, chúng ta có thể giả sử dự đoán ban đầu có xác suất là 0.5 ($p^{(0)}=0.5$) cho tất cả các mẫu.
+        
+        \item \textbf{Tính toán Gradient và Hessian}: Đạo hàm bậc nhất ($g_i$) và đạo hàm bậc hai ($h_i$) của hàm này theo xác suất $p$ được tính như sau:
+        \begin{itemize}
+            \item $g_i=p^{(t-1)}-y_i$
+            \item $h_i=p^{(t-1)} \left(1-p^{(t-1)} \right)$
+        \end{itemize}
+        Với vòng lặp đầu tiên:
+        \begin{center}
+        \begin{tabular}{|c|c|c|c|}
+        \hline
+        \textbf{ID} & $y$ & $g_i=0.5-y_i$ & $h_i=0.5 \left(1-0.5 \right)$ \\
+        \hline
+        1 & 1 & $0.5-1=-0.5$ & $0.25$ \\
+        \hline
+        2 & 0 & $0.5-0=0.5$ & $0.25$ \\
+        \hline
+        3 & 1 & $0.5-1=-0.5$ & $0.25$ \\
+        \hline
+        4 & 1 & $0.5-1=-0.5$ & $0.25$ \\
+        \hline
+        \end{tabular}
+        \end{center}
+    
+        \item \textbf{Xây dựng cây đầu tiên}: Thuật toán tìm điểm chia tốt nhất bằng cách tối đa hóa Gain. Giả sử thuật toán tìm thấy điểm chia tốt nhất là \emph{Thu nhập < 20}.
+        \begin{itemize}[nolistsep]
+            \item \textit{Lá trái}: Chứa các mẫu có $\text{Thu nhập} < 20$ (ID 1, 4).
+            \item \textit{Lá phải}: Chứa các mẫu có $\text{Thu nhập} \geq 20$ (ID 2, 3).
+        \end{itemize}
+    
+        \item \textbf{Tính toán giá trị lá}: XGBoost tính giá trị tối ưu của mỗi lá ($w_j^*$) bằng công thức: $$w_j^*=-\dfrac{\sum_{i \in I_j} g_i}{\sum_{i \in I_j} h_i+\lambda}$$
+        \begin{itemize}
+            \item \textbf{Lá trái}: $\displaystyle \sum g_i=-1.0, \, \sum h_i=0.5$, suy ra $w_L^*=-\dfrac{-1.0}{0.5+1}=-\dfrac{-1}{1.5} \approx 0.667$.
+            \item \textbf{Lá phải}: $\displaystyle \sum g_i=0, \, \sum h_i=0.5$, suy ra $w_R^*=0$.
+        \end{itemize}
+    
+        \item \textbf{Cập nhật dự đoán}: Dự đoán mới (trên thang log-odds) được cập nhật bằng cách cộng dự đoán cũ với giá trị của lá tương ứng, nhân với tốc độ học $\eta$: $$\text{Pred}^{(1)}=\text{Pred}^{(0)}+\eta \cdot w_{\text{lá}}$$
+        Tuy nhiên, vì dự đoán ban đầu là xác suất ($0.5$), chúng ta cần chuyển đổi nó về log-odds để thực hiện phép toán:
+        $$\text{Pred}^{(0)}=\ln \dfrac{p}{1-p}=\ln \dfrac{0.5}{0.5}=0$$
+        \begin{itemize}
+            \item \textbf{ID 1 \& 4 (Lá trái)}: $\text{Pred}_{\text{log-odds}}^{(1)}=0+0.1 \cdot 0.667=0.0667$.
+            \item \textbf{ID 2 \& 3 (Lá phải)}: $\text{Pred}_{\text{log-odds}}^{(1)}=0+0.1 \cdot 0=0$.
+        \end{itemize}
+        Cuối cùng, chúng ta chuyển đổi lại về xác suất bằng hàm sigmoid: $p=\dfrac{1}{1+e^{-\text{Pred}_{\text{log-odds}}}}$.
+        \begin{itemize}
+            \item \textbf{ID 1 \& 4 (Lá trái)}: $p^{(1)}=\dfrac{1}{1+e^{-0.0667}} \approx 0.5167$.
+            \item \textbf{ID 2 \& 3 (Lá phải)}: $p^{(1)}=\dfrac{1}{1+e^{-0}} = 0.5$.
+        \end{itemize}
+        Quá trình lặp lại với các giá trị dự đoán mới này cho đến khi đạt tiêu chí dừng.
+    \end{enumerate}
+    
+    \section{Kết luận}
+    \label{sec:xgboost-conclusion}
+    
+    XGBoost là một minh chứng xuất sắc cho sự kết hợp giữa lý thuyết nền tảng vững chắc và các tối ưu hóa kỹ thuật thông minh. Bằng cách kế thừa nguyên lý của Gradient Boosting và cải tiến nó với khai triển Taylor bậc hai, các thành phần điều chuẩn tích hợp, và khả năng tính toán song song, XGBoost đã giải quyết hiệu quả nhiều hạn chế của các thuật toán tiền nhiệm.
+    
+    Ngày nay, với hiệu suất vượt trội, tốc độ huấn luyện nhanh và khả năng xử lý dữ liệu lớn, XGBoost tiếp tục là một trong những thuật toán được lựa chọn hàng đầu cho các bài toán trên dữ liệu có cấu trúc. Mặc dù việc tinh chỉnh các siêu tham số có thể đòi hỏi kinh nghiệm và hiểu biết sâu sắc, việc nắm vững cơ chế hoạt động của thuật toán là chìa khóa để khai thác tối đa sức mạnh của nó, mang lại những kết quả ấn tượng trong cả nghiên cứu và ứng dụng thực tế.
