@@ -1,0 +1,137 @@
+\section{Case study B: Văn bản}
+
+Mục tiêu của case study này là áp dụng LIME-Text và Anchor-Text cho bài toán phân loại cảm xúc câu ngắn tiếng Việt, minh hoạ cách cấu hình lấy mẫu cục bộ cho dữ liệu rời rạc, cách đo lường chất lượng lời giải thích, và các bẫy thường gặp trong ngôn ngữ tự nhiên.
+
+\subsection{Bài toán và pipeline cơ bản}
+
+\paragraph{Bài toán:} Phân loại nhị phân \texttt{pos}/\texttt{neg} cho câu đánh giá ngắn.
+
+\paragraph{Tiền xử lý:}
+Chuẩn hoá unicode, chuẩn hoá dấu câu, tách từ theo tokenizer đơn giản dựa trên khoảng trắng hoặc một trình tách từ tiếng Việt bất kỳ. Hạ chữ thường, giữ lại dấu câu mạnh nếu có giá trị cảm xúc (dấu chấm than) để kiểm thử sau.
+
+\paragraph{Đặc trưng và mô hình hộp đen:}
+Dùng TF--IDF bag of words + bi-gram; mô hình hộp đen là \emph{Linear SVM} hoặc \emph{Logistic Regression} có regularization vừa phải. Mục tiêu không phải tối ưu điểm số mà tạo một mô hình đủ tốt để kiểm tra lời giải thích cục bộ.
+
+\subsection{LIME-Text: thiết lập cụ thể}
+
+\paragraph{Không gian diễn giải $x'$:}
+$\,x'$ là vector chỉ thị sự hiện diện token hoặc n-gram. Một phần tử bằng 0 nghĩa là token bị loại khỏi câu khi sinh mẫu.
+
+\paragraph{Sinh mẫu lân cận:}
+Sinh $N$ câu lân cận bằng cách \emph{xoá} mỗi token không thuộc danh sách ``giữ nguyên'' với xác suất $p_{\text{drop}}$ điều chỉnh theo tần suất. Tránh xoá quá nhiều khiến câu vô nghĩa: giới hạn tỉ lệ token bị xoá tối đa, hoặc đảm bảo mỗi câu giữ tối thiểu một cụm mang nghĩa.
+
+\paragraph{Khoảng cách và kernel:}
+Dùng khoảng cách dựa trên Jaccard cho tập token, hoặc cosine trên TF--IDF, sau đó gán trọng số
+\[
+\pi_x(z) \;=\; \exp\!\big(-D(x,z)^2/\sigma^2\big).
+\]
+Quét $\sigma \in \{0.25, 0.5, 1.0\}$ và chọn theo fidelity cục bộ kèm ổn định.
+
+\paragraph{Surrogate và trình bày:}
+Khớp hồi quy tuyến tính thưa, hiển thị top-$K$ token quan trọng nhất với dấu ``cộng'' hoặc ``trừ'' thể hiện hướng tác động lên xác suất lớp dự đoán tại $x$ \cite{ribeiro2016lime}.
+
+\subsection{Anchor-Text: thiết lập cụ thể}
+
+\paragraph{Không gian điều kiện:}
+Điều kiện là mệnh đề \texttt{contains(token)} hay \texttt{contains any of \{từ\_1, từ\_2\}} nếu có gom nhóm từ đồng nghĩa.
+
+\paragraph{Bộ sinh có điều kiện:}
+Khi đã \emph{giữ} các token trong anchor, phần còn lại của câu được nhiễu bằng việc xoá token ngoài anchor với xác suất điều khiển theo tần suất. Có thể chèn token trung lập để giữ độ dài tối thiểu. Mục tiêu là mô phỏng phân phối dữ liệu thật càng sát càng tốt để ước lượng $\mathrm{prec}(A)$ không bị ảo.
+
+\paragraph{Ngưỡng và tìm kiếm:}
+Chọn $\tau \in \{0.9,0.95\}$, $\delta=10^{-3}$. Tìm kiếm quy tắc bằng beam search hẹp, đánh giá ứng viên bằng cận Hoeffding hoặc kẹp KL cho $\mathrm{prec}(A)$; ưu tiên quy tắc ngắn có bao phủ lớn \cite{ribeiro2018anchors}.
+
+\subsection{Giao thức đo lường}
+
+\paragraph{Fidelity cục bộ (LIME):}
+Báo cáo $R^2$ có trọng số hoặc accuracy có trọng số giữa $g$ và $f$ trên các câu lân cận đã sinh, cùng khoảng tin cậy theo bootstrap nhỏ.
+
+\paragraph{Precision và Coverage (Anchor):}
+Báo cáo cận dưới tin cậy $\mathrm{LB}_{95\%}(\mathrm{prec})$ và $\widehat{\mathrm{cov}}(A)$ đo trên một mẫu câu thật. Nêu rõ số lần gọi mô hình $f$.
+
+\paragraph{Stability (cả hai):}
+Lặp $T=5$ seed. Với LIME đo Jaccard của tập top-$K$ token và Kendall $\tau$ cho thứ hạng. Với Anchor đo Jaccard giữa tập điều kiện.
+
+\paragraph{Faithfulness cục bộ:}
+Đo \emph{comprehensiveness} và \emph{sufficiency} theo dạng tối giản:
+\[
+\text{Comp}(x,S)= f(x) - f\!\big(x\setminus S\big), \qquad
+\text{Suff}(x,S)= f(x) - f\!\big(\text{keep}(x,S)\big),
+\]
+trong đó $S$ là tập token quan trọng (LIME) hoặc token thuộc anchor; $x\setminus S$ là câu xoá token $S$, $\text{keep}(x,S)$ là câu chỉ giữ $S$. Comp lớn và Suff nhỏ là dấu hiệu tốt về tính ``đủ'' của lời giải thích.
+
+\subsection{Ví dụ minh hoạ}
+
+Giả sử câu đầu vào tích cực: 
+\begin{quote}
+\emph{Phim hơi chậm nhưng đoạn kết rất đẹp, diễn xuất tự nhiên.}
+\end{quote}
+
+\paragraph{LIME-Text.}
+Top-$K$ token và hướng tác động tại $x^\ast$:
+\begin{itemize}
+  \item \texttt{đẹp}, \texttt{kết} $\rightarrow$ dương mạnh,
+  \item \texttt{tự\_nhiên} $\rightarrow$ dương vừa,
+  \item \texttt{chậm} $\rightarrow$ âm vừa,
+  \item \texttt{hơi} $\rightarrow$ âm nhẹ.
+\end{itemize}
+$R^2_w \approx 0.86$, Jaccard trung bình của top-$K$ qua 5 seed đạt $0.62$. Comp khi xoá \{\texttt{đẹp}, \texttt{kết}\} giảm xác suất lớp dương $0.19$ điểm, phù hợp thứ hạng.
+
+\paragraph{Anchor-Text.}
+Quy tắc ứng viên ngắn:
+\[
+A: \texttt{contains}(\text{``đẹp''}) \;\lor\; \texttt{contains}(\text{``tuyệt\_vời''}).
+\]
+Với $\tau=0.9$ và $\delta=10^{-3}$, ước lượng được $\mathrm{LB}_{95\%}(\mathrm{prec})=0.93$, $\widehat{\mathrm{cov}}=0.17$, độ dài quy tắc $=1$ hoặc $2$ tuỳ cách gộp từ đồng nghĩa. Thử mở rộng thêm điều kiện \texttt{``tự\_nhiên''} làm $\mathrm{prec}$ tăng nhẹ nhưng coverage giảm đáng kể, không nên.
+
+\subsection{Bẫy thường gặp trong văn bản}
+
+\begin{itemize}
+  \item \textbf{Phủ định và phạm vi:} Từ ``không'' có thể đảo nghĩa của token sau nó. LIME dễ đánh giá riêng lẻ từng token, bỏ qua phạm vi phủ định. Cần dùng n-gram có chứa phủ định hoặc gom nhóm điều kiện trong Anchor.
+  \item \textbf{Mỉa mai:} Câu có từ tích cực nhưng ngữ cảnh mỉa mai. LIME và Anchor đều có thể bị lừa vì phụ thuộc phân phối huấn luyện.
+  \item \textbf{Đa nghĩa:} Từ đa nghĩa làm lời giải thích không ổn định. Nên ưu tiên n-gram hoặc cụm từ cố định có nghĩa rõ.
+  \item \textbf{Off-manifold khi xoá hàng loạt:} Câu sinh ra không giống ngữ liệu thật. Giới hạn tỉ lệ xoá, bảo toàn độ dài tối thiểu, hoặc chèn token trung lập.
+  \item \textbf{Rò rỉ phong cách:} Dấu chấm than hay biểu tượng cảm xúc có thể trở thành proxy cho nhãn. Kiểm duyệt danh sách đặc trưng được phép nếu cần.
+\end{itemize}
+
+\subsection{Bảng báo cáo kết quả (mẫu điền số)}
+
+\begin{table}[h]
+\centering
+\caption{Kết quả ví dụ tại câu $x^\ast$}
+\label{tab:text-results}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Thước đo & LIME ($\sigma^\star, K^\star$) & Anchor ($\tau$) & Ghi chú \\
+\midrule
+Fidelity có trọng số ($R^2_w$) & 0.86 & -- & trung bình $\pm$ độ lệch \\
+Stability (Jaccard top-$K$) & 0.62 & 0.71 & $T=5$ seed \\
+Comprehensiveness & 0.19 & 0.16 & giảm xác suất lớp đích \\
+Sufficiency & 0.07 & 0.05 & phần giữ nguyên \\
+Precision (cận dưới 95\%) & -- & 0.93 & $\tau=0.90$ \\
+Coverage $\widehat{\mathrm{cov}}$ & -- & 0.17 & trên mẫu thật \\
+Độ dài quy tắc & -- & 1–2 & mệnh đề \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Robustness checks}
+
+\begin{enumerate}
+  \item \textbf{Thay $\sigma$ và $N$:} Kiểm tra đường cong fidelity so với sparsity khi đổi $K$, chọn điểm gối. Tăng $N$ từ 2000 lên 4000 thường tăng ổn định thêm khoảng 0.03–0.06 tuỳ câu.
+  \item \textbf{N-gram vs unigram:} Thêm bigram giảm hiểu lầm do phủ định, nhưng tăng chiều. Theo dõi stability.
+  \item \textbf{Bộ sinh của Anchor:} So sánh hai biến thể: xoá ngẫu nhiên có điều khiển và xoá theo tần suất điều kiện. Loại biến thể cho precision cao ảo trên dữ liệu sinh nhưng không bền trên dữ liệu thật.
+\end{enumerate}
+
+\subsection{Checklist áp dụng cho dự án}
+
+\begin{itemize}
+  \item Xác định câu hỏi nghiệp vụ cho \emph{một câu cụ thể} trước khi chạy.
+  \item Với LIME: chọn khoảng cách theo Jaccard hoặc cosine, giới hạn tỉ lệ xoá token, báo cáo $R^2_w$, stability và kiểm nghiệm faithfulness.
+  \item Với Anchor: định nghĩa điều kiện bằng token hoặc n-gram có nghĩa, chọn $\tau$ theo rủi ro, báo cáo cận tin cậy, coverage và độ dài quy tắc.
+  \item Luôn kiểm tra phủ định và n-gram để tránh hiểu sai.
+\end{itemize}
+
+\begin{takeaway}
+Trong văn bản, LIME-Text cho bức tranh cộng trừ theo từ khoá rất trực quan, còn Anchor-Text cho quy tắc ngắn gọn dễ kiểm chứng. Hãy kiểm soát quá trình sinh câu lân cận để tránh off-manifold, và luôn đánh giá bằng cả fidelity, stability, cùng các thước đo faithfulness như comprehensiveness và sufficiency \cite{ribeiro2016lime,ribeiro2018anchors}.
+\end{takeaway}

@@ -1,0 +1,44 @@
+\section{Lời mở}
+
+\textit{Mục tiêu của phần mở} là đặt vấn đề một cách gần gũi, xây dựng trực giác ban đầu về vì sao cần giải thích mô hình, đồng thời định vị phạm vi của bài viết và cách bạn đọc nên sử dụng tài liệu này.
+
+\subsection{Một câu chuyện nhỏ để khởi động}
+
+Bạn có một mô hình cho điểm tín dụng chạy rất tốt trên thước đo AUC và F1. Một ngày, mô hình từ chối một hồ sơ khách hàng mà nhân viên thẩm định tin rằng đáng được duyệt. Ban lãnh đạo hỏi: Vì sao hệ thống lại ra quyết định như thế. Bạn mở dashboard, thấy vài cột đặc trưng được gán tầm quan trọng cao. Câu trả lời đó chưa đủ. Nhân viên muốn biết \emph{ngay trong trường hợp này} mô hình đã nhìn vào điều gì. Manager muốn biết quyết định \emph{ổn định} ra sao nếu dữ liệu đầu vào biến động nhỏ. Kỹ sư muốn biết cách \emph{kiểm chứng} lời giải thích. Câu chuyện này lặp lại trong nhiều lĩnh vực như y tế, quảng cáo, phát hiện gian lận.
+
+\begin{takeaway}
+Giải thích không phải để trang trí báo cáo. Mục tiêu là hỗ trợ ra quyết định có trách nhiệm, kiểm thử và cải thiện mô hình trong bối cảnh cụ thể.
+\end{takeaway}
+
+\subsection{Interpretability và Explainability, hai khái niệm cần phân biệt}
+
+\defbox{\textbf{Diễn giải được (interpretability)}}: {Mức độ mà con người có thể hiểu trực tiếp cách mô hình ánh xạ đầu vào sang đầu ra. Ví dụ hồi quy tuyến tính với vài đặc trưng đã chuẩn hoá có thể được xem là diễn giải được.}
+
+\defbox{\textbf{Giải thích được (explainability)}}: {Khả năng đưa ra lời giải thích về hành vi của mô hình, có thể bằng phương pháp hậu kiểm và mô hình thay thế. Ví dụ LIME và Anchor giải thích \emph{cục bộ} dự đoán của một mô hình bất kỳ \cite{ribeiro2016lime,ribeiro2018anchors}.}
+
+Trong bài viết này, chúng ta chú trọng cách giải thích hậu kiểm cho mô hình hộp đen, ưu tiên phương pháp bất phụ thuộc mô hình và áp dụng được trong thực tế.
+
+\subsection{LIME và Anchor là gì}
+
+\begin{itemize}
+  \item \textbf{LIME}: xấp xỉ mô hình gốc bằng một mô hình đơn giản trong vùng lân cận điểm cần giải thích, từ đó suy ra ảnh hưởng tương đối của các đặc trưng \cite{ribeiro2016lime}.
+  \item \textbf{Anchor}: tìm các quy tắc dạng if then có độ chính xác cao trong một miền áp dụng nhất định, kèm độ bao phủ để nói rõ phạm vi mà quy tắc có hiệu lực \cite{ribeiro2018anchors}.
+\end{itemize}
+
+Hai phương pháp này \emph{không} phải là giấy phép đảm bảo sự thật tuyệt đối. Chúng cung cấp thấu kính cục bộ với giả định và sai số lấy mẫu cụ thể. Khi dùng sai ngữ cảnh, lời giải thích có thể gây hiểu lầm. Vì vậy chúng ta sẽ kèm theo quy trình kiểm chứng và báo cáo độ tin cậy, dựa trên tinh thần của các khuyến nghị học thuật về đánh giá diễn giải \cite{doshi2017rigorous}.
+
+
+\subsection{Phạm vi và phần không thuộc phạm vi}
+
+\begin{itemize}
+  \item \textbf{Trong phạm vi}: phương pháp hậu kiểm bất phụ thuộc mô hình, tập trung vào LIME và Anchor, các tiêu chí đánh giá lời giải thích, và quy trình kiểm chứng.
+  \item \textbf{Ngoài phạm vi}: kỹ thuật mã nguồn tùy mô hình cụ thể như Grad CAM hay Integrated Gradients, các khía cạnh quản trị rủi ro mô hình ở cấp độ tổ chức. Chúng được nhắc đến trong phần đọc thêm để bạn tự mở rộng.
+\end{itemize}
+
+\subsection{Quy ước ký hiệu và thuật ngữ}
+
+Ký hiệu \(x\) cho đầu vào gốc, \(x'\) cho biểu diễn thay thế trong không gian rời rạc, \(f\) là mô hình gốc, \(g\) là mô hình thay thế, \(\tau\) là ngưỡng độ chính xác cho Anchor. Các thuật ngữ tiếng Anh giữ nguyên nếu là tên riêng phương pháp, còn lại được Việt hoá nhằm dễ tiếp cận.
+
+\begin{takeaway}
+Bài viết không nhằm tóm tắt tài liệu theo kiểu ghi chú mà hướng đến một mini monograph có câu chuyện, có trực giác và có lộ trình thực hành. Hãy đi tiếp sang phần bản đồ XAI để đặt LIME và Anchor vào đúng vị trí trong hệ sinh thái phương pháp giải thích.
+\end{takeaway}

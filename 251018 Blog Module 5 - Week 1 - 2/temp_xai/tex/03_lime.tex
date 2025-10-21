@@ -1,0 +1,104 @@
+\section{Trực giác LIME}
+
+\textbf{LIME }(\textit{Local Interpretable Model-agnostic Explanations}) cung cấp một \emph{mô hình thay thế cục bộ} $g$ để mô tả hành vi của mô hình gốc $f$ quanh một điểm quan tâm $x$ \cite{ribeiro2016lime}. Thay vì cố hiểu toàn bộ $f$, ta ``phóng to'' vào vùng lân cận của $x$ bằng một thước đo gần--xa, sinh các điểm nhiễu có trọng số theo độ gần, rồi khớp một mô hình đơn giản (thường là tuyến tính thưa) để suy luận đóng góp của đặc trưng.
+
+\subsection{Định nghĩa và hàm mục tiêu}
+
+Gọi $\pi_x(z)$ là trọng số lân cận (kernel) đo mức ``gần'' giữa $z$ và $x$, $L$ là mất mát đo chênh lệch dự đoán giữa $f$ và mô hình thay thế $g$, và $\Omega(g)$ là phạt độ phức tạp (để khuyến khích tính gọn). LIME tối ưu:
+\[
+g^\star \;=\; \arg\min_{g \in \mathcal{G}} \; L\big(f,g,\pi_x\big) \;+\; \Omega(g).
+\]
+Với phân loại nhị phân, $L$ thường là mất mát logistic hoặc bình phương có trọng số; với hồi quy, thường là MSE có trọng số:
+\[
+L\big(f,g,\pi_x\big) \;=\; \mathbb{E}_{z \sim \pi_x}\!\Big[w(z)\,\ell\!\big(f(z),g(z)\big)\Big],
+\quad w(z)=\pi_x(z).
+\]
+Kernel phổ biến: $\pi_x(z)=\exp\!\big(-D(x,z)^2/\sigma^2\big)$, trong đó $D$ là khoảng cách được chọn theo miền (chuẩn hoá Euclid cho tabular, cosine cho text, v.v.). Tham số $\sigma$ điều khiển ``độ zoom'' của vùng cục bộ.
+
+\subsection{Biểu diễn diễn giải \texorpdfstring{$x'$}{x'} và ánh xạ}
+
+LIME làm việc trên một \emph{không gian diễn giải} $x'$ sao cho việc ``bật/tắt'' đặc trưng có ý nghĩa đối với con người:
+\begin{itemize}
+  \item \textbf{Bảng (tabular)}: $x'$ có thể là các đặc trưng đã rời rạc hoá/nhị phân hoá; một bit bằng 0 nghĩa là ``giữ cố định ở giá trị nền''.
+  \item \textbf{Văn bản} (LIME-Text): $x'$ là sự hiện diện của token/bi-gram; tắt một token tương đương loại bỏ từ đó.
+  \item \textbf{Ảnh} (LIME-Image): $x'$ là vector bật/tắt các \emph{superpixel}; tắt một superpixel tương đương đè nền xám/làm mờ vùng đó.
+\end{itemize}
+Ánh xạ $\phi:x' \mapsto x$ dựng lại một thể hiện trong không gian gốc để truy vấn $f$.
+
+\subsection{Quy trình LIME theo từng bước}
+
+\begin{enumerate}
+  \item \textbf{Chọn điểm cần giải thích} $x$ và lớp đích (nếu phân loại đa lớp).
+  \item \textbf{Sinh mẫu lân cận}: tạo $N$ biến thể $z_i' \sim q(\cdot\,|\,x')$ bằng cách bật/tắt các thành phần của $x'$ (với xác suất được hiệu chỉnh theo miền) rồi ánh xạ $z_i=\phi(z_i')$.
+  \item \textbf{Gán trọng số lân cận}: $w_i=\pi_x(z_i)$ với khoảng cách $D$ phù hợp và kernel width $\sigma$.
+  \item \textbf{Gọi mô hình gốc}: lấy $y_i=f(z_i)$ (xác suất/lô-git/giá trị dự đoán).
+  \item \textbf{Khớp mô hình thay thế} $g$: thường dùng hồi quy tuyến tính thưa (\emph{K-LASSO}: chọn tối đa $K$ đặc trưng quan trọng rồi ước lượng lại bằng OLS) để tối thiểu $L\!+\!\Omega$.
+  \item \textbf{Trình bày lời giải thích}: hệ số $\beta_j$ của $g$ (hoặc ảnh minh hoạ superpixel) cho biết mức đóng góp cục bộ của đặc trưng $j$ vào dự đoán tại $x$.
+\end{enumerate}
+
+\begin{takeaway}
+LIME không cố ``đúng mọi nơi''; nó ưu tiên \emph{đúng quanh $x$}, với mức độ đúng được kiểm soát bởi kernel và số mẫu lân cận.
+\end{takeaway}
+
+\subsection{Lựa chọn tham số theo miền}
+
+\paragraph{Kích thước vùng lân cận.}
+Kernel width $\sigma$ quá nhỏ $\Rightarrow$ mẫu rất sát $x$, dễ quá khớp nhiễu; quá lớn $\Rightarrow$ $g$ nhìn thấy cả cấu trúc toàn cục, mất tính cục bộ. Thực hành: quét $\sigma$ trên lưới nhỏ (ví dụ $\{0.25,0.5,1.0\}$ cho dữ liệu đã chuẩn hoá) và chọn theo \emph{fidelity cục bộ} cao nhất kèm độ ổn định tốt.
+
+\paragraph{Số mẫu $N$.}
+Tăng $N$ giúp giảm phương sai ước lượng nhưng tốn chi phí gọi $f$. Với tabular thường đủ $N\in[1000,5000]$; text và image cần lớn hơn do chiều cao và phân phối rời rạc (có thể $N\ge 2000$).
+
+\paragraph{Số đặc trưng hiển thị $K$.}
+Chọn $K$ theo \emph{sparsity} mong muốn (thường 5--10) để đảm bảo người dùng đọc được. Có thể tự động quyết định bằng đường cong ``fidelity--sparsity''.
+
+\paragraph{Chiến lược nhiễu.}
+\begin{itemize}
+  \item \textbf{Tabular}: nhiễu có điều kiện theo thống kê biên/đồng phương sai để tránh điểm \emph{off-manifold}. Tránh giả định độc lập hoàn toàn khi có tương quan mạnh.
+  \item \textbf{Text}: loại token với xác suất theo tần suất hoặc theo phân phối có điều kiện (giữ ngữ cảnh cơ bản), tránh xoá quá nhiều làm mất nghĩa câu.
+  \item \textbf{Ảnh}: dùng phân đoạn superpixel hợp lý (K=50--200). Granularity quá thô $\Rightarrow$ lời giải thích cục bộ không chính xác; quá mịn $\Rightarrow$ nhiễu thị giác và không ổn định.
+\end{itemize}
+
+\subsection{Đo lường fidelity và stability}
+
+Fidelity cục bộ: Báo cáo $R^2$ có trọng số hoặc accuracy có trọng số của $g$ trên tập mẫu lân cận:
+\[
+R^2_w = 1 - \frac{\sum_i w_i\,(y_i - g(z_i))^2}{\sum_i w_i\,(y_i - \bar{y}_w)^2},
+\quad \bar{y}_w=\frac{\sum_i w_i y_i}{\sum_i w_i}.
+\]
+Fidelity cao là điều kiện cần để tin cậy lời giải thích.
+
+Stability: Lặp quá trình $T$ lần (khác seed, nhỏ nhiễu), đo Jaccard giữa tập top-$K$ đặc trưng: 
+\[
+\mathrm{Jac} = \frac{|S^{(a)}\cap S^{(b)}|}{|S^{(a)}\cup S^{(b)}|}.
+\]
+Có thể dùng Kendall $\tau$ cho thứ hạng hoặc độ lệch hệ số $\|\beta^{(a)}-\beta^{(b)}\|$.
+
+Kiểm nghiệm ``faithfulness'': Tắt lần lượt các đặc trưng được giải thích là quan trọng và quan sát mức suy giảm dự đoán $f$ (trên $x$ hoặc lân cận của $x$). Suy giảm phù hợp thứ hạng. Lời giải thích có ý nghĩa nhân quả gần đúng ở mức cục bộ (không đồng nghĩa quan hệ nhân quả thực sự).
+
+\subsection{Ví dụ nhỏ: LIME-Text}
+
+Giả sử phân loại cảm xúc câu tiếng Việt. Với câu: ``\emph{phim khá chậm nhưng kết đẹp, diễn viên chính rất tự nhiên}'', LIME-Text có thể chọn top-$K$ từ quan trọng: \{\texttt{kết}, \texttt{đẹp}, \texttt{tự\_nhiên}\} với hệ số dương, và \{\texttt{chậm}\} với hệ số âm. Fidelity có trọng số $R^2_w \approx 0.86$ cho thấy mô hình tuyến tính thưa đã mô phỏng tốt quyết định của $f$ quanh câu này. Lặp 5 lần cho Jaccard trung bình $\ge 0.6$ là mức ổn định chấp nhận được để báo cáo.
+
+\subsection{Bẫy thường gặp và cách khắc phục}
+
+\begin{itemize}
+  \item \textbf{Nhiễu ngoài đa tạp (off-manifold).} Điểm nhiễu không giống dữ liệu thật làm $f$ dự đoán thiếu tin cậy. \emph{Khắc phục:} nhiễu có điều kiện, rời rạc hoá hợp lý, dùng kỹ thuật sinh mẫu gần dữ liệu gốc.
+  \item \textbf{Đặc trưng tương quan cao.} Hệ số tuyến tính dễ không ổn định. \emph{Khắc phục:} nhóm/ghép đặc trưng, giảm $K$, tăng $N$, dùng regularization mạnh hơn.
+  \item \textbf{Kernel width không phù hợp.} Quá nhỏ $\Rightarrow$ quá khớp; quá lớn $\Rightarrow$ mất cục bộ. \emph{Khắc phục:} quét $\sigma$ và chọn theo đường cong fidelity--stability.
+  \item \textbf{Ảnh: phân đoạn kém.} Superpixel quá thô hoặc quá mịn. \emph{Khắc phục:} chọn K vừa phải, thử nhiều seed phân đoạn, báo cáo độ ổn định.
+  \item \textbf{Explanation hacking.} Tối ưu lời giải thích thay vì mô hình. \emph{Khắc phục:} khoá cấu hình trước, kiểm thử ngoài mẫu, và dùng tiêu chí độc lập (faithfulness).
+\end{itemize}
+
+\subsection{Checklist cấu hình LIME (thực chiến)}
+
+\begin{itemize}
+  \item Chọn miền và khoảng cách $D$ hợp lý; chuẩn hoá dữ liệu trước khi tính khoảng cách.
+  \item Chọn $\sigma$ bằng quét lưới ngắn, tối ưu fidelity cục bộ kèm điều kiện stability tối thiểu.
+  \item Đặt $N$ đủ lớn cho miền (tabular: $\ge 1000$; text/image: $\ge 2000$), theo ngân sách gọi $f$.
+  \item Đặt $K$ để đảm bảo sparsity (5--10) và dễ đọc; xác nhận bằng người dùng mục tiêu.
+  \item Báo cáo: $R^2_w$/accuracy có trọng số, Jaccard/Kendall cho stability, và kiểm nghiệm faithfulness bằng ablation.
+\end{itemize}
+
+\begin{takeaway}
+LIME hiệu quả khi bạn cần \emph{dấu hiệu định lượng, gọn} về đặc trưng nào đang chi phối một dự đoán cụ thể. Hãy coi fidelity và stability là hai ``đèn báo'' bắt buộc trước khi tin dùng kết quả \cite{ribeiro2016lime,doshi2017rigorous}.
+\end{takeaway}

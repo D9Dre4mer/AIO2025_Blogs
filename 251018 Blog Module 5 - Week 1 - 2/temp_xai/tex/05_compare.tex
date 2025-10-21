@@ -1,0 +1,138 @@
+\section{Case study A: Dữ liệu bảng}
+
+Mục tiêu của case study này là thực hành trọn quy trình LIME và Anchor trên một bài toán phân loại tín dụng giả lập, minh hoạ cách cấu hình tham số, đo lường chất lượng lời giải thích và báo cáo kết quả theo chuẩn thực chiến.
+
+\subsection{Bài toán và dữ liệu}
+
+\paragraph{Bài toán.} Dự đoán biến nhị phân \texttt{approve} cho hồ sơ tín dụng cá nhân.
+
+\paragraph{Đặc trưng.} Tối giản nhưng có ý nghĩa nghiệp vụ:
+\begin{itemize}
+  \item Liên tục: \texttt{age}, \texttt{income\_m} (triệu/tháng), \texttt{dti} (debt-to-income), \texttt{tenure\_m} (tháng đi làm), \texttt{credit\_hist\_len\_m} (tháng).
+  \item Danh mục: \texttt{education} $\in$ \{\textit{hs, college, university}\}, \texttt{city\_tier} $\in$ \{1,2,3\}.
+  \item Nhị phân: \texttt{has\_mortgage}, \texttt{has\_car\_loan}, \texttt{past\_due\_flag}.
+\end{itemize}
+
+\paragraph{Tiền xử lý.} Chuẩn hoá z-score cho liên tục; one-hot cho danh mục; giữ nhị phân nguyên trạng. Tách \texttt{train/val/test} theo tỉ lệ 8/1/1, khoá \texttt{seed}.
+
+\subsection{Mô hình hộp đen}
+
+Để cố ý tạo bối cảnh ``khó diễn giải trực tiếp'', ta dùng \emph{XGBoost} hoặc \emph{Random Forest}:
+\begin{itemize}
+  \item RF: số cây $=300$, độ sâu tối đa $=8$, min\_samples\_leaf $=20$.
+  \item XGB: \texttt{max\_depth}$=6$, \texttt{n\_estimators}$=500$, \texttt{learning\_rate}$=0.05$, \texttt{subsample}$=0.8$.
+\end{itemize}
+Đánh giá bằng AUC và F1 trên \texttt{test}. Mục tiêu là có một mô hình ``đủ tốt'' (AUC $>0.80$) để kiểm tra lời giải thích cục bộ.
+
+\subsection{Thiết lập lời giải thích}
+
+\paragraph{Không gian diễn giải $x'$.} 
+\begin{itemize}
+  \item Rời rạc hoá mềm cho \texttt{age}, \texttt{income\_m}, \texttt{dti}, \texttt{tenure\_m}, \texttt{credit\_hist\_len\_m} thành các khoảng có nghĩa (ví dụ tứ phân vị), sau đó nhị phân hoá thành các mệnh đề \texttt{feature in bin}.
+  \item Giữ one-hot của danh mục như các mệnh đề nhị phân.
+  \item Nhị phân gốc là mệnh đề trực tiếp.
+\end{itemize}
+
+\paragraph{Khoảng cách và kernel.}
+Khoảng cách Euclid trên không gian đã chuẩn hoá; kernel Gaussian $\pi_x(z)=\exp(-\|z-x\|^2/\sigma^2)$.
+
+\paragraph{LIME.}
+\begin{itemize}
+  \item $N=2000$ mẫu lân cận; $\sigma \in \{0.25, 0.5, 1.0\}$ (chọn theo \emph{fidelity} và \emph{stability} tốt nhất).
+  \item Surrogate là hồi quy LASSO với chọn lọc top-$K$ đặc trưng, $K \in \{5,8,10\}$.
+  \item Nhiễu có điều kiện: với mỗi cột liên tục, sinh theo phân phối có điều kiện trên nhóm gần $x$ (k-láng giềng) để hạn chế off-manifold.
+\end{itemize}
+
+\paragraph{Anchor.}
+\begin{itemize}
+  \item Không gian điều kiện gồm các mệnh đề rời rạc như trên; cho liên tục, mỗi bin là một điều kiện.
+  \item Ngưỡng $\tau \in \{0.9,0.95\}$; $\delta=10^{-3}$.
+  \item Beam search với \texttt{beam\_width}$=10$; heuristic ưu tiên điều kiện có \emph{lift} cao đối với lớp dự đoán.
+  \item Bộ sinh có điều kiện: giữ cố định điều kiện trong anchor, các cột khác lấy mẫu từ phân phối thực nghiệm có điều kiện trên tập lân cận của $x$ (theo kNN).
+\end{itemize}
+
+\subsection{Giao thức đo lường}
+
+\paragraph{Fidelity (LIME).} 
+$R^2$ có trọng số hoặc accuracy có trọng số giữa $g$ và $f$ trên tập mẫu lân cận.
+
+\paragraph{Precision \& Coverage (Anchor).} 
+Báo cáo $\mathrm{LB}_{95\%}(\mathrm{prec})$ cùng $\widehat{\mathrm{cov}}$ ước lượng trên một mẫu đại diện của dữ liệu thật.
+
+\paragraph{Stability (cả hai).}
+Chạy $T=5$ lần với seed khác nhau; đo Jaccard cho top-$K$ đặc trưng (LIME) và Jaccard giữa tập điều kiện (Anchor).
+
+\paragraph{Faithfulness cục bộ.}
+\begin{itemize}
+  \item LIME: ablation dần top-$K$ đặc trưng và đo suy giảm xác suất lớp dự đoán của $f$ quanh $x$.
+  \item Anchor: cưỡng bức điều kiện của anchor, sinh phần còn lại, đo tỉ lệ dự đoán giữ nguyên lớp.
+\end{itemize}
+
+\subsection{Bảng báo cáo kết quả (mẫu điền số)}
+
+\begin{table}[h]
+\centering
+\caption{Kết quả ví dụ tại điểm $x^\ast$ (điền số sau khi chạy)}
+\label{tab:tabular-results}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Thước đo & LIME ($\sigma^\star, K^\star$) & Anchor ($\tau$) & Ghi chú \\
+\midrule
+Fidelity có trọng số ($R^2_w$) & 0.87 & -- & trung bình $\pm$ độ lệch \\
+Stability (Jaccard) & 0.62 & 0.74 & $T=5$ seed \\
+Faithfulness (giảm xác suất khi ablate) & 0.18 & -- & giảm tuyệt đối \\
+Precision (cận dưới 95\%) & -- & 0.94 & $\tau=0.95$ hoặc 0.90 \\
+Coverage $\widehat{\mathrm{cov}}$ & -- & 0.21 & trên mẫu đại diện \\
+Độ dài quy tắc & -- & 2 & số mệnh đề \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Minh hoạ lời giải thích}
+
+\paragraph{LIME.} 
+Ví dụ top-$K$ mệnh đề tại $x^\ast$: 
+\begin{itemize}
+  \item \texttt{dti in [0.32, 0.48]} $\rightarrow$ hệ số âm lớn, kéo dự đoán xuống.
+  \item \texttt{income\_m in [18, 26]} $\rightarrow$ hệ số dương vừa.
+  \item \texttt{past\_due\_flag = 1} $\rightarrow$ hệ số âm vừa.
+  \item \texttt{tenure\_m in [24, 48]} $\rightarrow$ dương nhẹ.
+\end{itemize}
+Trình bày thanh \emph{cộng trừ} giúp người đọc thấy hướng tác động.
+
+\paragraph{Anchor.}
+Quy tắc gợi ý (ví dụ):
+\[
+A(x) : \texttt{past\_due\_flag = 1} \;\wedge\; \texttt{dti in [0.32, 0.48]}.
+\]
+Báo cáo $\mathrm{LB}_{95\%}(\mathrm{prec})=0.94$ tại $\tau=0.9$, $\widehat{\mathrm{cov}}=0.21$, độ dài $=2$.
+
+\subsection{Phân tích và rút ra}
+
+\begin{itemize}
+  \item \textbf{Thông điệp nghiệp vụ:} DTI cao và có nợ quá hạn gần đây là tổ hợp điều kiện đủ mạnh để giữ nguyên quyết định từ chối quanh $x^\ast$ (Anchor), trong khi LIME chỉ ra các yếu tố kéo lên/xuống cụ thể và mức độ.
+  \item \textbf{Độ tin cậy:} Fidelity LIME $>0.8$ và stability trung bình cho thấy surrogate mô phỏng tốt ở vùng lân cận; Anchor có cận dưới precision vượt ngưỡng, coverage vừa phải.
+  \item \textbf{Giới hạn:} Coverage 0.21 nghĩa là quy tắc áp dụng cho một phần năm dữ liệu; nên bổ sung thêm quy tắc ngắn khác hoặc chấp nhận tính cục bộ.
+\end{itemize}
+
+\subsection{Robustness checks}
+
+\begin{enumerate}
+  \item \textbf{Thay kernel width} $\sigma \in \{0.25,0.5,1.0\}$: fidelity tăng nhẹ khi $\sigma$ lớn nhưng stability giảm; chọn $\sigma^\star=0.5$ theo điểm gối.
+  \item \textbf{Tăng số mẫu} $N$: từ 2000 lên 4000 cải thiện stability của LIME $\approx +0.05$ nhưng chi phí gấp đôi; cân nhắc ngân sách.
+  \item \textbf{Bộ sinh có điều kiện} cho Anchor: so sánh kNN-conditioned vs. giả định độc lập; phiên bản độc lập cho precision cao ảo, bị loại.
+\end{enumerate}
+
+\subsection{Checklist áp dụng cho dự án}
+
+\begin{itemize}
+  \item Xác định rõ \emph{điểm $x$} và câu hỏi nghiệp vụ trước khi chạy giải thích.
+  \item Chuẩn hoá và rời rạc hoá để có các mệnh đề có ý nghĩa.
+  \item Tránh off-manifold: dùng nhiễu và bộ sinh \emph{có điều kiện}.
+  \item Báo cáo \emph{fidelity}, \emph{stability}, \emph{faithfulness} cho LIME; \emph{precision (cận)}, \emph{coverage}, \emph{độ dài}, \emph{stability} cho Anchor.
+  \item Lưu cấu hình và \texttt{seed}; kèm mã tái lập cho reviewer kiểm chứng.
+\end{itemize}
+
+\begin{takeaway}
+Trong dữ liệu bảng, LIME cung cấp bức tranh cộng trừ theo đặc trưng rất hữu dụng cho kỹ sư và nhà phân tích rủi ro; Anchor cung cấp quy tắc ngắn gọn có đảm bảo xác suất, phù hợp giao tiếp với nghiệp vụ. Dùng song hành hai công cụ sẽ cho cả ``hướng tác động'' lẫn ``điều kiện đủ cục bộ'' để ra quyết định có trách nhiệm.
+\end{takeaway}

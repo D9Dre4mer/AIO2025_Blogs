@@ -1,0 +1,158 @@
+\section{Trực giác Anchor}
+
+Anchor \cite{ribeiro2018anchors} cung cấp lời giải thích cục bộ dưới dạng \texttt{if--then} dễ đọc, đi kèm hai đại lượng để quản trị chất lượng: \emph{độ chính xác} và \emph{độ bao phủ}. Thay vì tuyến tính hoá như LIME, Anchor tìm một tập điều kiện tối giản sao cho nếu các điều kiện này đúng thì mô hình $f$ gần như chắc chắn đưa ra cùng một dự đoán như tại điểm $x$ trong một miền áp dụng đủ rộng.
+
+\subsection{Định nghĩa}
+
+Gọi $A$ là một \emph{anchor} tức tập các điều kiện logic trên các đặc trưng. Cho một điểm cần giải thích $x$ và lớp dự đoán $y=f(x)$, ký hiệu:
+\[
+\mathrm{prec}(A) \;=\; \Pr_{z \sim \mathcal{D}\,|\,A}\!\big[f(z)=y\big],
+\qquad
+\mathrm{cov}(A) \;=\; \Pr_{z \sim \mathcal{D}}\!\big[z \models A\big].
+\]
+Trong thực tế ta không biết phân phối $\mathcal{D}$, nên ước lượng hai đại lượng trên bằng \emph{lấy mẫu có điều kiện}. Một anchor hợp lệ tại ngưỡng $\tau \in (0,1)$ nếu $\mathrm{prec}(A) \ge \tau$ với xác suất tin cậy ít nhất $1-\delta$. Mục tiêu là tìm $A$ thỏa:
+\[
+\text{tối đa hóa } \mathrm{cov}(A) \quad \text{với ràng buộc } \mathrm{prec}(A)\ge \tau \text{ và } A \text{ là gọn}.
+\]
+
+\subsection{Trực giác tìm kiếm và dừng sớm}
+
+Bài toán là tổ hợp: số lượng quy tắc tiềm năng rất lớn. Anchor dùng \emph{tìm kiếm có dẫn hướng} trên không gian quy tắc, thường theo kiểu beam search:
+\begin{itemize}
+  \item Bắt đầu từ anchor rỗng, lần lượt \emph{mở rộng} bằng cách bổ sung một điều kiện ứng viên.
+  \item Với mỗi ứng viên $A$, \emph{lấy mẫu} điểm $z$ thỏa $A$ theo một \emph{bộ sinh có điều kiện} và đánh giá $f(z)=y$ hay không.
+  \item Dùng bất đẳng thức Hoeffding hoặc biến thể KL để \emph{kẹp} khoảng tin cậy cho $\mathrm{prec}(A)$ từ các mẫu Bernoulli quan sát được.
+  \item \emph{Dừng sớm} khi cận dưới đạt ngưỡng $\tau$ ở mức tin cậy $1-\delta$, rồi ưu tiên ứng viên có độ bao phủ lớn hơn, độ dài ngắn hơn.
+\end{itemize}
+
+Cận Hoeffding cho biến Bernoulli: nếu sau $n$ mẫu có $s$ lần thành công, tần suất $\hat{p}=s/n$, thì với mọi $\epsilon>0$,
+\[
+\Pr\!\big[\;|\hat{p}-p|\ge \epsilon\;\big] \le 2\exp(-2n\epsilon^2).
+\]
+Từ đó suy ra cận dưới $p_{\mathrm{LB}}$ và cận trên $p_{\mathrm{UB}}$ để quyết định chấp nhận, loại bỏ, hoặc cần lấy thêm mẫu. Một cách chặt chẽ hơn là dùng kẹp KL: giải bất phương trình $D_{\mathrm{KL}}(\hat{p}\,\|\,p_{\mathrm{LB}})=\frac{\ln(1/\delta)}{n}$.
+
+\begin{takeaway}
+Tinh thần của Anchor: \emph{ít điều kiện, chính xác cao, phạm vi rõ}. Cơ chế cận tin cậy giúp tránh kết luận vội vàng khi số mẫu còn ít.
+\end{takeaway}
+
+\subsection{Xây dựng không gian điều kiện}
+
+\paragraph{Dữ liệu bảng}: Biến liên tục cần \emph{rời rạc hoá} thành khoảng có nghĩa nghiệp vụ, ví dụ \texttt{thu\_nhap \(\in\) [12, 18]} triệu. Danh mục nhiều mức có thể gom nhóm theo thống kê hoặc do chuyên gia cung cấp. Điều kiện là mệnh đề dạng \texttt{feature op value} hoặc \texttt{feature in set}.
+
+\paragraph{Văn bản}: Điều kiện là chứa một token, n-gram, hoặc một đặc trưng từ vựng cụ thể, có thể mở rộng tới \emph{mẫu ngôn ngữ} như `contains any of {tuyệt vời, xuất sắc}' nếu đã xây sẵn từ điển.
+
+\paragraph{Ảnh}: Điều kiện là tập các superpixel được bật; khi đó việc lấy mẫu có điều kiện sẽ giữ các superpixel trong anchor và nhiễu phần còn lại theo một nền hợp lý.
+
+\subsection{Bộ sinh có điều kiện}
+
+Chất lượng anchor phụ thuộc mạnh vào cách tạo mẫu $z \sim \mathcal{D}\,|\,A$:
+\begin{itemize}
+  \item \textbf{Bảng}: dùng phân phối có điều kiện học từ dữ liệu thật, giữ tương quan giữa các cột, tránh giả định độc lập mạnh khiến mẫu rơi ra ngoài đa tạp.
+  \item \textbf{Văn bản}: chèn/xoá token ngoài anchor theo tần suất hoặc theo mô hình ngôn ngữ đơn giản để duy trì ngữ pháp tối thiểu.
+  \item \textbf{Ảnh}: giữ nguyên các superpixel trong anchor, còn lại làm mờ hoặc thay nền thống nhất. Tránh nhiễu gây tạo artefact làm sai lệch dự đoán.
+\end{itemize}
+
+\subsection{Thuật toán Anchor, tóm lược}
+
+% yêu cầu: \usepackage[ruled,vlined]{algorithm2e}
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetAlgoLined
+\SetKwInput{KwIn}{Đầu vào}
+\SetKwInput{KwOut}{Đầu ra}
+\SetKwFunction{PrecisionBounds}{PrecisionBounds}
+\SetKwFunction{Coverage}{Coverage}
+\SetKwFunction{Expand}{Expand}
+\SetKwFunction{Sample}{Sample}
+
+\KwIn{điểm cần giải thích $x$, nhãn mục tiêu $y=f(x)$, ngưỡng chính xác $\tau$, độ tin cậy $1-\delta$, ngân sách mẫu $B$, tập điều kiện ứng viên $\mathcal{F}$, phân phối sinh mẫu lân cận $\mathcal{D}$}
+\KwOut{Anchor $A^\star$ sao cho $\mathrm{prec}(A^\star)\ge \tau$ và có $\mathrm{cov}(A^\star)$ lớn}
+
+$A^\star \gets \emptyset$;\quad $b \gets B$ \tcp*{ngân sách còn lại}
+Khởi tạo hàng đợi ưu tiên $Q \gets \{\emptyset\}$ \tcp*{ưu tiên theo UB rồi tới coverage, độ ngắn}
+Khởi tạo bảng đếm $(n_C, s_C)$ cho mọi $C$ được thăm \tcp*{mẫu đã dùng, số khớp nhãn}
+
+\While{$Q \neq \emptyset$ \textbf{và} $b>0$}{
+  Lấy $C$ có ưu tiên cao nhất từ $Q$\;
+  \tcp{lấy thêm mẫu cho $C$ theo lô để tinh chỉnh cận}
+  $m \gets \min(\text{batch\_size},\, b)$;\quad
+  $\{z_i\}_{i=1}^{m} \gets \Sample(\mathcal{D}\mid C)$;\quad
+  $s \gets \sum_{i=1}^{m}\mathbf{1}\{f(z_i)=y\}$\;
+  $n_C \gets n_C + m$;\quad $s_C \gets s_C + s$;\quad $b \gets b - m$\;
+  Tính $\widehat{p}_C \gets s_C / n_C$ và \;
+  \qquad $(\mathrm{LB}(C), \mathrm{UB}(C)) \gets \PrecisionBounds(\widehat{p}_C, n_C, \delta)$ \tcp*{Hoeffding hoặc KL}
+  \uIf{$\mathrm{LB}(C) \ge \tau$}{
+    \If{$A^\star=\emptyset$ \textbf{hoặc} $\Coverage(C) > \Coverage(A^\star)$ \textbf{hoặc} \big($\Coverage(C)=\Coverage(A^\star)$ \textbf{và} $|C|<|A^\star|$\big)}{
+      $A^\star \gets C$\;
+    }
+    \tcp{dừng sớm nếu mọi ứng viên còn lại không thể vượt $A^\star$}
+    \If{$\forall C'\in Q: \mathrm{UB}(C') < \tau$ \textbf{hoặc} \big($\Coverage(C') \le \Coverage(A^\star)$ \textbf{và} $|C'|\ge |A^\star|$\big)}{
+      \textbf{break}
+    }
+  }
+  \ElseIf{$\mathrm{UB}(C) < \tau$}{
+    Bỏ qua $C$ \tcp*{cắt tỉa nhánh}
+  }
+  \Else{
+    \tcp{mở rộng $C$ nếu còn ngân sách}
+    \ForEach{$c \in \mathcal{F}\setminus C$ \textbf{phù hợp với} $C$}{
+      $C' \gets C \cup \{c\}$\;
+      Khởi tạo $(n_{C'}, s_{C'}) \gets (0,0)$;\;
+      Tính ưu tiên ban đầu cho $C'$ bằng heuristic tạm thời \tcp*{ví dụ UB ước lượng, rồi coverage, rồi $-|C'|$}
+      Đưa $C'$ vào $Q$\;
+    }
+  }
+}
+\Return{$A^\star$}
+\caption{Thuật toán Anchor với cận tin cậy và dừng sớm theo bao phủ}
+\end{algorithm}
+
+
+\subsection{Độ chính xác, độ bao phủ và đánh đổi}
+
+\begin{itemize}
+  \item \textbf{Chính xác} cao bảo đảm tính nhất quán của dự đoán trong miền áp dụng. Ngưỡng thường chọn $\tau \in [0.9,0.98]$ tùy rủi ro nghiệp vụ.
+  \item \textbf{Bao phủ} cao giúp anchor hữu ích hơn vì áp dụng được cho nhiều điểm. Tuy nhiên tăng bao phủ thường kéo theo giảm chính xác.
+  \item \textbf{Độ dài quy tắc} quá dài khó đọc và dễ bất ổn. Ưu tiên \emph{tối giản} với cùng mức chính xác.
+\end{itemize}
+
+\subsection{Đo lường và báo cáo}
+
+\paragraph{Ước lượng tin cậy.} Báo cáo cận tin cậy cho $\mathrm{prec}(A)$, ví dụ $\mathrm{LB}_{95\%}=0.93$ khi $\tau=0.9$, cùng số lượng mẫu đã dùng và ngân sách tối đa cho mỗi ứng viên.
+
+\paragraph{Độ bao phủ.} Báo cáo $\widehat{\mathrm{cov}}(A)$ trên một mẫu đại diện của dữ liệu thật, tránh chỉ dùng dữ liệu sinh.
+
+\paragraph{Stability.} Lặp lại quy trình với seed khác và biến thể bộ sinh. Đo Jaccard giữa tập điều kiện và so sánh các cận tin cậy thu được.
+
+\paragraph{Faithfulness cục bộ.} Kiểm thử phản chứng: buộc các điều kiện của anchor đúng, thay đổi phần còn lại theo bộ sinh, xác nhận tỷ lệ dự đoán giữ nguyên lớp.
+
+\subsection{Ví dụ ngắn}
+
+\paragraph{Bảng tín dụng.} Với hồ sơ $x$ bị từ chối, Anchor có thể trả về quy tắc: \texttt{tuoi in [18,22]} và \texttt{lich\_su\_tin\_dung = mỏng}. Với $\tau=0.95$, ước lượng cho thấy $\mathrm{LB}_{95\%}=0.96$, $\widehat{\mathrm{cov}}=0.18$. Quy tắc ngắn, chính xác cao nhưng bao phủ vừa phải, phản ánh đúng ý nghĩa nghiệp vụ.
+
+\paragraph{Văn bản cảm xúc.} Anchor dạng: \texttt{contains any of \{tuyệt vời, xuất sắc\}} bảo đảm dự đoán tích cực với độ chính xác cao, nhưng bao phủ có thể thấp. Có thể mở rộng với một điều kiện ngữ cảnh để tăng bao phủ nếu vẫn giữ được $\tau$.
+
+\subsection{Bẫy thường gặp và cách khắc phục}
+
+\begin{itemize}
+  \item \textbf{Bộ sinh sai lệch.} Mẫu có điều kiện không phản ánh dữ liệu thật dẫn tới $\mathrm{prec}$ ảo. \emph{Khắc phục:} dùng mô hình sinh có điều kiện học từ dữ liệu thật, kiểm tra trên tập validation thật.
+  \item \textbf{Quy tắc giả do rò rỉ.} Điều kiện đụng vào đặc trưng rò rỉ hoặc proxy của nhãn. \emph{Khắc phục:} kiểm duyệt danh sách đặc trưng được phép, rà soát với chuyên gia.
+  \item \textbf{Bùng nổ tổ hợp.} Không gian điều kiện lớn, ngân sách mẫu cạn. \emph{Khắc phục:} beam search hẹp, ưu tiên điều kiện có \emph{lift} cao, cắt tỉa sớm theo cận trên.
+  \item \textbf{Overfitting vào seed.} Quy tắc thay đổi nhiều theo seed. \emph{Khắc phục:} báo cáo stability đa seed, tăng ngân sách mẫu cho ứng viên sát ngưỡng.
+  \item \textbf{Quy tắc dài khó đọc.} \emph{Khắc phục:} thêm phạt độ dài trong tiêu chí, hợp nhất điều kiện tương đương, trình bày bằng ngôn ngữ nghiệp vụ.
+\end{itemize}
+
+\subsection{Checklist cấu hình Anchor}
+
+\begin{itemize}
+  \item Chọn $\tau$ theo rủi ro nghiệp vụ. Thực hành: 0.9 đến 0.98, $\delta$ từ $10^{-2}$ đến $10^{-3}$.
+  \item Xây không gian điều kiện có ý nghĩa: rời rạc hoá biến liên tục, gom nhóm danh mục nhiều mức.
+  \item Thiết kế bộ sinh có điều kiện sát dữ liệu thật, ghi rõ giả định.
+  \item Dùng kẹp tin cậy Hoeffding hoặc KL, ưu tiên KL khi số mẫu vừa phải để có cận chặt hơn.
+  \item Áp dụng tìm kiếm có ưu tiên: beam width nhỏ, heuristic dựa trên lift hoặc cải thiện cận.
+  \item Báo cáo đầy đủ: $\mathrm{prec}$ với cận tin cậy, $\mathrm{cov}$, độ dài quy tắc, stability theo seed, và kiểm thử faithfulness.
+\end{itemize}
+
+\begin{takeaway}
+Anchor thích hợp khi người dùng cần \emph{quy tắc dễ kiểm tra} với đảm bảo xác suất rõ ràng. Hãy cân bằng ba yếu tố: chính xác, bao phủ, dễ đọc; và luôn dựa trên bộ sinh có điều kiện đáng tin để tránh quy tắc ảo \cite{ribeiro2018anchors,doshi2017rigorous}.
+\end{takeaway}

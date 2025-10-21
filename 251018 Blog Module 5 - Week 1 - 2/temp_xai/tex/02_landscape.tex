@@ -1,0 +1,123 @@
+\section{Bản đồ XAI trong 10 phút}
+
+Mục tiêu của phần này là đặt LIME và Anchor vào đúng bối cảnh trong hệ sinh thái giải thích cho mô hình học máy, giúp bạn có bản đồ tư duy trước khi đi sâu vào từng phương pháp cụ thể.
+
+\subsection{Phân loại nhanh các hướng tiếp cận}
+
+Có ba trục phân loại hữu ích để định vị một kỹ thuật XAI:
+
+\begin{enumerate}
+  \item \textbf{Thời điểm can thiệp:} Ante hoc so với Post hoc.
+  \begin{itemize}
+    \item \emph{Ante hoc:} thiết kế mô hình vốn đã dễ diễn giải, ví dụ hồi quy tuyến tính thưa hoặc cây quyết định nông.
+    \item \emph{Post hoc:} giải thích mô hình có sẵn, thường là hộp đen. LIME và Anchor thuộc nhóm này \cite{ribeiro2016lime,ribeiro2018anchors}.
+  \end{itemize}
+
+  \item \textbf{Mức phụ thuộc mô hình:} Phụ thuộc mô hình so với Bất phụ thuộc mô hình.
+  \begin{itemize}
+    \item \emph{Phụ thuộc mô hình} dựa vào cấu trúc và gradient nội tại, ví dụ Integrated Gradients.
+    \item \emph{Bất phụ thuộc mô hình} chỉ cần truy cập hàm dự đoán, ví dụ LIME, Anchor. Ưu điểm là dùng chung cho nhiều mô hình, nhược điểm là chi phí lấy mẫu và sai số thống kê \cite{doshi2017rigorous}.
+  \end{itemize}
+
+  \item \textbf{Phạm vi hiệu lực} Cục bộ so với Toàn cục.
+  \begin{itemize}
+    \item \emph{Cục bộ} giải thích một dự đoán cụ thể hoặc một vùng lân cận quanh một điểm dữ liệu.
+    \item \emph{Toàn cục} mô tả xu hướng và cấu trúc chung của mô hình trên toàn tập dữ liệu.
+  \end{itemize}
+\end{enumerate}
+
+\begin{takeaway}
+LIME là mô hình thay thế cục bộ, Anchor là quy tắc cục bộ có ràng buộc độ chính xác và độ bao phủ. Cả hai đều bất phụ thuộc mô hình và làm việc theo kiểu Post hoc.
+\end{takeaway}
+
+\subsection{Ba họ phương pháp phổ biến}
+
+\begin{itemize}
+  \item \textbf{Gán đóng góp theo đặc trưng:} ví dụ LIME, SHAP, saliency dựa nhiễu. Phù hợp khi ta cần biết yếu tố nào kéo dự đoán lên hoặc xuống cho một điểm cụ thể.
+  \item \textbf{Dựa trên ví dụ:} ví dụ prototype, criticism, case based reasoning. Hữu ích khi người dùng tin tưởng bằng so sánh gần nhất.
+  \item \textbf{Dựa trên quy tắc:} ví dụ Anchor hoặc rule list. Phù hợp khi người dùng ưa các mệnh đề điều kiện dễ kiểm chứng.
+\end{itemize}
+
+\noindent Bảng \ref{tab:taxonomy} Định vị nhanh theo ba trục: thời điểm can thiệp, phụ thuộc mô hình, phạm vi hiệu lực.
+
+\begin{table}[h]
+\centering
+\caption{}
+\label{tab:taxonomy}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Kỹ thuật & Thời điểm & Phụ thuộc mô hình & Phạm vi \\
+\midrule
+LIME & Post hoc & Bất phụ thuộc & Cục bộ \\
+Anchor & Post hoc & Bất phụ thuộc & Cục bộ \\
+SHAP mẫu hoá & Post hoc & Bất phụ thuộc & Cục bộ đến bán toàn cục \\
+Cây quyết định nông & Ante hoc & Nền tảng mô hình & Toàn cục \\
+Integrated Gradients & Post hoc & Phụ thuộc mô hình & Cục bộ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Các tiêu chí đánh giá lời giải thích}
+
+Để chọn và vận hành đúng, ta cần tiêu chí đo lường rõ ràng \cite{doshi2017rigorous}:
+
+\defbox{Fidelity cục bộ}{Mức độ mô hình thay thế hoặc quy tắc tái hiện hành vi của mô hình gốc quanh điểm đang xét. Với mô hình thay thế $g$ và trọng số hạt nhân $\pi_x$, một dạng đo là
+\[
+\mathrm{Fid}(x) \;=\; \mathbb{E}_{z \sim \pi_x}\big[\ell\big(f(z),g(z)\big)\big].
+\]
+Mục tiêu là giảm giá trị mất mát này.}
+
+\defbox{\textbf{Stability}}: {Mức độ lời giải thích ít thay đổi khi lặp lại với hạt giống ngẫu nhiên khác, với nhiễu nhỏ ở đầu vào, hoặc với cấu hình lân cận.}
+
+\defbox{\textbf{Sparsity}}: {Mức độ gọn của lời giải thích, ví dụ số đặc trưng được chọn hoặc độ dài quy tắc.}
+
+\defbox{\textbf{Coverage}}: {Với quy tắc, phần trăm các điểm trên phân phối dữ liệu mà quy tắc có thể áp dụng. Với Anchor, ta đồng thời quan tâm độ chính xác đạt ngưỡng $\tau$ và độ bao phủ đủ lớn.}
+
+\begin{caution}
+Một lời giải thích rất gọn có thể đánh đổi fidelity. Ngược lại, một lời giải thích phức tạp dễ mất ý nghĩa đối với người dùng không chuyên.
+\end{caution}
+
+\subsection{Khi nào dùng phương pháp cục bộ}
+
+Phương pháp cục bộ hữu ích khi câu hỏi nghiệp vụ mang tính từng ca cụ thể như từ chối một hồ sơ tín dụng, gợi ý một đơn thuốc, hay duyệt một giao dịch. Khi đó ta quan tâm vùng lân cận của điểm $x$, đặc trưng bởi một \emph{phân phối lân cận} $\pi_x$. LIME hiện thực hoá ý tưởng này bằng cách tối ưu
+\[
+g^\star \;=\; \arg\min_{g \in \mathcal{G}} \; L\big(f,g,\pi_x\big) \;+\; \Omega(g),
+\]
+trong đó $L$ đo fidelity cục bộ, $\Omega$ phạt độ phức tạp của $g$ \cite{ribeiro2016lime}. Anchor tiếp cận theo dạng quy tắc thoả ngưỡng độ chính xác, đồng thời tìm độ bao phủ lớn nhất trong phạm vi còn giữ được độ tin cậy \cite{ribeiro2018anchors}.
+
+\subsection{Sơ đồ quyết định nhanh để chọn công cụ}
+
+\begin{enumerate}
+  \item \textbf{Bạn cần lời giải thích cho một ca cụ thể hay cho bức tranh chung}
+  \begin{itemize}
+    \item Trường hợp cụ thể: ưu tiên phương pháp cục bộ như LIME hoặc Anchor.
+    \item Bức tranh chung: cân nhắc mô hình diễn giải đơn giản, phân tích toàn cục hoặc phân rã đặc trưng toàn cục.
+  \end{itemize}
+  \item \textbf{Người dùng mục tiêu muốn đọc gì}
+  \begin{itemize}
+    \item Điểm cộng trừ theo đặc trưng: LIME.
+    \item Mệnh đề điều kiện dễ kiểm tra: Anchor.
+  \end{itemize}
+  \item \textbf{Ràng buộc tính toán}
+  \begin{itemize}
+    \item Chi phí lấy mẫu hạn chế: giới hạn số mẫu và kích thước lân cận, tăng ưu tiên vào ít đặc trưng.
+    \item Dữ liệu hình ảnh: chú ý phân đoạn superpixel và tác động đến ổn định lời giải thích.
+  \end{itemize}
+  \item \textbf{Yêu cầu kiểm chứng}
+  \begin{itemize}
+    \item Luôn đo lại fidelity cục bộ, stability qua nhiều lần chạy, và với nhiễu đầu vào nhỏ.
+    \item Với Anchor, báo cáo cả độ bao phủ bên cạnh ngưỡng độ chính xác.
+  \end{itemize}
+\end{enumerate}
+
+\subsection{Những hiểu lầm thường gặp}
+
+\begin{itemize}
+  \item \textbf{Đồng nhất hoá diễn giải với sự thật tuyệt đối} lời giải thích cục bộ không phải là bằng chứng nhân quả.
+  \item \textbf{Bỏ qua phạm vi áp dụng} một quy tắc đúng ở vùng này có thể sai ở vùng khác. Luôn nêu rõ phạm vi và điều kiện.
+  \item \textbf{Không kiểm tra độ ổn định} hai lần chạy cho hai lời giải thích khác nhau là dấu hiệu cần điều chỉnh cấu hình hoặc xem lại dữ liệu.
+\end{itemize}
+
+\begin{takeaway}
+Hãy dùng bản đồ ba trục để xác định nhu cầu của bạn, sau đó chọn LIME hay Anchor theo ngôn ngữ mà người dùng mục tiêu dễ đọc nhất. Đo lường bằng fidelity, stability, sparsity và coverage, và luôn gắn lời giải thích với phạm vi hiệu lực cụ thể.
+\end{takeaway}

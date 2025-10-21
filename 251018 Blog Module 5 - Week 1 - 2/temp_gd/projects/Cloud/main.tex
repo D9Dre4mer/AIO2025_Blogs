@@ -1,0 +1,402 @@
+\begin{center}
+    \Large\textbf{Hồi quy Tuyến tính: Nhập môn ``vươn mình'' tới Học sâu}
+\end{center}
+
+\begin{center}
+    \Large\textit{Huy Hoàng}
+\end{center}
+
+% \begin{center}
+%     \large\textit{Hành trình rủ thêm đồng bọn của Decision Tree để tạo ra "hội đồng" mạnh hơn, hiệu quả hơn trong các bài toán phân loại và hồi quy.}
+% \end{center}
+
+\begin{abstract}
+Trong hành trình chuyển đổi từ Học máy (Machine Learning) sang Học sâu (Deep Learning), việc nắm vững các nguyên lý toán học nền tảng không chỉ là một lợi thế mà còn là một yêu cầu tất yếu. Một trong những thuật toán tối ưu hóa quan trọng và phổ biến nhất, làm nền móng cho việc huấn luyện hàng triệu tham số trong các mạng neuron phức tạp, chính là Gradient Descent. Mặc dù nhiều người đã quen thuộc với việc gọi \verb|model.fit()|, việc hiểu sâu sắc cách thức thuật toán này hoạt động sẽ mở ra một tầm nhìn mới về cách các mô hình học.
+
+Bài viết này cung cấp một cái nhìn sâu sắc về thuật toán tối ưu hóa Gradient Descent, bắt đầu từ những khái niệm giải tích cơ bản như đạo hàm và vector gradient. Nội dung tập trung giải thích cách Gradient Descent được áp dụng để huấn luyện mô hình Hồi quy Tuyến tính thông qua việc tối thiểu hóa hàm mất mát Sai số Bình phương Trung bình (MSE). Bài viết cũng đi sâu vào phân tích các hàm mất mát phổ biến trong hồi quy như MAE, MSE và Huber Loss, so sánh ưu nhược điểm và ý nghĩa thống kê của chúng. Cuối cùng, bài viết nhấn mạnh vai trò quan trọng của việc chuẩn hóa dữ liệu để đảm bảo quá trình hội tụ của thuật toán diễn ra nhanh chóng và ổn định.
+\end{abstract}
+
+%\begin{minted}
+% \tableofcontents
+%\end{minted}
+
+\section{Ôn tập về các khái niệm cơ bản của Giải tích}
+
+Trước khi đi sâu vào thuật toán, chúng ta cần trang bị lại một số công cụ toán học thiết yếu. Phần này sẽ giúp độc giả làm quen lại với các khái niệm về tính liên tục, đạo hàm một biến, đạo hàm nhiều biến và quy tắc chuỗi – những khái niệm cốt lõi tạo nên ngôn ngữ của sự tối ưu hóa.
+
+\subsection{Hàm số liên tục: Khái niệm về sự liền mạch}
+
+Hiểu một cách đơn giản, một hàm số được gọi là \emph{\textbf{liên tục}} nếu đồ thị của nó là một đường nét liền, không bị "đứt gãy", "nhảy cóc" hay có "lỗ hổng". Về mặt hình thức, khái niệm này được định nghĩa như sau:
+
+\begin{tcolorbox}[title=Hàm số liên tục,coltitle =white,fonttitle=\large\bfseries,colback=green!10, colframe=green!50!black]
+Hàm số $f(x)$ được gọi là \textbf{\textit{liên tục}} tại điểm $x_0$ nếu thoả mãn tất cả các điều kiện sau:
+\begin{enumerate}[noitemsep]
+    \item Hàm số phải xác định tại $x_0$, tức là $f \left(x_0 \right)$ tồn tại.
+    \item Giới hạn của hàm số khi $x$ tiến tới $x_0$ phải tồn tại, tức là $\displaystyle \lim_{x \to x_0} f(x)$ tồn tại.
+    \item Giá trị của giới hạn phải bằng giá trị của hàm số tại điểm đó: $\displaystyle \lim_{x \to x_0} f(x)= f \left(x_0 \right)$.
+\end{enumerate}
+\end{tcolorbox}
+
+Khái niệm này cực kỳ quan trọng trong Machine Learning vì hầu hết các hàm mất mát (cost function) mà chúng ta muốn tối ưu hóa đều được giả định là liên tục. Tính liên tục đảm bảo rằng những thay đổi nhỏ trong các tham số của mô hình sẽ chỉ dẫn đến những thay đổi nhỏ trong giá trị của hàm mất mát, tạo điều kiện cho một quá trình tối ưu hóa mượt mà và có thể dự đoán được.
+
+\subsection{Đạo hàm: Đo lường tốc độ thay đổi}
+
+Đạo hàm là một trong những khái niệm trung tâm của giải tích, mô tả tốc độ thay đổi tức thời của một đại lượng.
+
+\begin{tcolorbox}[title=Đạo hàm của hàm một biến,coltitle =white,fonttitle=\large\bfseries,colback=green!10, colframe=green!50!black]
+Cho hàm số $y=f(x)$. Đạo hàm của hàm số tại điểm $x=x_0$ được định nghĩa theo giới hạn
+$$ f' \left(x_0 \right) = \lim_{\Delta x \to 0} \frac{\Delta y}{\Delta x} = \lim_{\Delta x \to 0} \frac{f(x_0 + \Delta x) - f(x_0)}{\Delta x} $$
+nếu giới hạn này tồn tại.
+\end{tcolorbox}
+
+Tuy nhiên, ý nghĩa hình học của đạo hàm mới thực sự mang lại trực giác sâu sắc. \emph{Đạo hàm của một hàm số tại một điểm chính là hệ số góc (độ dốc) của đường tiếp tuyến với đồ thị hàm số tại điểm đó.}
+
+\begin{itemize}
+    \item Nếu $f' \left(x_0 \right)>0$, giá trị của hàm số đang tăng tại điểm đó (tức là đường tiếp tuyến đang dốc lên).
+    \item Nếu $f' \left(x_0 \right)<0$, giá trị của hàm số đang giảm tại điểm đó (tức là đường tiếp tuyến đang dốc xuống).
+    \item Nếu $f' \left(x_0 \right)=0$, đường tiếp tuyến nằm ngang, thường xảy ra tại các điểm cực trị của hàm số.
+\end{itemize}
+
+Trong Vật lý, nếu $s(t)$ là phương trình quãng đường theo thời gian, thì đạo hàm $s'(t)$ chính là vận tốc tức thời tại thời điểm t. Tương tự, trong Machine Learning, đạo hàm của hàm mất mát cho chúng ta biết hàm mất mát đang ``dốc'' như thế nào theo sự thay đổi của một tham số, từ đó cho biết cách điều chỉnh tham số đó để giảm mất mát.
+
+Tuy nhiên, trong thực tế, các hàm mất mát của mô hình Machine Learning không phụ thuộc vào một mà là hàng ngàn, thậm chí hàng triệu tham số. Do đó, chúng ta cần mở rộng khái niệm đạo hàm cho các hàm nhiều biến.
+
+\subsubsection*{Đạo hàm riêng}
+
+Khi xét một hàm nhiều biến, chẳng hạn $f(x, \, y)$, chúng ta có thể tính đạo hàm theo từng biến một trong khi coi các biến còn lại là hằng số. Phép toán này được gọi là đạo hàm riêng.
+
+Đạo hàm riêng của $f$ theo $x$ (kí hiệu là $\dfrac{\partial f}{\partial x}$ hay $f'_x(x, \, y)$) đo lường tốc độ thay đổi của hàm số khi chỉ có biến $x$ thay đổi. Tương tự, đạo hàm riêng của $f$ theo $y$ (kí hiệu là $\dfrac{\partial f}{\partial y}$ hay $f'_y(x, \, y)$) đo lường tốc độ thay đổi của hàm số khi chỉ có biến $y$ thay đổi.
+
+\subsubsection*{Vector gradient}
+
+Vector gradient (kí hiệu là $\nabla f$) là một vector chứa tất cả các đạo hàm riêng của hàm số. Đối với hàm hai biến $f(x, \, y)$, vector gradient được định nghĩa là: $\nabla f \left(x, \, y \right)=\left(\dfrac{\partial f}{\partial x}, \, \dfrac{\partial f}{\partial y} \right)$.
+
+Vector gradient không chỉ là một tập hợp các đạo hàm riêng. Nó là một đối tượng hình học mang một ý nghĩa cực kỳ quan trọng: \textbf{\textit{Tại bất kỳ điểm nào trên đồ thị hàm số, vector gradient luôn chỉ về hướng mà hàm số có tốc độ tăng lớn nhất (hướng dốc nhất đi lên)}}. Độ lớn của vector gradient ($ \left\|\nabla f \right\|$) cho biết giá trị của tốc độ tăng lớn nhất đó.
+
+Đây chính là chìa khóa của thuật toán Gradient Descent. Nếu gradient chỉ hướng dốc nhất đi lên, thì hướng ngược lại với gradient ($-\nabla f$) sẽ là hướng dốc nhất đi xuống – con đường nhanh nhất để giảm giá trị của hàm số.
+
+\subsection{Quy tắc chuỗi (Chain Rule): "Bắc cầu" cho các Hàm lồng nhau}
+
+Quy tắc chuỗi là một công cụ cơ bản để tính đạo hàm của các hàm hợp – tức là các hàm được lồng vào nhau. Nếu chúng ta có một hàm $h(x)=f \left(g(x) \right)$, thì đạo hàm của $h(x)$ được tính như sau:
+$$h'(x)=f' \left(g(x) \right) \times g'(x)$$
+Quy tắc này là nền tảng của thuật toán lan truyền ngược (backpropagation) trong mạng neuron. Khi tính toán hàm mất mát, chúng ta có một chuỗi các phép toán lồng nhau. Để tính được đạo hàm của hàm mất mát theo các trọng số ở những lớp đầu tiên, chúng ta phải sử dụng quy tắc chuỗi để ``lan truyền'' gradient ngược từ lớp cuối cùng về các lớp trước đó.
+
+\subsection{Tính lồi: Ứng dụng thực tiễn để "thu về" nhiều hơn}
+
+Một hàm số được gọi là lồi nếu đoạn thẳng nối hai điểm bất kỳ trên đồ thị của hàm luôn nằm trên hoặc trùng với đồ thị đó. Về mặt trực quan, đồ thị của một hàm lồi có dạng giống như một cái "bát". Đặc điểm quan trọng nhất của một hàm lồi là nó chỉ có một điểm cực tiểu duy nhất, và điểm cực tiểu này chính là cực tiểu toàn cục (global minimum).
+
+Việc sử dụng một hàm mất mát lồi đảm bảo rằng thuật toán Gradient Descent, nếu được cấu hình hợp lý, chắc chắn sẽ hội tụ về nghiệm tối ưu toàn cục duy nhất, bất kể điểm khởi tạo ban đầu. Trong các mô hình học máy cổ điển như Hồi quy Tuyến tính (với hàm mất mát MSE) hay Hồi quy Logistic (với hàm mất mát Log Loss), tính lồi là một yếu tố then chốt.
+
+Tuy nhiên, khi bước vào thế giới học sâu, bức tranh trở nên phức tạp hơn. Do cấu trúc phi tuyến và sự kết hợp của hàng triệu tham số, bề mặt mất mát của các mạng nơ-ron sâu hầu như luôn không lồi, chứa vô số điểm cực tiểu cục bộ, điểm yên ngựa (saddle points) và các vùng bình nguyên (plateaus). Điều này lý giải tại sao trong học sâu, việc lựa chọn thuật toán tối ưu hóa (ví dụ: Adam, RMSprop), phương pháp khởi tạo trọng số, và các kỹ thuật điều chuẩn (regularization) lại trở nên cực kỳ quan trọng. Mục tiêu không còn là tìm kiếm điểm cực tiểu toàn cục (một nhiệm vụ gần như bất khả thi), mà là tìm một điểm cực tiểu cục bộ "đủ tốt" có khả năng tổng quát hóa cao trên dữ liệu mới.
+
+\section{Gradient Descent -- Nghệ thuật ``xuống núi'' tìm điểm cực tiểu}
+
+\subsection{Thiết lập Bài toán: Từ Dữ liệu đến Hàm Mất mát}
+
+Trong hồi quy tuyến tính đơn biến, mục tiêu của chúng ta là tìm một đường thẳng phù hợp nhất với một tập hợp các điểm dữ liệu. Đường thẳng này được mô tả bởi một \emph{hàm giả thuyết (hypothesis function)}: 
+$$h(x)=\theta_0+\theta_1 x$$ trong đó, $\theta_0$ là \emph{hệ số chặn (intercept)} và $\theta_1$ là \emph{hệ số góc (slope)}. Đây là các tham số mà mô hình của chúng ta cần phải ``học'' từ dữ liệu.
+
+Để đánh giá xem một đường thẳng (tương ứng với một cặp $\left(\theta_0, \, \theta_1 \right)$ cụ thể) tốt đến mức nào, chúng ta cần một hàm mất mát (cost function). Hàm mất mát phổ biến nhất cho hồi quy tuyến tính là \emph{\textbf{Sai số Bình phương Trung bình (Mean Squared Error - MSE)}}:
+$$ J \left(\theta_0, \, \theta_1 \right) = \frac{1}{2m} \sum_{i=1}^{m} \left(h_{\theta}(x^{(i)}) - y^{(i)} \right)^2 = \frac{1}{2m} \sum_{i=1}^{m} \left(\theta_0 + \theta_1x^{(i)} - y^{(i)} \right)^2 $$
+trong đó, $m$ là tổng số mẫu dữ liệu, $\left(x^{(i)}, \, y^{(i)} \right)$ là mẫu dữ liệu thứ $i$, $h_{\theta} \left(x^{(i)} \right)-y^{(i)}$ là sai số (error hay residual) giữa giá trị dự đoán và giá trị thực tế cho mẫu thứ $i$. Ở công thức này, chúng ta bình phương sai số để đảm bảo giá trị luôn dương và để "trừng phạt" các lỗi lớn nặng hơn các lỗi nhỏ, đồng thời nhân thêm $\dfrac{1}{2}$ vào sai số trung bình để việc tính đạo hàm sau này trở nên gọn gàng hơn.
+
+Mục tiêu cuối cùng của chúng ta là tìm ra cặp giá trị $\left(\theta_0, \, \theta_1 \right)$ để hàm mất mát $J \left(\theta_0, \, \theta_1 \right)$ đạt giá trị nhỏ nhất. Về mặt hình học, hàm mất mát này có dạng một mặt paraboloid (một cái bát) trong không gian 3D, với hai trục hoành là $\theta_0, \, \theta_1$ và trục tung là $J \left(\theta_0, \, \theta_1 \right)$.
+
+\subsection{Ý tưởng cốt lõi của Gradient Descent}
+
+Hãy tưởng tượng bạn đang đứng trên một sườn núi vào một ngày sương mù dày đặc và muốn đi xuống điểm thấp nhất trong thung lũng. Vì sương mù, bạn không thể nhìn xa, chỉ thấy được mặt đất ngay dưới chân mình. Một chiến lược hợp lý là: tại vị trí hiện tại, bạn hãy tìm xem hướng nào là dốc nhất đi xuống, sau đó bước một bước nhỏ theo hướng đó. Lặp lại quá trình này, bạn sẽ dần dần đi xuống thung lũng.
+
+Đây chính là trực giác đằng sau Gradient Descent. ``Vị trí hiện tại'' của bạn là cặp tham số $\left(\theta_0, \, \theta_1 \right)$, còn "hướng dốc nhất đi xuống" chính là hướng ngược lại với vector gradient ($-\nabla J \left(\theta_0, \, \theta_1 \right)$). Từ đó, chúng ta có quy tắc cập nhật chung cho mỗi tham số $\theta_j$ như sau:
+$$\theta_j := \theta_j - \alpha \frac{\partial}{\partial \theta_j} J\left(\theta_0, \, \theta_1 \right)$$
+trong đó: $\alpha$ là tốc độ học (learning rate), quyết định "bước đi" của chúng ta dài hay ngắn; $\dfrac{\partial}{\partial \theta_j} J \left(\theta_0, \, \theta_1 \right)$ là đạo hàm riêng của hàm mất mát theo tham số $\theta_j$, thành phần tương ứng của vector gradient. Một điều quan trọng cần lưu ý là tất cả các tham số $\theta_j$ phải được cập nhật đồng thời trong mỗi lần lặp.
+
+Tốc độ học $\alpha$ là một siêu tham số (hyperparameter) cực kỳ quan trọng, nó kiểm soát độ lớn của mỗi bước cập nhật. Việc lựa chọn $\alpha$ phù hợp là một nghệ thuật và có ảnh hưởng lớn đến quá trình hội tụ của thuật toán. Nếu $\alpha$ quá nhỏ, quá trình học sẽ rất chậm, các bước đi quá nhỏ, khiến thuật toán mất rất nhiều lần lặp mới có thể tiến đến điểm cực tiểu. Nếu $\alpha$ quá lớn, thuật toán có thể "nhảy" qua điểm cực tiểu. Thay vì hội tụ, giá trị của hàm mất mát có thể dao động mạnh quanh điểm cực tiểu hoặc thậm chí tăng lên, dẫn đến sự phân kỳ. Việc tìm ra một giá trị $\alpha$ ``vừa phải'' là chìa khóa để đảm bảo thuật toán hội tụ một cách hiệu quả và ổn định.
+
+\subsection{Quy trình thực hiện Gradient Descent}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{projects/Cloud/image/LR_1.png}
+\end{figure}
+
+Gradient Descent thực hiện theo quy trình như sau:
+
+\begin{tcolorbox}[title=Quy trình thực hiện Gradient Descent,coltitle =white,fonttitle=\large\bfseries,colback=green!10, colframe=green!50!black]
+\begin{enumerate}[nolistsep]
+    \item Khởi tạo các tham số $w$ và $b$.
+    \item \textbf{Tính hàm mất mát $J(w, \, b)$ trên toàn bộ tập huấn luyện}. Ví dụ, với bài toán hồi quy tuyến tính đơn giản, ta có:
+    $$J(w, \, b)=\dfrac{1}{n} \sum_{i=1}^n \left(y_i- \left(wx_i+b \right) \right)^2$$
+    \item \textbf{Tính gradient $\dfrac{\partial J}{\partial w}$ và $\dfrac{\partial J}{\partial b}$} (sự biến thiên của hàm mất mát theo các tham số). Cụ thể, với công thức MSE trên, ta tính được:
+    $$\dfrac{\partial J}{\partial w}=-\dfrac{2}{n} \sum_{i=1}^n x_i \left(y_i- \left(wx_i+b \right) \right), \quad \dfrac{\partial J}{\partial b}=-\dfrac{2}{n} \sum_{i=1}^n \left(y_i-\left(wx_i+b \right) \right)$$
+    \item \textbf{Cập nhật tham số} theo chiều giảm gradient:
+    $$w := w - \eta \, \frac{\partial J}{\partial w}, \quad b:= b - \eta \, \frac{\partial J}{\partial b}$$
+    Bước này nhằm dịch chuyển $w, \, b$ về phía cực tiểu của $J$.
+    \item Lặp lại các bước 2--4 đến khi $w, \, b$ hội tụ (tức độ giảm $J$ không đáng kể hoặc gradient gần bằng 0).
+\end{enumerate}
+\end{tcolorbox}
+
+Như vậy, Gradient Descent giúp tìm cặp $\left(w, \, b \right)$ sao cho đường hồi quy phù hợp nhất với dữ liệu bằng cách cập nhật lặp qua từng bước nhỏ theo hướng giảm sai số. Đây chính là nền tảng cho việc huấn luyện nhiều mô hình trong học máy, kể cả các mạng neuron sâu.
+
+Một trong những lý do khiến hồi quy tuyến tính với hàm mất mát MSE là một ví dụ khởi đầu tuyệt vời là vì hàm mất mát này là một \textbf{hàm lồi (convex)}. Một hàm lồi không có các điểm cực tiểu địa phương (local minima), chỉ có một điểm cực tiểu toàn cục (global minimum) duy nhất. Điều này có một hàm ý cực kỳ quan trọng: Gradient Descent, dù được khởi tạo ở đâu, cũng được đảm bảo sẽ tìm thấy nghiệm tối ưu toàn cục, miễn là tốc độ học $\alpha$ được chọn hợp lý. Đây là một "đặc ân" mà hầu hết các mô hình Deep Learning phức tạp không có, vì hàm mất mát của chúng thường là phi lồi (non-convex) và có vô số các điểm cực tiểu địa phương.
+
+\subsection{Các biến thể của Gradient Descent}
+
+Phương pháp chúng ta vừa mô tả, sử dụng toàn bộ tập dữ liệu để tính toán gradient trong mỗi lần cập nhật, được gọi là \textbf{Batch Gradient Descent}. Tuy nhiên, có những biến thể khác được sử dụng rộng rãi trong thực tế, đặc biệt với các tập dữ liệu lớn.
+
+\begin{itemize}
+    \item \textbf{Stochastic Gradient Descent (SGD)}: Thay vì tính tổng gradient trên toàn bộ mẫu, SGD chỉ lấy một mẫu dữ liệu ngẫu nhiên tại mỗi bước để tính toán gradient và cập nhật tham số. Điều này làm cho mỗi lần cập nhật nhanh hơn rất nhiều, nhưng quá trình hội tụ sẽ "nhiễu" hơn, dao động nhiều hơn quanh điểm cực tiểu.
+    \item \textbf{Mini-batch Gradient Descent}: Đây là phương pháp dung hòa giữa hai phương pháp trên và là phương pháp được sử dụng phổ biến nhất trong Deep Learning. Nó chia tập dữ liệu thành các "batch" nhỏ (ví dụ, 32, 64, hoặc 128 mẫu) và thực hiện cập nhật tham số sau mỗi batch. Nó tận dụng được lợi thế về tốc độ của SGD trong khi vẫn giữ được sự ổn định tương đối của Batch GD nhờ việc tính trung bình gradient trên một batch nhỏ.
+\end{itemize}
+
+\section{Các hàm mất mát phổ biến trong Học máy}
+
+Sau khi nắm vững các nguyên tắc nền tảng, chúng ta sẽ đi vào phân tích các hàm mất mát cụ thể. Các hàm mất mát được phân loại dựa trên loại bài toán mà chúng giải quyết, chủ yếu là hồi quy (regression) và phân loại (classification).
+
+Ở đây, tác giả xin phép tập trung chính ở hai hàm mất mát phổ biến trong các bài toán hồi quy, đó là Mean Absolute Error (MAE) và Mean Square Error (MSE).
+
+\subsection{Mean Absolute Error (MAE/ L1 Loss)}
+
+Mean Absolute Error (MAE), hay còn gọi là L1 Loss, là một trong những hàm mất mát đơn giản và trực quan nhất.
+
+\begin{itemize}
+    \item \textbf{Định nghĩa:} MAE đo lường giá trị trung bình của trị tuyệt đối của các sai số giữa giá trị dự đoán và giá trị thực tế.
+    \item \textbf{Công thức:} $$\text{MAE}=\frac{1}{n} \sum_{i=1}^n \left|y_i-\hat{y}_i \right|$$ trong đó, $n$ là tổng số mẫu, $y_i$ là giá trị thực tế của mẫu thứ $i$, $\hat{y}_i$ là giá trị dự đoán tương ứng.
+    \item \textbf{Đặc điểm:}
+    \begin{itemize}
+        \item \textit{Dễ diễn giải:} Vì MAE không bình phương sai số, đơn vị của nó giống hệt với đơn vị của biến mục tiêu. Ví dụ, nếu bạn đang dự đoán giá nhà bằng USD, giá trị MAE cũng sẽ được tính bằng USD, giúp bạn dễ dàng hiểu được "trung bình mô hình dự đoán sai lệch bao nhiêu".
+        \item \textit{Đóng góp tuyến tính:} Mỗi sai số, dù lớn hay nhỏ, đều đóng góp một cách tuyến tính vào tổng mất mát. Sai số gấp đôi sẽ làm tăng mất mát gấp đôi.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Mean Squared Error (MSE/ L2 Loss)}
+
+Mean Squared Error (MSE), hay L2 Loss, là hàm mất mát phổ biến và thường được xem là lựa chọn mặc định cho hầu hết các bài toán hồi quy.
+
+\begin{itemize}
+    \item \textbf{Định nghĩa:} MSE đo lường giá trị trung bình của bình phương của các sai số.
+
+    \item \textbf{Công thức:} $$\text{MSE}=\dfrac{1}{n} \sum_{i=1}^n \left(y_i-\hat{y}_i \right)^2$$
+
+    \item \textbf{Đặc điểm:}
+    \begin{itemize}
+        \item \textit{Trừng phạt sai số lớn:} Việc bình phương làm cho các sai số lớn bị "trừng phạt" nặng nề hơn rất nhiều so với các sai số nhỏ. Ví dụ, một sai số bằng 10 sẽ đóng góp 100 vào tổng mất mát, trong khi sai số bằng 2 chỉ đóng góp 4. Điều này buộc mô hình phải cố gắng giảm thiểu các sai số lớn.
+        \item \textit{Thuận lợi cho tối ưu hóa:} Hàm MSE là một hàm lồi và khả vi liên tục (trơn) ở mọi nơi. Điều này tạo ra một bề mặt mất mát mượt mà, không có điểm "gãy", giúp các thuật toán tối ưu hóa dựa trên gradient hoạt động rất hiệu quả và ổn định.
+    \end{itemize}
+\end{itemize}
+
+\subsection{So sánh giữa MSE và MAE}
+
+Việc lựa chọn giữa MAE và MSE không chỉ là một quyết định kỹ thuật mà còn phản ánh giả định của chúng ta về dữ liệu và mục tiêu của bài toán.
+
+\subsubsection*{Độ nhạy với các điểm ngoại lai}
+
+\begin{itemize}
+    \item \textbf{MSE:} Rất nhạy cảm với các điểm ngoại lai (outliers). Do cơ chế bình phương, một điểm dữ liệu có sai số rất lớn sẽ tạo ra một giá trị mất mát khổng lồ, có thể chi phối toàn bộ hàm chi phí. Kết quả là, trong quá trình tối ưu hóa, mô hình sẽ cố gắng "lái" đường dự đoán về phía điểm ngoại lai đó để giảm thiểu sai số cực lớn này, đôi khi phải hy sinh độ chính xác trên các điểm dữ liệu còn lại. 
+    \item \textbf{MAE:} Ít bị ảnh hưởng bởi các điểm ngoại lai hơn nhiều. Vì sai số chỉ được lấy trị tuyệt đối, đóng góp của một điểm ngoại lai vào tổng mất mát vẫn theo tỷ lệ tuyến tính. Do đó, MAE được coi là một hàm mất mát "mạnh mẽ" (robust) hơn trong trường hợp dữ liệu bị nhiễu hoặc chứa các giá trị bất thường.
+\end{itemize}
+
+\subsubsection*{Bề mặt Tối ưu hóa và Gradient}
+
+Sự khác biệt trong đạo hàm của MAE và MSE dẫn đến hành vi hội tụ khác nhau trong quá trình huấn luyện.
+
+\begin{itemize}
+    \item \textbf{Gradient của MSE:} Đạo hàm của MSE theo một dự đoán $\hat{y}_i$ là $\dfrac{2}{n} \left(\hat{y}_i-y_i \right)$. Gradient này tỷ lệ thuận với độ lớn của sai số. Khi mô hình còn ở xa điểm tối ưu (sai số lớn), gradient sẽ lớn, dẫn đến các bước cập nhật trọng số lớn, giúp mô hình học nhanh. Khi mô hình tiến gần đến điểm tối ưu (sai số nhỏ), gradient sẽ nhỏ lại, làm cho các bước cập nhật nhỏ hơn, giúp mô hình hội tụ một cách "mềm mại" và chính xác vào điểm cực tiểu.
+
+    \item \textbf{Gradient của MAE:} Đạo hàm của MAE là $\dfrac{1}{n} \textrm{ sgn} \left(\hat{y}_i-y_i \right)$, trong đó
+    $$\text{sgn} \left(\hat{y}_i-y_i \right)=\begin{cases}
+        1 & \text{nếu } \hat{y}_i>y_i \\
+        -1 & \text{nếu } \hat{y}_i<y_i
+    \end{cases}$$
+     Điều này có nghĩa là độ lớn của gradient là một hằng số, không phụ thuộc vào việc sai số lớn hay nhỏ. Hệ quả là, ngay cả khi mô hình đã rất gần điểm tối ưu, nó vẫn thực hiện các bước cập nhật với độ lớn không đổi. Nếu tốc độ học (learning rate) không được điều chỉnh giảm dần, mô hình có thể "nhảy qua lại" xung quanh điểm tối ưu mà không bao giờ hội tụ chính xác, dẫn đến quá trình huấn luyện chậm hơn. Tại điểm sai số bằng 0, hàm MAE không khả vi, nhưng trong thực tế, các thư viện học máy thường xử lý bằng cách coi gradient bằng 0 tại điểm này (sử dụng subgradient).
+\end{itemize}
+
+\subsubsection*{Diễn giải Thống kê}
+
+Một khía cạnh sâu sắc hơn, thường bị bỏ qua, là ý nghĩa thống kê đằng sau việc tối thiểu hóa hai hàm mất mát này.
+
+\begin{itemize}
+    \item Việc tối thiểu hóa MSE về mặt toán học tương đương với việc tìm một mô hình dự đoán giá trị trung bình có điều kiện (conditional mean) của biến mục tiêu, tức là $E$. Điều này xuất phát từ một tính chất cơ bản: \emph{đối với một tập hợp các số, giá trị làm tối thiểu tổng bình phương khoảng cách đến các số đó chính là giá trị trung bình của chúng}. Do đó, nếu mục tiêu của bạn là dự đoán giá trị trung bình (ví dụ: dự đoán doanh thu trung bình hàng tháng), MSE là lựa chọn tự nhiên.
+    \item Ngược lại, việc tối thiểu hóa MAE tương đương với việc tìm một mô hình dự đoán giá trị trung vị có điều kiện (conditional median), tức là Median. Tương tự, \emph{giá trị làm tối thiểu tổng trị tuyệt đối của khoảng cách đến một tập hợp các số chính là giá trị trung vị của chúng}. Trung vị là một thống kê mạnh mẽ, ít bị ảnh hưởng bởi các giá trị ngoại lai. Do đó, nếu dữ liệu của bạn có nhiều outlier hoặc bạn quan tâm đến dự đoán một giá trị "điển hình" hơn là giá trị trung bình (ví dụ: dự đoán thời gian di chuyển điển hình, không bị ảnh hưởng bởi những ngày kẹt xe bất thường), MAE là lựa chọn phù hợp hơn.
+\end{itemize}
+
+\subsection{Các hàm mất mát khác}
+
+Ngoài MAE và MSE, thế giới học máy còn có rất nhiều hàm mất mát khác được thiết kế cho các mục đích chuyên biệt.
+
+\subsubsection*{Các hàm mất mát dùng trong hồi quy}
+
+\begin{itemize}
+    \item \textbf{Log-Cosh Loss}: Đây là một hàm mất mát trơn hơn, có thể xem là sự kết hợp mượt mà giữa MSE và MAE. Công thức của nó là $$L \left(y, \, \hat{y} \right)=\sum_{i=1}^n \log \left(\cosh \left(\hat{y}_i-y_i \right) \right)$$
+    Với sai số nhỏ, nó xấp xỉ $\dfrac{1}{2} \left(y-\hat{y} \right)^2$ (giống MSE); với sai số lớn, nó xấp xỉ $\left|y-\hat{y} \right|-\log 2$ (giống MAE). Ưu điểm lớn của nó là khả vi bậc hai ở mọi nơi, giúp cho các phương pháp tối ưu hóa dựa trên ma trận Hessian có thể được áp dụng.
+
+    \item \textbf{Quantile Loss (Pinball Loss)}: Hàm này là một sự tổng quát hóa của MAE. Trong khi MAE tối ưu cho trung vị (phân vị thứ 50), Quantile Loss cho phép chúng ta tối ưu cho bất kỳ phân vị (quantile) nào. Điều này cực kỳ hữu ích khi chúng ta không chỉ muốn dự đoán một giá trị duy nhất mà còn muốn dự đoán một khoảng tin cậy. Ví dụ, dự đoán phân vị thứ 10 và 90 sẽ cho chúng ta một khoảng mà giá trị thực tế có 80\% khả năng rơi vào.
+\end{itemize}
+
+\subsubsection*{Các hàm mất mát dùng trong phân loại}
+
+\begin{itemize}
+    \item \textbf{Cross-Entropy Loss (Log Loss)}: Đây là hàm mất mát tiêu chuẩn cho các bài toán phân loại. Nó đo lường sự khác biệt giữa hai phân phối xác suất: phân phối xác suất thực tế và phân phối xác suất do mô hình dự đoán. Nó trừng phạt rất nặng các dự đoán sai nhưng lại rất tự tin.
+    \item \textbf{Hinge Loss}: Hàm này là nền tảng của máy học vector hỗ trợ (Support Vector Machines - SVMs). Mục tiêu của nó không chỉ là phân loại đúng mà còn là tối đa hóa "lề" (margin) - khoảng trống giữa các lớp dữ liệu. Công thức của nó là $L \left(y, \, \hat{y} \right)=\max \left(0.1- y \cdot \hat{y} \right)$, trong đó $y$ là nhãn $\left\{-1; \, 1 \right\}$ và $\hat{y}$ là đầu ra thô của bộ phân loại. Mất mát chỉ bằng 0 khi một điểm không chỉ được phân loại đúng mà còn phải nằm ngoài lề an toàn.
+\end{itemize}
+
+\subsection{Huber Loss: Sự kết hợp Tối ưu}
+
+Trong thực tế, chúng ta thường phải đối mặt với một tình thế tiến thoái lưỡng nan: MSE tối ưu tốt nhưng lại quá nhạy cảm với các điểm ngoại lai, trong khi MAE mạnh mẽ hơn nhưng lại có gradient không ổn định và hội tụ chậm. Huber Loss ra đời như một giải pháp dung hòa, kết hợp những ưu điểm của cả hai.
+
+\subsubsection*{Định nghĩa}
+
+Huber Loss là một hàm mất mát phân nhánh (piecewise function), được kiểm soát bởi một siêu tham số $\delta$. Siêu tham số này xác định ngưỡng mà tại đó hàm mất mát chuyển từ dạng bậc hai sang dạng tuyến tính.
+
+$$L_{\delta} (a)=\begin{cases}
+    \dfrac{1}{2}a^2 & \text{khi } |a| \leq \delta \\
+    \delta \left(|a|-\dfrac{1}{2}\delta \right) & \text{khi } |a| > \delta
+\end{cases}$$
+
+Cấu trúc của Huber Loss không phải là ngẫu nhiên. Nó được thiết kế một cách cẩn thận để đảm bảo hai điều kiện quan trọng tại các điểm chuyển tiếp $a=\pm \delta$: hàm số phải liên tục, và đạo hàm bậc nhất của nó cũng phải liên tục. Điều này tạo ra một hàm "trơn" tại điểm nối, rất quan trọng để thuật toán Gradient Descent hoạt động ổn định.
+
+\subsubsection*{Lợi ích \& Ứng dụng}
+
+\begin{itemize}
+    \item \textbf{\textit{Kết hợp ưu điểm:}} Huber Loss kế thừa khả năng tối ưu hóa mượt mà của MSE ở gần điểm cực tiểu và tính mạnh mẽ trước các điểm ngoại lai của MAE. 
+    \item \textbf{\textit{Tính lồi:}} Huber Loss là một hàm lồi, do đó nó đảm bảo sự hội tụ đến điểm cực tiểu toàn cục cho các bài toán tối ưu hóa lồi.
+    \item \textbf{\textit{Ứng dụng:}}
+    \begin{itemize}
+        \item \textit{Hồi quy mạnh mẽ (Robust Regression):} Đây là ứng dụng chính của Huber Loss trong thống kê và học máy cổ điển.
+        \item \textit{Học sâu:} Trong các mạng nơ-ron, đặc biệt là trong lĩnh vực thị giác máy tính, Huber Loss thường được biết đến với tên gọi Smooth L1 Loss. Nó được sử dụng rộng rãi trong các bài toán phát hiện vật thể như Faster R-CNN hay RetinaNet để tối ưu hóa việc dự đoán tọa độ của các hộp giới hạn. Trong bối cảnh này, nó giúp mô hình học ổn định hơn, không bị ảnh hưởng quá mức bởi các hộp giới hạn được gán nhãn sai hoặc không chính xác.
+    \end{itemize}
+\end{itemize}
+
+\section{Vai trò sống còn của chuẩn hoá dữ liệu}
+
+Việc lựa chọn hàm mất mát phù hợp là rất quan trọng, nhưng hiệu quả của quá trình tối ưu hóa còn phụ thuộc rất nhiều vào một bước tiền xử lý thường bị xem nhẹ: chuẩn hóa dữ liệu (data normalization/ standardization). Đối với các thuật toán dựa trên Gradient Descent, đây không chỉ là một ``mẹo" để cải thiện hiệu suất, mà là một yêu cầu gần như bắt buộc để đảm bảo sự hội tụ nhanh và ổn định.
+
+\subsection{Tại sao cần chuẩn hoá dữ liệu?}
+
+Hãy tưởng tượng một mô hình có hai tham số, $w_1$ và $w_2$, tương ứng với hai đặc trưng đầu vào là $x_1$ và $x_2$. Giả sử $x_1$ là tuổi (thang đo từ 18-100) và $x_2$ là thu nhập (thang đo từ 10,000,000 - 1,000,000,000). Do sự chênh lệch khổng lồ về thang đo, một thay đổi nhỏ trong $w_2$ (gắn với thu nhập) sẽ gây ra một sự thay đổi lớn hơn nhiều trong hàm mất mát so với một thay đổi tương tự trong $w_1$ (gắn với tuổi).
+
+Hệ quả là bề mặt của hàm chi phí sẽ bị "kéo dài" và "bóp méo", tạo thành một hình elip rất hẹp và dài, giống như một hẻm núi sâu.
+
+\begin{itemize}
+    \item \textit{Khi chưa chuẩn hóa:} Các đường đồng mức (contour lines) của hàm chi phí có dạng elip rất dẹt. Gradient tại hầu hết các điểm sẽ gần như vuông góc với hướng đi tới điểm tối ưu. Điều này khiến cho thuật toán Gradient Descent thực hiện một đường đi "zig-zag", nhảy qua lại giữa hai sườn dốc của "hẻm núi" và tiến rất chậm chạp về phía đáy. Quá trình hội tụ sẽ rất lâu và không ổn định.
+    \item \textit{Khi đã chuẩn hóa:} Bằng cách đưa tất cả các đặc trưng về cùng một thang đo (ví dụ: trung bình 0, độ lệch chuẩn 1), chúng ta làm cho bề mặt hàm chi phí trở nên "cân đối" hơn, với các đường đồng mức có dạng gần tròn. Lúc này, gradient tại mọi điểm sẽ hướng gần như thẳng về phía tâm (điểm tối ưu). Gradient Descent có thể đi một đường thẳng và nhanh chóng đến đích.
+\end{itemize}
+
+\subsection{Quy trình chuẩn hóa chính xác cho tập dữ liệu Train/ Validation/ Test}
+
+Một sai lầm phổ biến nhưng cực kỳ nghiêm trọng là áp dụng chuẩn hóa không đúng cách trên các tập dữ liệu, dẫn đến một vấn đề gọi là \emph{rò rỉ dữ liệu (data leakage)}. Tập validation và test được dùng để mô phỏng dữ liệu "chưa từng thấy" trong tương lai. Nếu chúng ta sử dụng bất kỳ thông tin nào từ các tập này (ví dụ: giá trị trung bình, độ lệch chuẩn) để chuẩn bị cho tập huấn luyện, mô hình sẽ gián tiếp "biết trước" về dữ liệu mà nó cần được kiểm tra, dẫn đến kết quả đánh giá quá lạc quan và không phản ánh đúng hiệu năng thực tế.
+
+Quy trình chuẩn để tránh rò rỉ dữ liệu như sau:
+
+\begin{enumerate}
+    \item \textbf{Bước 1: \textit{Phân chia dữ liệu}} \\
+    Luôn luôn chia toàn bộ dữ liệu thành 3 tập: training, validation, và test trước khi thực hiện bất kỳ bước tiền xử lý nào.
+    \item \textbf{Bước 2: \textit{Fit Scaler trên tập Training}} \\
+    Tính toán các tham số thống kê cần thiết cho việc chuẩn hóa \emph{chỉ và chỉ trên tập training. (Không bao giờ được fit scaler trên tập validation hoặc test.)} Hành động này được gọi là "fit" scaler.
+    \item \textbf{Bước 3: \textit{Biến đổi tất cả các tập}} \\
+    Sử dụng các tham số đã tính được từ Bước 2 để áp dụng phép biến đổi cho cả ba tập: training, validation, và test. Điều này đảm bảo rằng tất cả dữ liệu đều được xử lý một cách nhất quán, mô phỏng đúng quy trình khi mô hình gặp dữ liệu mới trong thực tế.
+\end{enumerate}
+
+Dưới đây là đoạn mã nguồn minh họa quy trình chuẩn hóa chính xác bằng phương pháp Z-score (Standardization) chỉ sử dụng thư viện Numpy.
+
+\begin{minted}{python}
+import numpy as np
+
+def split_data(X, y, train_size=0.7, val_size=0.15, test_size=0.15, random_state=42):
+    """Chia dữ liệu thành các tập train, validation và test."""
+    np.random.seed(random_state)
+    indices = np.random.permutation(X.shape)
+    
+    train_end = int(train_size * X.shape)
+    val_end = int((train_size + val_size) * X.shape)
+    
+    train_idx = indices[:train_end]
+    val_idx = indices[train_end:val_end]
+    test_idx = indices[val_end:]
+    
+    X_train, y_train = X[train_idx], y[train_idx]
+    X_val, y_val = X[val_idx], y[val_idx]
+    X_test, y_test = X[test_idx], y[test_idx]
+    
+    return X_train, y_train, X_val, y_val, X_test, y_test
+
+class StandardScalerNumpy:
+    """Lớp StandardScaler tự định nghĩa bằng Numpy."""
+    def __init__(self):
+        self.mean_ = None
+        self.std_ = None
+
+    def fit(self, X):
+        """Tính toán mean và std từ tập training."""
+        self.mean_ = np.mean(X, axis=0)
+        self.std_ = np.std(X, axis=0)
+        # Xử lý trường hợp std = 0 để tránh chia cho 0
+        self.std_[self.std_ == 0] = 1
+        return self
+
+    def transform(self, X):
+        """Áp dụng phép biến đổi Z-score."""
+        if self.mean_ is None or self.std_ is None:
+            raise RuntimeError("Scaler has not been fitted yet. Call 'fit' first.")
+        return (X - self.mean_) / self.std_
+
+    def fit_transform(self, X):
+        """Kết hợp fit và transform trên cùng một dữ liệu."""
+        self.fit(X)
+        return self.transform(X)
+
+# 1. Tạo dữ liệu giả
+# Feature 1: thang đo nhỏ (0-10), Feature 2: thang đo lớn (1000-5000)
+X_raw = np.random.rand(1000, 2)
+X_raw[:, 0] = X_raw[:, 0] * 10
+X_raw[:, 1] = X_raw[:, 1] * 4000 + 1000
+y_raw = np.random.rand(1000)
+
+# 2. Bước 1: Phân chia dữ liệu
+X_train, y_train, X_val, y_val, X_test, y_test = split_data(X_raw, y_raw)
+
+print("--- Trước khi chuẩn hóa ---")
+print(f"Train mean: {np.mean(X_train, axis=0)}")
+print(f"Val mean: {np.mean(X_val, axis=0)}")
+print(f"Test mean: {np.mean(X_test, axis=0)}")
+print("-" * 25)
+
+# 3. Khởi tạo và áp dụng Scaler theo đúng quy trình
+scaler = StandardScalerNumpy()
+
+# 4. Bước 2: Fit scaler CHỈ trên tập train
+scaler.fit(X_train)
+print(f"Tham số tính toán từ tập train - Mean: {scaler.mean_}")
+print(f"Tham số tính toán từ tập train - Std: {scaler.std_}")
+print("-" * 25)
+
+# 5. Bước 3: Transform tất cả các tập
+X_train_scaled = scaler.transform(X_train)
+X_val_scaled = scaler.transform(X_val)
+X_test_scaled = scaler.transform(X_test)
+
+print("--- Sau khi chuẩn hóa ---")
+print(f"Train scaled mean: {np.mean(X_train_scaled, axis=0)}")
+print(f"Train scaled std: {np.std(X_train_scaled, axis=0)}")
+print("\nLưu ý: Mean và Std của tập Val/Test sau khi chuẩn hóa sẽ không chính xác bằng 0 và 1, vì chúng được chuẩn hóa bằng tham số của tập Train.")
+print(f"Val scaled mean: {np.mean(X_val_scaled, axis=0)}")
+print(f"Val scaled std: {np.std(X_val_scaled, axis=0)}")
+print(f"Test scaled mean: {np.mean(X_test_scaled, axis=0)}")
+print(f"Test scaled std: {np.std(X_test_scaled, axis=0)}")
+\end{minted}
+
+\subsection{Khi nào nên chuẩn hoá dữ liệu?}
+
+Việc chuẩn hóa không phải lúc nào cũng cần thiết. Mức độ cần thiết phụ thuộc vào thuật toán bạn đang sử dụng.
+
+\begin{itemize}
+    \item \textit{Những trường hợp nên chuẩn hoá:}
+    \begin{itemize}[noitemsep]
+        \item Các mô hình nhạy cảm với thang đo của đặc trưng, bao gồm: các mô hình tuyến tính (Hồi quy Tuyến tính, Hồi quy Logistic), Máy học Véc-tơ Hỗ trợ (SVM).
+        \item Các mạng nơ-ron, vì quá trình tối ưu hóa bằng Gradient Descent sẽ được hưởng lợi rất nhiều.
+        \item Các thuật toán dựa trên khoảng cách như K-Nearest Neighbors (KNN), vì khoảng cách Euclid sẽ bị chi phối bởi các đặc trưng có thang đo lớn.
+    \end{itemize}
+    \item \textit{Những trường hợp không cần chuẩn hoá:} Các mô hình dựa trên cây quyết định như Decision Tree, Random Forest, và các thuật toán Boosting (ví dụ: Gradient Boosting, XGBoost). Các thuật toán này hoạt động bằng cách tìm các ngưỡng phân chia tối ưu trên từng đặc trưng một cách độc lập, do đó chúng không bị ảnh hưởng bởi sự khác biệt về thang đo giữa các đặc trưng.
+\end{itemize}
+
+\section{Kết luận}
+
+Qua bài viết, có thể thấy Gradient Descent là thuật toán nền tảng, đóng vai trò cốt lõi trong việc huấn luyện các mô hình học máy, từ Hồi quy Tuyến tính đơn giản đến các mạng nơ-ron phức tạp. Việc lựa chọn hàm mất mát phù hợp (như MSE, MAE hay Huber Loss) phụ thuộc vào đặc tính của dữ liệu, đặc biệt là sự hiện diện của các điểm ngoại lai, và mục tiêu thống kê của bài toán. Quan trọng không kém, việc chuẩn hóa dữ liệu là một bước tiền xử lý gần như bắt buộc đối với các thuật toán dựa trên gradient, giúp cải thiện đáng kể tốc độ và sự ổn định của quá trình tối ưu hóa. Nắm vững ba yếu tố này là chìa khóa để xây dựng các mô hình học máy hiệu quả và mạnh mẽ.

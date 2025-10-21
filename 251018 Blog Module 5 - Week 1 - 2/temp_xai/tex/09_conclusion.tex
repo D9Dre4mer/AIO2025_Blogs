@@ -1,0 +1,65 @@
+\section{Kết luận và lộ trình nâng cao}
+
+Phần này tổng kết những gì bạn đã học về LIME và Anchor, đưa ra một playbook ngắn gọn để áp dụng trong dự án thật, kèm lộ trình mở rộng khi bạn muốn tiến xa hơn. Trọng tâm vẫn là ra quyết định có trách nhiệm, đo lường được và có thể kiểm chứng.
+
+\subsection{Năm điểm then chốt}
+
+\begin{enumerate}
+  \item \textbf{Cục bộ quan trọng} cả LIME và Anchor chỉ đáng tin trong vùng lân cận của một điểm cụ thể. Đừng suy rộng lời giải thích ra toàn bộ dữ liệu \cite{ribeiro2016lime,ribeiro2018anchors}.
+  \item \textbf{Đo lường trước khi tin} với LIME hãy báo cáo fidelity có trọng số và stability. Với Anchor cần cận dưới độ chính xác cùng độ bao phủ. Không có thước đo thì không có niềm tin \cite{doshi2017rigorous}.
+  \item \textbf{Sinh mẫu đúng bối cảnh} nhiễu ngoài đa tạp làm sai lệch cả hai phương pháp. Hãy dùng phân phối có điều kiện dựa trên dữ liệu thật.
+  \item \textbf{Tính gọn cần có lý do} lời giải thích ngắn dễ đọc nhưng có thể đánh đổi độ trung thực. Luôn trình bày đường cong đánh đổi để chứng minh lựa chọn.
+  \item \textbf{Con người là trung tâm} định dạng đầu ra phải khớp cách người dùng đọc. Kỹ sư thích điểm cộng trừ theo đặc trưng. Nghiệp vụ thích quy tắc if then có phạm vi áp dụng rõ ràng.
+\end{enumerate}
+
+\subsection{Chọn công cụ theo bối cảnh}
+
+\begin{itemize}
+  \item \textbf{Bạn cần biết yếu tố nào kéo dự đoán lên hoặc xuống cho một ca cụ thể} dùng LIME để có trọng số đặc trưng cục bộ và bản đồ superpixel cho ảnh \cite{ribeiro2016lime}.
+  \item \textbf{Bạn cần một quy tắc dễ kiểm chứng kèm đảm bảo xác suất} dùng Anchor để có ngưỡng precision và độ bao phủ, phù hợp truyền thông với nghiệp vụ và tuân thủ \cite{ribeiro2018anchors}.
+  \item \textbf{Bạn bị ràng buộc ngân sách tính toán} ưu tiên LIME. Khi có thời gian và cần cam kết xác suất hãy thêm Anchor.
+\end{itemize}
+
+\subsection{Playbook 7 bước áp dụng trong dự án thật}
+
+\begin{enumerate}
+  \item \textbf{Xác định trường hợp sử dụng} câu hỏi nghiệp vụ, điểm $x$ cần giải thích, lớp đích.
+  \item \textbf{Chuẩn bị không gian diễn giải} rời rạc hoá biến liên tục thành khoảng có nghĩa và định nghĩa superpixel hợp lý với ảnh.
+  \item \textbf{Thiết kế sinh mẫu có điều kiện} tránh giả định độc lập mạnh. Dựa trên hàng xóm gần hoặc mô hình đơn giản ước lượng điều kiện.
+  \item \textbf{Chạy LIME} quét kernel width và số mẫu để tối ưu fidelity kèm stability tối thiểu. Chọn số đặc trưng hiển thị sao cho dễ đọc.
+  \item \textbf{Chạy Anchor} đặt ngưỡng $\tau$ theo rủi ro. Tìm quy tắc ngắn có cận dưới precision vượt ngưỡng và độ bao phủ đủ lớn.
+  \item \textbf{Kiểm chứng trung thực} ablation cho LIME và cưỡng bức điều kiện cho Anchor. Với ảnh hãy vẽ đường cong Deletion và Insertion.
+  \item \textbf{Báo cáo và gắn cảnh báo} trình bày thước đo, phạm vi áp dụng, giới hạn. Đính kèm cấu hình và seed để tái lập.
+\end{enumerate}
+
+\subsection{Mẫu báo cáo tối thiểu}
+
+\begin{itemize}
+  \item \textbf{Bối cảnh} mô hình gốc, dữ liệu, câu hỏi nghiệp vụ.
+  \item \textbf{Cấu hình LIME} khoảng cách, kernel width, số mẫu, số đặc trưng hiển thị.
+  \item \textbf{Kết quả LIME} fidelity có trọng số, stability đa seed, kiểm nghiệm faithfulness bằng ablation.
+  \item \textbf{Cấu hình Anchor} không gian điều kiện, $\tau$, $\delta$, ngân sách mẫu, bộ sinh có điều kiện.
+  \item \textbf{Kết quả Anchor} cận dưới precision, coverage, độ dài quy tắc, stability đa seed, kiểm nghiệm faithfulness.
+  \item \textbf{Phạm vi áp dụng} mô tả rõ miền mà lời giải thích còn hiệu lực. Tránh suy rộng.
+\end{itemize}
+
+\subsection{Hướng mở rộng}
+
+\paragraph{Phương pháp thay thế và bổ sung.}
+\begin{itemize}
+  \item \textbf{SHAP} cho phân rã đóng góp với tính chất công bằng theo trục cộng tính. Hữu ích khi cần so sánh điểm số cục bộ và bán toàn cục.
+  \item \textbf{Integrated Gradients} và \textbf{Grad CAM} cho mô hình có gradient. Hữu ích trên ảnh và chuỗi, cần truy cập nội bộ mô hình.
+  \item \textbf{Đối chứng và phản thực} sinh ví dụ đối chứng gần nhất để minh hoạ ranh giới quyết định theo tinh thần causal gần đúng.
+  \item \textbf{Khái niệm mức cao} như TCAV cho phép nói bằng khái niệm nghiệp vụ thay vì đặc trưng gốc.
+\end{itemize}
+
+\paragraph{Quản trị và an toàn AI.}
+\begin{itemize}
+  \item \textbf{Công bằng và sai lệch} dùng lời giải thích để soi các chênh lệch theo nhóm. Kết hợp kiểm định thống kê ngoài mẫu.
+  \item \textbf{Giám sát theo thời gian} theo dõi drift dữ liệu, suy giảm fidelity và chính xác anchor. Lên lịch tái hiệu chỉnh định kỳ.
+  \item \textbf{Quy trình hai lớp} kỹ sư kiểm tra kỹ thuật. Nghiệp vụ kiểm tra ý nghĩa. Chỉ khi cả hai đồng thuận mới đưa ra quyết định dựa trên lời giải thích.
+\end{itemize}
+
+\subsection{Lời kết}
+
+LIME và Anchor là hai lát cắt bổ sung cho nhau. LIME trả lời câu hỏi đặc trưng nào đang tác động lên một dự đoán cụ thể. Anchor trả lời trong điều kiện nào dự đoán đó được giữ vững với xác suất cao. Khi dùng đúng bối cảnh và có đo lường rõ ràng, chúng giúp cầu nối giữa mô hình và con người, nâng chất lượng đối thoại kỹ thuật và ra quyết định. Tuy vậy xin nhắc lại một nguyên tắc quan trọng. Lời giải thích cục bộ không đồng nghĩa với quan hệ nhân quả. Hãy xem chúng là công cụ hỗ trợ đặt câu hỏi đúng và thiết kế thí nghiệm tốt hơn. Từ đó, bạn có thể xây dựng những hệ thống AI vừa mạnh mẽ vừa có trách nhiệm \cite{doshi2017rigorous,ribeiro2016lime,ribeiro2018anchors}.

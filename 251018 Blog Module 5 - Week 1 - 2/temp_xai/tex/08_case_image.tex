@@ -1,0 +1,124 @@
+\section{Case study C: Ảnh}
+
+Mục tiêu của case study này là áp dụng LIME-Image và Anchor-Image cho bài toán phân loại ảnh, làm rõ vai trò của phân đoạn superpixel, lựa chọn nền khi tắt vùng, và cách đo lường chất lượng lời giải thích theo hướng thực chiến \cite{ribeiro2016lime,ribeiro2018anchors,doshi2017rigorous}.
+
+\subsection{Bài toán và thiết lập}
+
+\paragraph{Bài toán:} Nhận dạng lớp đối tượng trong ảnh tự nhiên. Ví dụ mô hình hộp đen $f$ là một CNN đã huấn luyện trước, đầu ra là phân phối xác suất trên các lớp.
+
+\paragraph{Tiền xử lý:} Chuẩn hoá kích thước ảnh về chuẩn đầu vào của $f$, chuẩn hoá kênh màu theo thống kê huấn luyện của mô hình.
+
+\paragraph{Phân đoạn superpixel:}
+Dùng SLIC để phân tách ảnh thành $K$ superpixel, với \emph{compactness} vừa phải để hạn chế răng cưa biên:
+\[
+K \in \{50, 100, 200\}, \qquad \text{compactness} \in \{5, 10, 20\}.
+\]
+Chọn $K$ theo đường cong ổn định so với độ phân giải lời giải thích. Báo cáo cả tham số và hình minh hoạ phân đoạn.
+
+\subsection{LIME-Image: thiết lập và quy trình}
+
+\paragraph{Không gian diễn giải $x'$:}
+Mỗi thành phần của $x'$ tương ứng một superpixel. Bật = giữ nguyên vùng, tắt = thay bằng nền. Hai lựa chọn nền phổ biến: \emph{màu trung bình} trên ảnh hoặc \emph{làm mờ Gaussian}.
+
+\paragraph{Sinh mẫu lân cận và khoảng cách:}
+Sinh $N$ mặt nạ nhị phân $m_i \in \{0,1\}^K$, ánh xạ về ảnh $z_i=\phi(x',m_i)$ bằng cách tắt các superpixel có $m_{i,j}=0$. Khoảng cách dùng Hamming trên mặt nạ rồi gán trọng số kernel
+\[
+\pi_x(z_i)=\exp\!\big(-D_{\mathrm{Ham}}(m_i, \mathbf{1})^2/\sigma^2\big).
+\]
+Quét $\sigma \in \{0.25, 0.5, 1.0\}$, $N \in \{2000, 4000\}$.
+
+\paragraph{Surrogate và hiển thị:}
+Khớp hồi quy tuyến tính thưa trên không gian mặt nạ, chọn top-$K^\star$ superpixel có hệ số lớn nhất cho lớp đích. Tô màu các vùng dương và âm khác nhau để trình bày bản đồ đóng góp địa phương.
+
+\paragraph{Gợi ý thực hành:}
+\begin{itemize}
+  \item Ưu tiên nền làm mờ thay vì màu xám thuần để tránh tạo artefact cạnh gây nhiễu cho $f$.
+  \item Kiểm tra độ nhạy khi thay hạt giống ngẫu nhiên của SLIC vì phân đoạn khác nhau có thể tạo lời giải thích khác nhau.
+  \item Với ảnh độ phân giải cao, giảm kích thước trước khi phân đoạn để giữ chi phí hợp lý rồi nội suy bản đồ kết quả lên kích thước gốc.
+\end{itemize}
+
+\subsection{Anchor-Image: thiết lập và quy trình}
+
+\paragraph{Không gian điều kiện:}
+Điều kiện là tập các superpixel được yêu cầu \emph{bật}. Một anchor $A$ là một tập chỉ số $S \subset \{1,\dots,K\}$.
+
+\paragraph{Bộ sinh có điều kiện:}
+Với $A$, sinh ảnh $z$ bằng cách giữ các superpixel trong $S$ nguyên vẹn, còn lại tắt theo nền đã chọn. Có thể kết hợp hoán vị nhẹ trên vùng tắt để tránh $f$ lợi dụng pattern nền cố định.
+
+\paragraph{Ngưỡng và tìm kiếm:}
+Chọn $\tau \in \{0.9, 0.95\}$, $\delta=10^{-3}$. Thực hiện tìm kiếm có ưu tiên: mở rộng dần tập $S$ bằng các superpixel ứng viên có \emph{lift} cao đối với lớp đích, ước lượng $\mathrm{prec}(A)$ bằng lấy mẫu có điều kiện và dùng cận Hoeffding hoặc kẹp KL để quyết định dừng sớm khi đạt ngưỡng \cite{ribeiro2018anchors}.
+
+\subsection{Đo lường chất lượng lời giải thích}
+
+\paragraph{Fidelity cục bộ (LIME-Image):}
+Báo cáo $R^2$ hoặc accuracy có trọng số giữa $g$ và $f$ trên tập ảnh lân cận sinh từ mặt nạ.
+
+\paragraph{Precision và Coverage (Anchor-Image):}
+Báo cáo cận dưới tin cậy $\mathrm{LB}_{95\%}(\mathrm{prec})$ và ước lượng $\widehat{\mathrm{cov}}(A)$ trên một lô ảnh đại diện.
+
+\paragraph{Stability:}
+Lặp $T$ lần với seed khác nhau cho SLIC và quá trình sinh mẫu. Đo Jaccard giữa tập top-$K^\star$ superpixel (LIME) hoặc tập điều kiện $S$ (Anchor).
+
+\paragraph{Faithfulness qua đường cong xoá và chèn:}
+Sắp xếp superpixel theo độ quan trọng giảm dần, định nghĩa hai đường cong:
+\[
+\text{Deletion}(t) = f\big(x \text{ sau khi tắt } t \text{ superpixel quan trọng đầu}\big),\quad
+\text{Insertion}(t) = f\big(\text{ảnh nền, bật dần } t \text{ superpixel quan trọng}\big).
+\]
+Tính diện tích dưới đường cong (AUC). Deletion giảm nhanh và Insertion tăng nhanh là dấu hiệu tốt. So sánh giữa LIME và Anchor bằng cùng một thứ hạng superpixel được suy ra từ lời giải thích tương ứng.
+
+\subsection{Ví dụ minh hoạ}
+
+\paragraph{Thiết lập:}
+$f$ là mô hình phân loại 1000 lớp, ảnh đầu vào $224{\times}224$. SLIC với $K=100$, compactness $=10$. LIME: $N=2000$, $\sigma=0.5$, top-$K^\star=7$. Anchor: $\tau=0.9$, $\delta=10^{-3}$.
+
+\paragraph{Kết quả tóm tắt:}
+\begin{itemize}
+  \item \textbf{LIME-Image} chọn 7 superpixel bao phủ vùng đầu đối tượng và một phần nền cạnh đối tượng. $R^2_w=0.83$, Jaccard top-$K^\star$ qua 5 seed đạt $0.58$. Deletion AUC thấp, Insertion AUC cao, phù hợp trực giác.
+  \item \textbf{Anchor-Image} trả về $A$ gồm 3 superpixel bao trùm phần đặc trưng nhất của đối tượng (ví dụ chi tiết đầu). $\mathrm{LB}_{95\%}(\mathrm{prec})=0.92$, $\widehat{\mathrm{cov}}=0.14$, độ dài quy tắc $=3$.
+\end{itemize}
+
+\subsection{Bảng báo cáo kết quả (mẫu điền số)}
+
+\begin{table}[h]
+\centering
+\caption{Kết quả ví dụ tại ảnh $x^\ast$}
+\label{tab:image-results}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Thước đo & LIME-Image & Anchor-Image & Ghi chú \\
+\midrule
+Fidelity có trọng số ($R^2_w$) & 0.83 & -- & trung bình $\pm$ độ lệch \\
+Stability (Jaccard) & 0.58 & 0.66 & $T=5$ seed \\
+Deletion AUC & \textit{thấp} & \textit{thấp} & càng thấp càng tốt \\
+Insertion AUC & \textit{cao} & \textit{cao} & càng cao càng tốt \\
+Precision (cận dưới 95\%) & -- & 0.92 & $\tau=0.90$ \\
+Coverage $\widehat{\mathrm{cov}}$ & -- & 0.14 & theo lô ảnh đại diện \\
+Độ dài quy tắc & -- & 3 & số superpixel trong $A$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Bẫy thường gặp và cách khắc phục}
+
+\begin{itemize}
+  \item \textbf{Artefact do nền:} Dùng nền xám đồng nhất có thể tạo biên giả quanh superpixel. Khắc phục bằng nền làm mờ hoặc màu trung bình theo vùng lân cận.
+  \item \textbf{Granularity quá thô hoặc quá mịn.} $K$ quá nhỏ làm gộp cả đối tượng và nền, $K$ quá lớn làm lời giải thích không ổn định. Khuyến nghị thử $K \in \{50,100,200\}$ và chọn theo ổn định.
+  \item \textbf{Nhạy cảm phân đoạn:} Thay đổi seed SLIC cho kết quả khác đáng kể. Báo cáo độ ổn định và ghép nhiều phân đoạn để lấy giao hội các vùng nhất trí.
+  \item \textbf{Bộ sinh cố định gây lệch.} Với Anchor-Image, nền quá đơn giản làm $f$ học pattern nền. Áp dụng hoán vị nhẹ hoặc nhiều mẫu nền để trung hoà.
+  \item \textbf{Rò rỉ vị trí.} Một số lớp bị ám thị vị trí trung tâm ảnh. Kiểm tra bằng hoán vị vị trí vùng bật.
+\end{itemize}
+
+\subsection{Checklist áp dụng cho dự án}
+
+\begin{itemize}
+  \item Lựa chọn $K$ và compactness cho SLIC, kèm hình minh hoạ phân đoạn.
+  \item Chọn nền khi tắt vùng, ưu tiên làm mờ; xác nhận lại bằng thử nghiệm Deletion/Insertion.
+  \item Với LIME-Image: quét $\sigma$ và $N$, báo cáo $R^2_w$ và stability đa seed.
+  \item Với Anchor-Image: đặt $\tau$ theo rủi ro, dùng kẹp Hoeffding hoặc KL, báo cáo cận tin cậy và coverage trên ảnh thật.
+  \item Đính kèm đường cong Deletion và Insertion để minh chứng faithfulness.
+\end{itemize}
+
+\begin{takeaway}
+Trong ảnh, chất lượng lời giải thích phụ thuộc mạnh vào phân đoạn và cách tắt vùng. LIME-Image cho bản đồ đóng góp trực quan, Anchor-Image cho quy tắc vùng có đảm bảo xác suất và phạm vi áp dụng. Hãy đo bằng fidelity, stability, và nhất là Deletion/Insertion để kiểm tra tính trung thực của lời giải thích \cite{ribeiro2016lime,ribeiro2018anchors,doshi2017rigorous}.
+\end{takeaway}
