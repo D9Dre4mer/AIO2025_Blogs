@@ -506,7 +506,7 @@ Trong thực tế, xe giao hàng phải đi theo đường bộ, gặp tắc đ�
 - 🔴 **Xe 1** (Đỏ): 40 phường/xã, 531.6km, 31.0h (khu vực trung tâm và phía Nam)
 - 🔵 **Xe 2** (Xanh dương): 45 phường/xã, 190.7km, 16.6h (khu vực phía Bắc và Đông Bắc)  
 - 🟢 **Xe 3** (Xanh lá): 42 phường/xã, 367.3km, 22.8h (khu vực phía Tây và Tây Nam)  
-- 🟡 **Xe 4** (Vàng): 41 phường/xã, 512.3km, 27.6h (khu vực phía Đông và Đông Nam)
+- 🟣 **Xe 4** (Tím): 41 phường/xã, 512.3km, 27.6h (khu vực phía Đông và Đông Nam)
 
 **Phân tích tối ưu hóa khoảng cách**:
 - 🎯 **Tối ưu tổng khoảng cách**: Thuật toán tập trung vào giảm thiểu tổng khoảng cách (1,601.9km)
