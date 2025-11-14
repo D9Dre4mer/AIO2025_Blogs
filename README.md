@@ -1,2 +1,2 @@
 # AIO2025_Blogs
-Every Blog with team in AIO2025
+Every Blogs with My team in AIO2025
