@@ -1,0 +1,99 @@
+
+\section{Monitoring}
+\label{sec:monitoring}
+
+Hệ thống giám sát và theo dõi (\textit{Monitoring}) đóng vai trò cốt lõi trong pipeline của dự án \textbf{MLDockFlow}, đảm bảo rằng toàn bộ vòng đời mô hình từ huấn luyện, đánh giá, triển khai đến vận hành đều được ghi nhận, kiểm soát và có thể tái lập. Trong phần này, ta sẽ tìm hiểu cách tích hợp \textbf{MLflow} để theo dõi thí nghiệm, tổ chức lưu trữ mô hình, cùng với việc giám sát dịch vụ suy luận qua các endpoint kiểm tra sức khỏe và theo dõi hoạt động.
+
+\subsection{MLflow Tracking and Experiment Logging}
+\label{subsec:monitoring-mlflow}
+
+Để đảm bảo khả năng tái lập thí nghiệm và quản lý lịch sử huấn luyện, ta sử dụng \textbf{MLflow Tracking Server} như một trung tâm ghi nhận và quan sát toàn bộ quá trình.  
+Các thành phần chính ta cần biết:
+
+\begin{itemize}
+    \item \textbf{Tracking URI:} Nếu không tìm thấy biến môi trường \verb|MLFLOW_TRACKING_URI|, script \texttt{src/training/train\_model.py} sẽ mặc định kết nối đến \verb|http://localhost:5555|.
+    \item \textbf{Experiment Registration:} Mỗi lần huấn luyện tạo ra một \textit{experiment run} mới với ID duy nhất, được tổ chức theo tên mô hình (\texttt{model\_type}) để ta dễ dàng so sánh và phân tích.
+    \item \textbf{Logged Entities:}
+    \begin{itemize}
+        \item \textbf{Parameters:} Các siêu tham số của mô hình như \texttt{xgb\_max\_depth}, \texttt{xgb\_learning\_rate}, \texttt{n\_estimators}, \texttt{model\_type}, v.v.
+        \item \textbf{Metrics:} Các chỉ số định lượng gồm \texttt{cv\_rmse\_mean}, \texttt{cv\_rmse\_std}, \texttt{cv\_r2\_mean}, \texttt{cv\_r2\_std}, \texttt{test\_rmse}, \texttt{test\_r2}.
+        \item \textbf{Artifacts:} Mô hình huấn luyện \texttt{model.pkl} cùng pipeline suy luận \texttt{best\_pipeline.joblib} và \texttt{feature\_pipeline.joblib}.
+    \end{itemize}
+\end{itemize}
+
+MLflow server được triển khai thông qua tệp \texttt{deployments/mlflow/docker-compose.yaml}, sử dụng image chính thức \verb|ghcr.io/mlflow/mlflow|. Cấu hình cổng 5555 trên host, với cờ \verb|--serve-artifacts| để phục vụ trực tiếp các artifact đã lưu. Dữ liệu được lưu tại hai volume chính:
+
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{bash}
+./mlflow_db/        # Cơ sở dữ liệu theo dõi metadata
+./mlruns/           # Lưu artifacts và logs của từng run
+\end{minted}
+
+\noindent Việc theo dõi được thực hiện tự động thông qua các lời gọi sau:
+
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{python}
+mlflow.log_params(params)
+mlflow.log_metrics(metrics)
+mlflow.log_artifacts(output_dir)
+\end{minted}
+
+Khi sử dụng MLflow, ta nhận được các lợi ích sau:
+\begin{itemize}
+    \item Tạo lịch sử trực quan về tất cả lần huấn luyện và tinh chỉnh mô hình.
+    \item Ta có thể truy cập web UI tại \texttt{http://localhost:5555}, nơi hiển thị biểu đồ RMSE, R² và so sánh các model.
+    \item Ta có thể khôi phục (restore) pipeline từ bất kỳ phiên bản nào trong tương lai.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/MLflow.png}
+    \caption{Giao diện web của MLflow Tracking Server}
+    \label{fig:mlflow-ui}
+\end{figure}
+
+Quan sát Hình~\ref{fig:mlflow-ui}, ta có thể thấy rằng giao diện MLflow hiển thị danh sách các thí nghiệm (experiments) và các runs tương ứng. Mỗi run chứa thông tin chi tiết về parameters, metrics, và artifacts. Giao diện này cho phép ta dễ dàng so sánh kết quả giữa các phiên bản mô hình khác nhau thông qua các biểu đồ và bảng thống kê, từ đó lựa chọn mô hình tốt nhất cho deployment.
+
+\subsection{Health Checks và Quan sát Dịch vụ}
+\label{subsec:monitoring-health}
+
+Dịch vụ suy luận (FastAPI) được triển khai kèm các endpoint kiểm tra trạng thái, giúp ta đảm bảo hệ thống hoạt động ổn định trong môi trường Docker. Các API chính ta có thể sử dụng:
+
+\begin{itemize}
+    \item \verb|GET /health|: Trả về tình trạng dịch vụ, được cấu hình làm \textit{health check} mặc định trong Dockerfile của API.
+    \item \verb|GET /model/info|: Cung cấp thông tin mô hình hiện đang nạp, gồm \texttt{model\_name}, \texttt{model\_type}, \texttt{version}, \texttt{performance}.
+    \item \verb|POST /predict|: Nhận dữ liệu JSON theo schema \texttt{HouseFeatures}, trả kết quả dự đoán \texttt{SalePrice} và \texttt{model\_version}.
+\end{itemize}
+
+Ví dụ lệnh kiểm tra nhanh dịch vụ:
+
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{bash}
+curl -s http://localhost:8000/health #{"status":"healthy","model_loaded":true,"version":"1.0.0"}#  
+curl -s http://localhost:8000/model/info # {"model_name":"XGB","model_type":"Single","version":"1.0","performance":{"cv_rmse":25259.41641200907,"cv_r2":0.8921142012886006,"test_rmse":24608.889785175903,"test_r2":0.921046714298606},"features_count":18}#  
+\end{minted}
+
+Trong cấu hình \texttt{docker-compose.yml}, service API có phần:
+
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{yaml}
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
+\end{minted}
+
+Điều này đảm bảo container được khởi động lại tự động nếu dịch vụ không phản hồi, giúp ta duy trì tính ổn định của hệ thống.
+
+\subsection{Khuyến nghị Theo dõi Vận hành}
+\label{subsec:monitoring-recommendations}
+
+Mặc dù dự án hiện đã có MLflow cho thí nghiệm và endpoint kiểm tra, ta nên mở rộng theo hướng MLOps chuyên nghiệp hơn để đảm bảo an toàn và khả năng mở rộng. Dưới đây là một số các cải tiến có thể thực hiện cụ thể:
+
+\begin{itemize}
+    \item \textbf{Ghi log nâng cao:} Thu thập thêm thông tin \textit{latency}, \textit{throughput}, và \textit{error rate} của từng endpoint, gửi đến Prometheus Gateway hoặc Grafana Dashboard.
+    \item \textbf{Theo dõi Data Drift:} Tính toán thống kê phân phối đầu vào (mean, std, skew) và so sánh với phân phối trong huấn luyện; phát cảnh báo nếu lệch vượt ngưỡng.
+    \item \textbf{Audit Requests:} Lưu trữ mẫu request/response đã vô danh hóa (anonymized) để phục vụ kiểm thử hồi quy khi cập nhật mô hình.
+    \item \textbf{Model Version Registry:} Duy trì bảng \texttt{model\_registry.csv} hoặc module riêng, ghi nhận lịch sử thay đổi, ngày deploy, và người thực hiện.
+    \item \textbf{Tự động cảnh báo (alerting):} Thiết lập email/slack webhook gửi cảnh báo khi service không phản hồi, metric sai lệch, hoặc drift tăng cao.
+\end{itemize}
+
+\noindent
+Tổng kết lại, hệ thống \textbf{Monitoring} trong \textbf{MLDockFlow} không chỉ giúp ta theo dõi hiệu năng mô hình trong giai đoạn huấn luyện mà còn đảm bảo khả năng vận hành ổn định khi triển khai. Việc tích hợp MLflow, FastAPI health checks và hướng mở rộng theo MLOps giúp dự án đạt mức độ chuyên nghiệp tương đương các hệ thống machine learning trong môi trường doanh nghiệp.

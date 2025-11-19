@@ -1,0 +1,67 @@
+\section{Kết luận}
+\label{sec:conclusion}
+
+Dự án \textbf{MLDockFlow} đánh dấu một bước tiến quan trọng trong việc hiện thực hóa một pipeline học máy hoàn chỉnh – từ giai đoạn thí nghiệm mô hình, ghi nhận và giám sát bằng MLflow, cho đến triển khai bằng Docker và vận hành thực tế thông qua API và Streamlit UI.  
+Kết quả của dự án không chỉ thể hiện năng lực kỹ thuật trong việc xây dựng mô hình chính xác, mà còn minh chứng cho khả năng tích hợp công nghệ theo hướng \textit{MLOps}, giúp quy trình trở nên đồng bộ, tự động và có thể mở rộng. Ta sẽ cùng xem xét các hướng phát triển tiếp theo và những bài học rút ra từ dự án này.
+
+\subsection*{Hướng phát triển trong tương lai (Future Works)}
+\label{subsec:conclusion-future}
+
+Mặc dù pipeline hiện tại đã đạt mức hoàn thiện cao, vẫn còn nhiều hướng phát triển tiềm năng để mở rộng khả năng ứng dụng và nâng tầm hệ thống lên chuẩn MLOps chuyên nghiệp.  
+Các hướng phát triển chính bao gồm:
+
+\begin{enumerate}
+    \item \textbf{Mở rộng pipeline cho các bài toán khác:}  
+    Cấu trúc hiện tại cho phép ta tổng quát hóa sang các tác vụ khác như phân loại, dự báo chuỗi thời gian hay phát hiện bất thường.  
+    Với việc thiết kế mô-đun hóa và cấu hình linh hoạt, ta có thể tái sử dụng toàn bộ pipeline chỉ bằng cách thay đổi các tệp cấu hình \texttt{JSON} hoặc \texttt{YAML}, thay vì viết lại mã nguồn.
+
+    \item \textbf{Cải thiện hiệu năng mô hình:}  
+    Kết hợp \textbf{Stacking ensemble} đa tầng với meta-learner phi tuyến (XGBoost hoặc Neural Network), áp dụng \textbf{Feature Selection} dựa trên SHAP hoặc RFE, và sử dụng \textbf{Optuna} song song trên GPU để tối ưu hóa siêu tham số nhanh hơn.
+
+    \item \textbf{Tự động hóa quy trình (Automation):}  
+    Tích hợp CI/CD với GitHub Actions hoặc Jenkins để tự động build, test và deploy.  
+    Bổ sung \textbf{auto-retraining} dựa trên theo dõi \textit{data drift} và kích hoạt lại pipeline huấn luyện khi phát hiện sai lệch đáng kể.  
+    Sử dụng \textbf{Airflow} hoặc \textbf{Prefect} để điều phối các tác vụ huấn luyện, kiểm thử và ghi log.
+
+    \item \textbf{Tăng cường hệ thống giám sát:}  
+    Mở rộng MLflow với \textbf{Model Registry}, đồng thời tích hợp \textbf{Prometheus} và \textbf{Grafana} để theo dõi hiệu năng thời gian thực (latency, error rate, drift).  
+    Bổ sung bảng điều khiển trung tâm (Dashboard) giúp theo dõi sức khỏe mô hình và các container API.
+
+    \item \textbf{Chuyển đổi sang hạ tầng Cloud-native:}  
+    Đóng gói toàn bộ hệ thống thành các service trên \textbf{Kubernetes}, hỗ trợ autoscaling và cập nhật liền mạch.  
+    Sử dụng \textbf{Helm Charts} để triển khai nhanh trên các nền tảng như AWS, GCP, hoặc Azure.
+\end{enumerate}
+
+\subsection*{Bài học và giá trị rút ra}
+\label{subsec:conclusion-lessons}
+
+Trong quá trình phát triển, ta không chỉ hoàn thiện kỹ năng kỹ thuật mà còn rèn luyện được tư duy hệ thống và khả năng phối hợp theo phong cách công nghiệp.  
+Một số bài học nổi bật bao gồm:
+
+\paragraph{Bài học kỹ thuật}
+\begin{itemize}
+    \item Việc thiết kế pipeline có cấu trúc rõ ràng (từ tiền xử lý đến triển khai) giúp ta giảm sai sót, tăng khả năng tái sử dụng và dễ dàng mở rộng.  
+    \item Khi sử dụng MLflow, ta nhận thấy lợi thế lớn trong việc quản lý thực nghiệm, cho phép so sánh trực quan giữa các phiên bản mô hình.  
+    \item Docker hóa toàn bộ dịch vụ đảm bảo môi trường nhất quán, giúp ta loại bỏ vấn đề "chạy được trên máy tôi".  
+    \item Tối ưu hóa mô hình bằng Optuna kết hợp Stacking cho thấy ta có thể cải thiện đáng kể hiệu năng mà vẫn giữ pipeline đơn giản, dễ triển khai.
+\end{itemize}
+
+\paragraph{Bài học về teamwork và quản lý dự án}
+\begin{itemize}
+    \item Sự phân chia rõ vai trò giữa các thành viên (data, model, deployment, monitoring) giúp ta theo dõi tiến độ rõ ràng và giảm chồng chéo công việc.  
+    \item Việc ghi log và version hóa mô hình giúp ta dễ dàng phục hồi và tái tạo kết quả, đặc biệt khi thực hiện nhiều thí nghiệm song song.  
+    \item Giao tiếp thông qua công cụ quản lý mã nguồn (Git, issues, commit logs) tạo sự minh bạch và giúp mọi người nắm bắt được tiến trình dự án một cách rõ ràng.
+\end{itemize}
+
+\subsection*{Tổng kết chung}
+
+Nhìn lại toàn bộ quá trình, \textbf{MLDockFlow} không chỉ là một dự án học thuật mà là một mô hình thực nghiệm hoàn chỉnh của một hệ thống Machine Learning trong thực tế.  
+Từ góc nhìn kỹ thuật, dự án đã chứng minh khả năng tích hợp ba yếu tố cốt lõi:
+\begin{enumerate}
+    \item \textbf{Khoa học dữ liệu} – qua việc xử lý, trích chọn và huấn luyện mô hình hiệu quả.  
+    \item \textbf{Kỹ thuật phần mềm} – qua việc đóng gói, triển khai và tự động hóa quy trình bằng Docker và MLflow.  
+    \item \textbf{Tư duy hệ thống} – qua khả năng thiết kế, giám sát và mở rộng pipeline.
+\end{enumerate}
+
+\noindent
+\textbf{Tóm lại}, dự án này giúp ta hiểu sâu về cách xây dựng một pipeline học máy có thể triển khai được trong thực tế. Đây là bước khởi đầu quan trọng trước khi tiến tới các hệ thống MLOps nâng cao hơn, nơi mà tính tự động, khả năng mở rộng và quản trị mô hình trở thành yếu tố bắt buộc trong mọi hệ thống AI hiện đại.

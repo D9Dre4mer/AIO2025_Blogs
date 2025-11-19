@@ -1,0 +1,227 @@
+\section{Experiment}
+\label{sec:experiment}
+
+Trong phần này, ta sẽ cùng tìm hiểu chi tiết toàn bộ pipeline huấn luyện và đánh giá mô hình của dự án \textbf{MLDockFlow}. Ta sẽ đi qua từng bước: tiền xử lý dữ liệu, lựa chọn mô hình, tinh chỉnh siêu tham số, tổ hợp mô hình, đến đánh giá cuối cùng và kiểm thử thực tế. Mỗi bước được tự động hoá trong một workflow thống nhất, có thể tái lập và giám sát bằng MLflow.
+
+\subsection{Data Preprocessing}
+\label{subsec:experiment-preprocessing}
+
+Ta sử dụng \textit{Ames Housing Dataset} gồm 1460 mẫu và 81 thuộc tính. Dữ liệu được chia thành 80\% cho huấn luyện và 20\% cho kiểm thử. Pipeline xử lý dữ liệu được thiết kế theo ba tầng:
+
+\begin{itemize}
+    \item \textbf{Custom Transformers:} Ta xây dựng các bộ biến đổi tuỳ chỉnh gồm \textit{OrdinalMapper}, \textit{TargetEncoderTransformer}, \textit{MissingnessIndicator}, \textit{RarePooler}, \textit{FiniteCleaner}, và \textit{DropAllNaNColumns}.
+    \item \textbf{Domain Feature Engineering:} Ta tạo thêm các đặc trưng như \textit{TotalSF}, \textit{TotalBath}, \textit{HouseAge}, \textit{LotAreaRatio}, tương tác \textit{Quality–Area}, \textit{Seasonal Encoding}, và \textit{Neighborhood\_BldgType}.
+    \item \textbf{Feature Pipeline:} Ta tích hợp toàn bộ bước xử lý bằng \textit{ColumnTransformer} và \textit{Pipeline} gồm One-Hot Encoding, mã hoá thứ bậc, \textit{QuantileTransformer}, và loại bỏ các cột toàn NaN.
+\end{itemize}
+
+\noindent Để minh họa, ta xem ví dụ cấu trúc code của pipeline:
+
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{python}
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, QuantileTransformer
+from src.processing.transformers import (
+    OrdinalMapper, TargetEncoderTransformer, RarePooler,
+    MissingnessIndicator, FiniteCleaner
+)
+
+feature_pipeline = ColumnTransformer([
+    ("categorical", OneHotEncoder(handle_unknown="ignore"), cat_cols),
+    ("ordinal", OrdinalMapper(), ord_cols),
+    ("numeric", QuantileTransformer(), num_cols)
+])
+\end{minted}
+
+\textbf{Lưu ý về thiếu dữ liệu:} Mỗi nhánh \textbf{Pipeline} có một \textbf{Imputer} riêng giúp inference ổn định khi thiếu trường đầu vào.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{images/pipeline.png}
+\caption{Sơ đồ tổng quan quy trình xử lý dữ liệu và đặc trưng}
+\label{fig:pipeline}
+\end{figure}
+
+Quan sát Hình~\ref{fig:pipeline}, ta có thể thấy rằng pipeline xử lý dữ liệu được tổ chức thành ba tầng chính: tầng đầu tiên là các custom transformers (OrdinalMapper, TargetEncoderTransformer, MissingnessIndicator, RarePooler, FiniteCleaner, DropAllNaNColumns) để xử lý dữ liệu phân loại và số; tầng thứ hai là domain feature engineering để tạo các đặc trưng mới như TotalSF, TotalBath, HouseAge; tầng thứ ba là feature pipeline sử dụng ColumnTransformer để áp dụng One-Hot Encoding, mã hóa thứ bậc, và QuantileTransformer. Mỗi tầng có thể được thay thế hoặc điều chỉnh độc lập mà không ảnh hưởng đến các tầng khác, giúp pipeline linh hoạt và dễ bảo trì.
+
+\textbf{Lưu ý về lệch phân phối:} Ở biến liên tục, ta áp dụng \textit{QuantileTransformer} hoặc \textit{log1p} để chuẩn hóa phân phối:
+
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{python}
+df["SalePrice_log"] = np.log1p(df["SalePrice"])
+\end{minted}
+
+\FloatBarrier
+
+\subsection{Model Selection}
+\label{subsec:experiment-selection}
+
+Ta huấn luyện \textbf{8 mô hình cơ sở} trên cùng pipeline thống nhất để so sánh hiệu năng:
+
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{bash}
+# Training best single model
+# git clone https://github.com/sonvt8/AIO2025_Project5.1_HousesPricing.git
+# cd AIO2025_Project5.1_HousesPricing && pip install -r requirements.txt 
+python train.py 
+
+# Full experiment with all models
+# ----------------------------------
+# View notebooks/house_price_analysis.ipynb for details 
+# View notebooks/house_price_analysis_mlflow.ipynb for MLflow integration
+# ----------------------------------
+
+\end{minted}
+
+\subsection{Evaluation Protocol}
+\label{subsec:experiment-evaluation}
+
+Đánh giá bằng \textbf{5-fold Cross-Validation}, log kết quả qua MLflow:
+
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{python}
+from sklearn.model_selection import cross_val_score
+import mlflow
+
+scores = cross_val_score(model, X, y, cv=5, scoring="neg_root_mean_squared_error")
+mlflow.log_metric("cv_rmse_mean", -scores.mean())
+mlflow.log_metric("cv_rmse_std", scores.std())
+\end{minted}
+
+\subsection{Hyperparameter Tuning with Optuna}
+\label{subsec:experiment-optuna}
+
+Tối ưu bằng Optuna:
+
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{python}
+import optuna
+
+def objective(trial):
+    params = {
+        "learning_rate": trial.suggest_float("lr", 0.01, 0.3),
+        "max_depth": trial.suggest_int("max_depth", 3, 10),
+        "n_estimators": trial.suggest_int("n_estimators", 100, 600),
+    }
+    model = xgb.XGBRegressor(**params)
+    score = cross_val_score(model, X, y, cv=5,
+                            scoring="neg_root_mean_squared_error").mean()
+    return -score
+
+study = optuna.create_study(direction="minimize")
+study.optimize(objective, n_trials=40)
+\end{minted}
+
+\subsection{Stacking Ensemble with Optuna}
+\label{subsec:experiment-stacking}
+
+Cấu trúc Stacking:
+
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{python}
+from sklearn.ensemble import StackingRegressor
+from sklearn.linear_model import Ridge
+
+stack_model = StackingRegressor(
+    estimators=[
+        ("cat", cat_model),
+        ("xgb", xgb_model),
+        ("ridge", ridge_model)
+    ],
+    final_estimator=Ridge(alpha=1.0)
+)
+\end{minted}
+
+\subsection{Final Evaluation and Real-World Testing}
+\label{subsec:experiment-final}
+
+Pipeline cuối được đánh giá trên tập test độc lập:
+
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{python}
+y_pred = stack_model.predict(X_test)
+rmse = mean_squared_error(y_test, y_pred, squared=False)
+r2 = r2_score(y_test, y_pred)
+mlflow.log_metrics({"test_rmse": rmse, "test_r2": r2})
+\end{minted}
+
+\begin{table}[H]
+\centering
+\caption{Kết quả đánh giá trên tập test độc lập}
+\label{tab:test_results_full}
+\footnotesize
+\rowcolors{3}{gray!10}{white}
+\begin{tabular}{>{\raggedright\arraybackslash}p{4.8cm}|>{\centering\arraybackslash}p{3.3cm}>{\centering\arraybackslash}p{3.3cm}}
+\toprule
+\rowcolor{gray!20}
+\textbf{Model} & \textbf{Test RMSE} & \textbf{Test $R^2$} \\
+\midrule
+\rowcolor{gray!15}
+\multicolumn{3}{l}{\textbf{\textit{Single models}}} \\
+Ridge (baseline) & \num{27763.37} & \num{0.889969} \\
+Lasso (baseline) & \num{34402.87} & \num{0.831048} \\
+LinearRegression (baseline) & \num{55032.41} & \num{0.567676} \\
+\rowcolor{blue!10}
+XGB & \textbf{\num{24608.88979}} & \textbf{\num{0.921046714}} \\
+CatBoost & \num{27138.54201} & \num{0.903980555} \\
+LGBM & \num{28937.45211} & \num{0.890829137} \\
+RandomForest & \num{29694.11137} & \num{0.885045274} \\
+Ridge & \num{31564.71294} & \num{0.870105772} \\
+ElasticNet & \num{31820.72443} & \num{0.867990164} \\
+Lasso & \num{33069.62743} & \num{0.857424544} \\
+SVR & \num{88551.1524} & \num{-0.022291149} \\
+\addlinespace[0.5em]
+\rowcolor{gray!15}
+\multicolumn{3}{l}{\textbf{\textit{Ensembles (Stacking)}}} \\
+\rowcolor{blue!10}
+CatBoost+RandomForest+Ridge & \textbf{\num{27682.86728}} & \textbf{\num{0.90009015}} \\
+CatBoost+LGBM+Ridge & \num{27966.03436} & \num{0.898035748} \\
+CatBoost+RandomForest+LGBM & \num{28372.07697} & \num{0.895053388} \\
+CatBoost+XGB+LGBM & \num{28305.4645} & \num{0.8955456} \\
+CatBoost+XGB+RandomForest & \num{28496.58892} & \num{0.894130242} \\
+CatBoost+XGB+Ridge & \num{28148.28175} & \num{0.896702468} \\
+RandomForest+LGBM+Ridge & \num{28258.55953} & \num{0.895891496} \\
+XGB+LGBM+Ridge & \num{28283.32004} & \num{0.895708974} \\
+XGB+RandomForest+LGBM & \num{28501.76942} & \num{0.894091746} \\
+XGB+RandomForest+Ridge & \num{28266.40607} & \num{0.895833672} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+\paragraph{External Benchmark on Kaggle.}
+Để kiểm chứng khả năng tổng quát hoá ngoài phân phối nội bộ, ta nộp dự đoán lên cuộc thi \textbf{House Prices - Advanced Regression Techniques} trên Kaggle. Cuộc thi này sử dụng bộ dữ liệu Ames Housing và khuyến khích các phương pháp hồi quy nâng cao cho dữ liệu tabular. Tập test của Kaggle được ẩn nhãn, người tham gia gửi file \texttt{Id,SalePrice} để hệ thống chấm điểm và xếp hạng trên bảng xếp hạng công khai.
+
+\paragraph{Evaluation metric của Kaggle.}
+Cuộc thi đánh giá bằng \textbf{Root Mean Squared Logarithmic Error (RMSLE)} giữa nhãn thật $y$ và dự đoán $\hat{y}$ trên \emph{SalePrice}:
+\[
+\mathrm{RMSLE} = \sqrt{\frac{1}{n}\sum_{i=1}^{n}\bigl(\log(1+\hat{y}_i)-\log(1+y_i)\bigr)^2}.
+\]
+Khác với RMSE, RMSLE đo sai số trong không gian log, do đó bớt nhạy với ngoại lệ giá rất cao, đồng thời phản ánh tốt hơn tỉ lệ sai số tương đối. Điều này giải thích vì sao một mô hình tối ưu cho RMSE nội bộ có thể cần tinh chỉnh nhẹ để đạt điểm số tốt hơn theo RMSLE của cuộc thi.
+
+\paragraph{Kết quả nộp bài.}
+Với mô hình stacking đã trình bày ở trên, ta nộp file dự đoán \texttt{submission\_stack.csv} và đạt điểm \textbf{RMSLE = 0.11827} trên leaderboard công khai. 
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{images/kaggle_submission_score.png}
+\caption{Kết quả nộp bài trên Kaggle với mô hình stacking}
+\label{fig:kaggle-submission}
+\end{figure}
+
+Quan sát Hình~\ref{fig:kaggle-submission}, ta có thể thấy rằng điểm số RMSLE = 0.11827 nằm trong khoảng tốt. Màn hình hiển thị xác nhận submission từ Kaggle website, cho thấy mô hình có khả năng tổng quát hóa tốt trên dữ liệu test của Kaggle.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{images/kaggle_leaderboard.png}
+\caption{Vị trí xếp hạng trên public leaderboard của Kaggle}
+\label{fig:kaggle-leaderboard}
+\end{figure}
+
+Quan sát Hình~\ref{fig:kaggle-leaderboard}, ta có thể thấy vị trí xếp hạng của mô hình tại thời điểm nộp bài trên public leaderboard. Điều này xác nhận rằng phương pháp của ta đạt hiệu quả tốt so với các phương pháp khác trong cuộc thi.
+
+Để nộp kết quả lên Kaggle, ta thực hiện các lệnh sau:
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{bash}
+# Xuất file submission và nộp lên Kaggle
+python src/api/inference.py data/test.csv --output submission_stack.csv
+kaggle competitions submit -c house-prices-advanced-regression-techniques \
+    -f submission_stack.csv -m "MLDockFlow Stacking RMSE=24609"
+\end{minted}
+
+\paragraph{Bàn luận.}
+So với các chỉ số nội bộ dựa trên RMSE và $R^2$, điểm RMSLE trên Kaggle xác nhận mô hình duy trì sai số tương đối thấp sau biến đổi log. Khoảng điểm 0.11\,$\sim$\,0.12 thường tương ứng với mức dự đoán sát cho biên độ giá trung vị, đặc biệt khi phân phối giá nhà lệch phải. Trong bối cảnh triển khai, ta nên giám sát định kỳ cả RMSE và RMSLE tùy mục tiêu kinh doanh: RMSE cho sai số tuyệt đối tiền tệ, RMSLE cho độ lệch theo tỉ lệ phần trăm.
+

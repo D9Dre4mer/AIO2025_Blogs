@@ -1,0 +1,63 @@
+\documentclass[12pt,a4paper]{article}
+
+% --- Nạp preamble chung ---
+\input{preamble.tex}
+
+\begin{document}
+
+% --- Header với logo (đã được định nghĩa trong preamble) ---
+
+% --- Trang bìa ---
+\newpage
+\begin{center}
+    \vspace*{2em}
+    {\LARGE \textbf{MLDockFlow}} \par
+    \vspace{0.5em}
+    {\Huge \textbf{Experiment - Monitor - Deploy}} \par
+    \vspace{1em}
+    {\large \textit{An integrated pipeline for experiment tracking, model stacking, and deployable ML workflow.}} \par
+    \vspace{2em}
+    {\large \textbf{Tác giả:} ConQ999 Team} \\
+    \vspace{2em}
+    \hrule
+    \vspace{1.5em}
+\end{center}
+
+\vspace{1em}
+\noindent
+Dự án \textbf{MLDockFlow} đã trải qua một hành trình phát triển từ một notebook Jupyter đơn giản với các mô hình hồi quy tuyến tính cơ bản đến một hệ thống học máy hoàn chỉnh với pipeline tự động, tích hợp MLflow cho experiment tracking, và triển khai bằng Docker Compose.
+
+Hệ thống triển khai quy trình MLOps đầy đủ, từ thí nghiệm mô hình đến monitoring và deployment:
+
+\vspace{1em}
+
+\input{content/abstract}
+
+\vspace{1em}
+\noindent
+\textbf{Repository của dự án:} Toàn bộ mã nguồn, cấu trúc dự án, và các tài liệu liên quan có thể được truy cập tại repository GitHub: \url{https://github.com/sonvt8/AIO2025_Project5.1_HousesPricing/tree/main}. Repository này chứa đầy đủ pipeline từ preprocessing, feature engineering, model training với MLflow tracking, đến deployment với Docker Compose. Bạn đọc có thể clone repository về để thực nghiệm, tùy chỉnh, hoặc triển khai trên môi trường của riêng mình. Phần thực nghiệm tham khảo từ \url{https://github.com/HoangVo-Prog/HousePrices_AdvancedRegressionTechniques.git}.
+
+\vspace{1em}
+\newpage
+\input{content/introduction}
+
+\vspace{2em}
+\noindent
+{\Large \textbf{Mục lục}}
+
+\vspace{1em}
+\input{content/index}
+
+\newpage
+
+% --- Nội dung chính ---
+\input{content/comparison}
+\input{content/experiment}
+\input{content/monitor}
+\input{content/deployment}
+\input{content/conclusion}
+
+\vfill
+\hrule
+
+\end{document}

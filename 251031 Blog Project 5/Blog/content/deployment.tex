@@ -1,0 +1,242 @@
+\section{Deployment}
+\label{sec:deployment}
+
+Trong phần này, ta sẽ cùng tìm hiểu chi tiết quá trình triển khai hệ thống \textbf{MLDockFlow}. Ta sẽ đi qua từng thành phần, cách đóng gói, và quy trình triển khai từng bước.
+
+\subsection{Thành phần hệ thống}
+\label{subsec:deployment-components}
+
+Kiến trúc triển khai gồm ba khối chính, được liên kết qua mạng Docker Compose thống nhất. Ta có thể hình dung như sau:
+
+\begin{enumerate}
+  \item \textbf{MLflow Tracking Server:}  
+  Được khởi chạy bằng tệp \texttt{deployments/mlflow/docker-compose.yaml}.  
+  MLflow chạy trên image \texttt{ghcr.io/mlflow/mlflow}, lắng nghe tại cổng \texttt{5555}.  
+  Container này phục vụ giao diện web quản lý thí nghiệm và artifact.
+
+  \item \textbf{API Suy luận (Inference API):}  
+  Viết bằng \textbf{FastAPI + Uvicorn}, đóng gói qua Dockerfile tại \texttt{deployments/api/Dockerfile} và khởi động bằng Compose tại \texttt{deployments/api/docker-compose.yaml}.  
+  Đây là dịch vụ chính nhận yêu cầu dự đoán từ UI hoặc client bên ngoài.
+
+  \item \textbf{Streamlit UI Demo:}  
+  File giao diện \texttt{src/frontend/app.py} được sử dụng để minh hoạ trực quan việc gọi API.  
+  Biến môi trường \verb|API_URL| cho phép ta cấu hình endpoint suy luận (\verb|POST /predict|) khi chạy.
+\end{enumerate}
+
+Mỗi thành phần có vai trò riêng và hoạt động độc lập, nhưng được kết nối với nhau thông qua mạng Docker để tạo thành một hệ thống hoàn chỉnh.
+
+\subsection{Đóng gói API bằng Docker}
+\label{subsec:deployment-docker}
+
+Dockerfile của API định nghĩa toàn bộ môi trường thực thi và các bước chuẩn bị mô hình. Ta cần lưu ý các điểm sau:
+
+\begin{itemize}
+  \item Sao chép mã nguồn vào thư mục \texttt{/app} bên trong container.  
+  \item Mở cổng \texttt{8000} cho dịch vụ FastAPI.
+  \item Thêm lệnh \textbf{HEALTHCHECK} gọi \verb|http://localhost:8000/health| để giám sát tình trạng.
+  \item Thiết lập biến môi trường \verb|MODEL_PATH| trỏ tới \texttt{/app/src/models/best\_pipeline.joblib}.
+\end{itemize}
+
+Trong Docker Compose (\texttt{deployments/api/docker-compose.yaml}), service \texttt{api} bật trên cổng host \texttt{8000}, gắn với volume chỉ đọc. Ta có thể thấy cấu trúc volume như sau:
+\begin{itemize}
+  \item \texttt{src/models}: chứa mô hình đã huấn luyện.
+  \item \texttt{src/configs}: chứa tệp cấu hình huấn luyện và tham số.
+  \item \texttt{data/raw}: chứa dữ liệu đầu vào mẫu để kiểm thử nhanh.
+\end{itemize}
+
+Khi container khởi động, ta có thể quan sát log để xác nhận API đã sẵn sàng. Lệnh khởi chạy trong container:
+
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{bash}
+uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+\end{minted}
+
+Khi ta build và chạy container, quá trình diễn ra như sau: từ source code, Docker build tạo image, sau đó image được chạy thành container. Healthcheck sẽ tự động kiểm tra trạng thái của API và restart container nếu cần thiết.
+
+\subsection{Quy trình triển khai tối thiểu}
+\label{subsec:deployment-process}
+
+Các bước triển khai cơ bản cho toàn bộ hệ thống:
+
+\begin{enumerate}
+  \item \textbf{Khởi chạy MLflow Tracking:}
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{bash}
+cd deployments/mlflow
+docker compose up -d
+\end{minted}
+
+  \item \textbf{Huấn luyện mô hình và ghi log vào MLflow:}
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{bash}
+pip install -r requirements.txt
+python train.py
+\end{minted}
+
+  \item \textbf{Khởi chạy:}
+Truy cập:
+
+API: http://localhost:8000 (Docs: http://localhost:8000/docs) \\
+Frontend: http://localhost:8501 \\
+MLflow: http://localhost:5555
+
+
+  \item \textbf{Mở giao diện demo:}
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{bash}
+python src/api/run_api.py     # chạy API tại 8000
+streamlit run src/frontend/app.py
+
+\end{minted}
+
+    \item \textbf{Khởi chạy model qua API:} 
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{bash}
+# Single prediction:
+curl -X POST "http://localhost:8000/predict" \
+  -H "Content-Type: application/json" \
+  -d '{"OverallQual": 7, "GrLivArea": 1710, "YearBuilt": 2003}'
+
+# Batch prediction:
+
+curl -X POST "http://localhost:8000/predict/batch" \
+  -H "Content-Type: application/json" \
+  -d '{"houses": [{...}, {...}]}'
+
+\end{minted}
+    \item \textbf{Khởi chạy model qua Command Line Interface (CLI):} 
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{bash}
+python src/api/inference.py data/raw/test_data.csv --output predictions.csv
+\end{minted}
+
+
+\end{enumerate}
+
+
+
+Khi tất cả services đã khởi động, ta có thể kiểm tra trạng thái bằng lệnh \texttt{docker compose ps} để xác nhận cả 3 container (MLflow, API, Streamlit) đều ở trạng thái "Up". Ta cũng có thể truy cập giao diện Streamlit để thử nghiệm dự đoán trực tiếp.
+
+\subsection{Giao diện Streamlit - Trải nghiệm Người dùng}
+\label{subsec:deployment-streamlit}
+
+Giao diện Streamlit là một trong những nâng cấp quan trọng của dự án. Nó cho phép ta tương tác với mô hình dự đoán giá nhà một cách trực quan và dễ dàng.  
+Trước đây, ta phải chạy code Python trong notebook. Bây giờ, ta chỉ cần mở trình duyệt và nhập thông tin nhà. Ta sẽ nhận được kết quả dự đoán ngay lập tức.
+
+\subsubsection{Thiết kế và Tính năng}
+
+Giao diện Streamlit được thiết kế với các tính năng chính. Ta sẽ cùng xem xét từng tính năng:
+
+\begin{itemize}
+    \item \textbf{Input Form:} Form nhập liệu được tổ chức rõ ràng. Ta có thể nhập các thuộc tính quan trọng của nhà. Ví dụ như diện tích sống (\texttt{GrLivArea}), chất lượng tổng thể (\texttt{OverallQual}), năm xây dựng (\texttt{YearBuilt}), và nhiều thuộc tính khác.
+    \item \textbf{Preset Configurations:} Ta cung cấp các cấu hình mẫu để thử nghiệm nhanh. Ví dụ như nhà cao cấp, nhà trung bình, hoặc nhà cơ bản.
+    \item \textbf{Real-time Prediction:} Khi ta nhập đầy đủ thông tin và nhấn nút "Predict", giao diện sẽ gọi API backend. Kết quả dự đoán được hiển thị ngay lập tức.
+    \item \textbf{Error Handling:} Giao diện xử lý các lỗi một cách thân thiện. Ta sẽ thấy thông báo rõ ràng khi có vấn đề kết nối với API hoặc khi dữ liệu đầu vào không hợp lệ.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{images/web_demo.png}
+\caption{Giao diện Streamlit demo cho dự đoán giá nhà}
+\label{fig:streamlit-demo}
+\end{figure}
+
+Quan sát Hình~\ref{fig:streamlit-demo}, ta có thể thấy giao diện Streamlit hiển thị form nhập liệu. Các trường input được tổ chức rõ ràng. Ta có thể nhập thông tin về nhà như diện tích, số phòng, chất lượng, và các thuộc tính khác. Khi ta nhấn nút dự đoán, kết quả sẽ được hiển thị ngay bên cạnh. Kết quả cho thấy giá nhà dự đoán cùng với các thông tin liên quan.
+
+\subsubsection{Các Phương án Thiết kế}
+
+Trong quá trình phát triển, ta đã thử nghiệm nhiều phương án thiết kế khác nhau. Mục tiêu là tối ưu trải nghiệm người dùng. Mỗi phương án có ưu điểm riêng.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/web_option1.png}
+\caption{Option 1: Input form tập trung}
+\label{fig:streamlit-option1}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/web_option2.png}
+\caption{Option 2: Interactive dashboard}
+\label{fig:streamlit-option2}
+\end{subfigure}
+\caption{Các phương án thiết kế giao diện Streamlit}
+\label{fig:streamlit-options}
+\end{figure}
+
+Quan sát Hình~\ref{fig:streamlit-options}, ta có thể thấy hai phương án thiết kế khác nhau. Option 1 tập trung vào form nhập liệu đơn giản. Nó giúp ta dễ dàng điền thông tin. Option 2 cung cấp dashboard tương tác với nhiều biểu đồ và visualization. Phương án này phù hợp cho những người muốn xem phân tích chi tiết hơn.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/web_option3.png}
+\caption{Option 3: Comparison view}
+\label{fig:streamlit-option3}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/web_option4.png}
+\caption{Option 4: Results visualization}
+\label{fig:streamlit-option4}
+\end{subfigure}
+\caption{Các phương án thiết kế bổ sung}
+\label{fig:streamlit-options-2}
+\end{figure}
+
+Quan sát Hình~\ref{fig:streamlit-options-2}, ta có thể thấy Option 3 cung cấp chế độ so sánh. Nó cho phép ta so sánh nhiều cấu hình nhà cùng lúc. Option 4 tập trung vào visualization kết quả. Phương án này có các biểu đồ và thống kê chi tiết về dự đoán giá nhà.
+
+Cuối cùng, ta chọn giao diện chính (như trong Hình~\ref{fig:streamlit-demo}). Giao diện này cân bằng tốt giữa tính đơn giản và đầy đủ thông tin. Nó phù hợp với đại đa số người dùng.
+
+\subsubsection{Tích hợp với API Backend}
+
+Giao diện Streamlit giao tiếp với FastAPI backend thông qua HTTP requests. Code chính được viết trong file \texttt{src/frontend/app.py}. Ta có thể xem ví dụ sau:
+
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{python}
+import streamlit as st
+import requests
+import os
+
+API_URL = os.getenv("API_URL", "http://localhost:8000")
+
+def predict_house_price(house_features):
+    response = requests.post(
+        f"{API_URL}/predict",
+        json=house_features
+    )
+    return response.json()
+
+# Streamlit UI code
+st.title("House Price Prediction")
+# ... form inputs ...
+if st.button("Predict"):
+    result = predict_house_price(features)
+    st.success(f"Predicted Price: ${result['prediction']:,.2f}")
+\end{minted}
+
+Ta sử dụng biến môi trường \texttt{API\_URL} để cấu hình endpoint. Điều này giúp ta dễ dàng thay đổi địa chỉ API mà không cần sửa code. Khi chạy trong Docker Compose, ta có thể cấu hình URL này thông qua file \texttt{docker-compose.yaml}.
+
+\subsection{Quản lý và Cập nhật Mô hình}
+\label{subsec:deployment-management}
+
+Việc cập nhật mô hình cần đảm bảo không gián đoạn dịch vụ:
+
+\begin{itemize}
+  \item \textbf{Cập nhật trực tiếp:}  
+  Ta thay file \texttt{best\_pipeline.joblib} trong volume \texttt{src/models}, sau đó restart container:
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{bash}
+docker compose restart api
+\end{minted}
+  Container sẽ tự động nạp mô hình mới qua \verb|MODEL_PATH| khi khởi động lại.
+
+  \item \textbf{Cập nhật qua MLflow Model Registry:}  
+  Đăng ký và chỉ định version khi load trong API:
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{python}
+import mlflow
+model = mlflow.pyfunc.load_model("models:/House_Price_Prediction/v3")
+\end{minted}
+
+    \item \textbf{Kết thúc session chạy:}
+Khi muốn dừng tất cả services và xóa volumes, ta chạy:
+\begin{minted}[fontsize=\small, bgcolor=gray!5, frame=single]{bash}
+docker compose down -v
+\end{minted}  
+Lệnh này sẽ dừng các container và xóa các volume đã tạo, giúp ta có môi trường sạch cho lần chạy tiếp theo.
+\end{itemize}

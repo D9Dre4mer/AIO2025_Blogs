@@ -1,0 +1,106 @@
+{
+  "images": {
+    "pipeline.png": {
+      "caption": "Sơ đồ tổng quan quy trình xử lý dữ liệu và đặc trưng",
+      "description": "Pipeline xử lý dữ liệu được tổ chức thành ba tầng chính: tầng đầu tiên là các custom transformers (OrdinalMapper, TargetEncoderTransformer, MissingnessIndicator, RarePooler, FiniteCleaner, DropAllNaNColumns) để xử lý dữ liệu phân loại và số; tầng thứ hai là domain feature engineering để tạo các đặc trưng mới như TotalSF, TotalBath, HouseAge; tầng thứ ba là feature pipeline sử dụng ColumnTransformer để áp dụng One-Hot Encoding, mã hóa thứ bậc, và QuantileTransformer. Mỗi tầng có thể được thay thế hoặc điều chỉnh độc lập mà không ảnh hưởng đến các tầng khác, giúp pipeline linh hoạt và dễ bảo trì.",
+      "location": "experiment.tex",
+      "section": "Data Preprocessing"
+    },
+    "kaggle_submission_score.png": {
+      "caption": "Kết quả nộp bài trên Kaggle với mô hình stacking",
+      "description": "Điểm số RMSLE = 0.11827 nằm trong khoảng tốt, cho thấy mô hình có khả năng tổng quát hóa tốt trên dữ liệu test của Kaggle. Hình này hiển thị màn hình xác nhận submission từ Kaggle website.",
+      "location": "experiment.tex",
+      "section": "External Benchmark on Kaggle"
+    },
+    "kaggle_leaderboard.png": {
+      "caption": "Vị trí xếp hạng trên public leaderboard của Kaggle",
+      "description": "Vị trí xếp hạng của mô hình tại thời điểm nộp bài trên public leaderboard. Hình này xác nhận rằng phương pháp đạt hiệu quả tốt so với các phương pháp khác trong cuộc thi.",
+      "location": "experiment.tex",
+      "section": "External Benchmark on Kaggle"
+    },
+    "MLflow.png": {
+      "caption": "Giao diện web của MLflow Tracking Server",
+      "description": "Giao diện MLflow hiển thị danh sách các thí nghiệm (experiments) và các runs tương ứng. Mỗi run chứa thông tin về parameters, metrics, và artifacts. Điều này giúp dễ dàng so sánh kết quả giữa các phiên bản mô hình khác nhau và lựa chọn mô hình tốt nhất cho deployment.",
+      "location": "monitor.tex",
+      "section": "MLflow Tracking and Experiment Logging"
+    },
+    "target_distribution.png": {
+      "caption": "Phân phối của biến mục tiêu SalePrice",
+      "description": "Histogram hoặc biểu đồ phân phối cho thấy phân phối của giá nhà (SalePrice). Thường có dạng lệch phải, cần log transformation để chuẩn hóa.",
+      "location": "experiment.tex (suggested)",
+      "section": "Data Preprocessing"
+    },
+    "baseline_comparison.png": {
+      "caption": "So sánh hiệu năng các mô hình baseline",
+      "description": "Biểu đồ so sánh RMSE hoặc R² giữa các mô hình baseline (Linear, Ridge, Lasso, Polynomial) để đánh giá hiệu năng ban đầu.",
+      "location": "experiment.tex (suggested)",
+      "section": "Model Selection"
+    },
+    "baseline_cv_rmse.png": {
+      "caption": "Cross-validation RMSE của các mô hình baseline",
+      "description": "Biểu đồ hiển thị RMSE từ cross-validation cho các mô hình baseline, giúp so sánh độ ổn định và hiệu năng của từng mô hình.",
+      "location": "experiment.tex (suggested)",
+      "section": "Evaluation Protocol"
+    },
+    "cv_vs_test_rmse_scatter.png": {
+      "caption": "Tương quan giữa CV RMSE và Test RMSE",
+      "description": "Scatter plot thể hiện mối quan hệ giữa RMSE từ cross-validation và RMSE trên test set, cho thấy khả năng tổng quát hóa của các mô hình.",
+      "location": "experiment.tex (suggested)",
+      "section": "Final Evaluation and Real-World Testing"
+    },
+    "r2_cv_vs_test.png": {
+      "caption": "So sánh R² giữa Cross-validation và Test set",
+      "description": "Biểu đồ so sánh hệ số xác định R² từ cross-validation và test set, giúp đánh giá khả năng tổng quát hóa và mức độ overfitting.",
+      "location": "experiment.tex (suggested)",
+      "section": "Final Evaluation and Real-World Testing"
+    },
+    "stacking_test_rmse.png": {
+      "caption": "RMSE của các mô hình Stacking trên test set",
+      "description": "Biểu đồ so sánh RMSE của các cấu hình stacking khác nhau trên test set, giúp lựa chọn cấu hình tối ưu.",
+      "location": "experiment.tex (suggested)",
+      "section": "Stacking Ensemble with Optuna"
+    },
+    "web_demo.png": {
+      "caption": "Giao diện Streamlit demo cho dự đoán giá nhà",
+      "description": "Screenshot giao diện web Streamlit cho phép người dùng nhập thông tin nhà và nhận dự đoán giá thông qua API.",
+      "location": "deployment.tex (suggested)",
+      "section": "Streamlit UI Demo"
+    },
+    "web_option1.png": {
+      "caption": "Giao diện web option 1 - Input form",
+      "description": "Một trong các phương án thiết kế giao diện web cho form nhập liệu thông tin nhà.",
+      "location": "deployment.tex (suggested)",
+      "section": "Streamlit UI Demo"
+    },
+    "web_option2.png": {
+      "caption": "Giao diện web option 2 - Interactive dashboard",
+      "description": "Một trong các phương án thiết kế giao diện web với dashboard tương tác.",
+      "location": "deployment.tex (suggested)",
+      "section": "Streamlit UI Demo"
+    },
+    "web_option3.png": {
+      "caption": "Giao diện web option 3 - Comparison view",
+      "description": "Một trong các phương án thiết kế giao diện web với chế độ so sánh.",
+      "location": "deployment.tex (suggested)",
+      "section": "Streamlit UI Demo"
+    },
+    "web_option4.png": {
+      "caption": "Giao diện web option 4 - Results visualization",
+      "description": "Một trong các phương án thiết kế giao diện web với visualization kết quả.",
+      "location": "deployment.tex (suggested)",
+      "section": "Streamlit UI Demo"
+    },
+    "ConQ999_logo.png": {
+      "caption": "Logo ConQ999 Team",
+      "description": "Logo của nhóm được sử dụng trong header của tài liệu.",
+      "location": "preamble.tex",
+      "section": "Header"
+    }
+  },
+  "notes": {
+    "format": "Mỗi hình ảnh cần có caption rõ ràng và đoạn mô tả sau hình theo format 'Quan sát Hình X, ta có thể thấy rằng...'",
+    "current_usage": "Hiện tại có 9 hình được sử dụng: pipeline.png (experiment.tex), kaggle_submission_score.png (experiment.tex), kaggle_leaderboard.png (experiment.tex), MLflow.png (monitor.tex), web_demo.png (deployment.tex), web_option1.png, web_option2.png, web_option3.png, web_option4.png (deployment.tex)",
+    "suggested_additions": "Các hình khác có thể được thêm vào để minh họa tốt hơn cho các phần: target_distribution.png cho phần EDA, các biểu đồ so sánh cho phần Model Selection và Evaluation (baseline_comparison.png, baseline_cv_rmse.png, cv_vs_test_rmse_scatter.png, r2_cv_vs_test.png, stacking_test_rmse.png)"
+  }
+}
+

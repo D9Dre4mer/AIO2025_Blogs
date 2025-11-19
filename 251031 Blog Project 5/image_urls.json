@@ -1,0 +1,18 @@
+{
+  "baseline_comparison.png": "https://i.ibb.co/TBvDnJ5C/baseline-comparison.png",
+  "baseline_cv_rmse.png": "https://i.ibb.co/rG0nBWJ7/baseline-cv-rmse.png",
+  "ConQ999_logo.png": "https://i.ibb.co/21mv0xGx/Con-Q999-logo.png",
+  "cv_vs_test_rmse_scatter.png": "https://i.ibb.co/F4K0j3HT/cv-vs-test-rmse-scatter.png",
+  "kaggle_leaderboard.png": "https://i.ibb.co/ZpQG4Mrp/kaggle-leaderboard.png",
+  "kaggle_submission_score.png": "https://i.ibb.co/s9QY7BKk/kaggle-submission-score.png",
+  "MLflow.png": "https://i.ibb.co/LXVM4Xsz/MLflow.png",
+  "pipeline.png": "https://i.ibb.co/b5kPW1Qb/pipeline.png",
+  "r2_cv_vs_test.png": "https://i.ibb.co/d4DfFrbJ/r2-cv-vs-test.png",
+  "stacking_test_rmse.png": "https://i.ibb.co/ZzF2kPyk/stacking-test-rmse.png",
+  "target_distribution.png": "https://i.ibb.co/bg8V9cFG/target-distribution.png",
+  "web_demo.png": "https://i.ibb.co/G4qVbF1k/web-demo.png",
+  "web_option1.png": "https://i.ibb.co/fYZG290d/web-option1.png",
+  "web_option2.png": "https://i.ibb.co/gZvtXRKc/web-option2.png",
+  "web_option3.png": "https://i.ibb.co/Csz2hz2s/web-option3.png",
+  "web_option4.png": "https://i.ibb.co/twXL6PKv/web-option4.png"
+}

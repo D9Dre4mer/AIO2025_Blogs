@@ -1,0 +1,366 @@
+\section{So sánh dự án gốc và phiên bản nâng cấp}
+\label{sec:comparison}
+
+Dự án \textbf{MLDockFlow} được phát triển từ đề tài gốc \textit{Project 5.1 - House Price Prediction} trong Module 5 của chương trình AIO2025.  
+Trong phần này, ta sẽ cùng phân tích các nâng cấp và cải tiến so với phiên bản ban đầu một cách có hệ thống.
+
+\subsection{Tổng quan so sánh}
+\label{subsec:comparison-overview}
+
+Dự án gốc là một notebook Jupyter đơn giản. Nó tập trung vào việc thử nghiệm các mô hình hồi quy tuyến tính cơ bản.  
+Dự án nâng cấp đã chuyển đổi thành một hệ thống học máy hoàn chỉnh. Hệ thống này có pipeline tự động, tích hợp MLOps tools và có khả năng triển khai thực tế.  
+
+Tiếp theo, ta sẽ xem xét các khía cạnh khác nhau của sự thay đổi này. Ta sẽ đi qua từng phần một cách chi tiết.
+
+\subsection{Phân tích so sánh chi tiết}
+\label{subsec:comparison-detail}
+
+Để hiểu rõ sự khác biệt, ta cần so sánh từng khía cạnh của dự án. Dưới đây là các bảng so sánh chi tiết.
+
+\subsubsection{Cấu trúc dự án}
+
+Trước tiên, ta xem xét sự khác biệt về cấu trúc dự án. Dự án gốc chỉ là một file notebook duy nhất. Dự án nâng cấp đã được tổ chức lại thành một hệ thống module hóa.
+
+\begin{table}[H]
+\centering
+\caption{So sánh cấu trúc dự án gốc và nâng cấp}
+\label{tab:structure_comparison}
+\small
+\rowcolors{2}{gray!10}{white}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X}
+\toprule
+\rowcolor{gray!20}
+\textbf{Tiêu chí} & \textbf{Dự án gốc} & \textbf{Dự án nâng cấp} \\
+\midrule
+\textit{Cấu trúc} & 
+Notebook Jupyter đơn lẻ & 
+Module hóa với \texttt{src/}, \texttt{deployments/}, \texttt{notebooks/} \\
+\midrule
+\textit{Code organization} & 
+Tất cả code trong một file & 
+Tách thành modules: \texttt{processing/}, \texttt{training/}, \texttt{api/}, \texttt{frontend/} \\
+\midrule
+\textit{Configuration} & 
+Hard-coded parameters & 
+File JSON config \texttt{best\_model\_config.json} \\
+\midrule
+\textit{Dependency management} & 
+Không rõ ràng & 
+\texttt{requirements.txt} với version pinning \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Quan sát Bảng~\ref{tab:structure_comparison}, ta có thể thấy rằng dự án nâng cấp có cấu trúc rõ ràng và dễ bảo trì hơn nhiều. Các modules được tách biệt giúp ta dễ dàng thay đổi từng phần mà không ảnh hưởng đến phần khác.
+
+\subsubsection{Xử lý dữ liệu và Feature Engineering}
+
+Tiếp theo, ta xem xét sự khác biệt về cách xử lý dữ liệu. Dự án gốc chỉ thực hiện các bước tiền xử lý cơ bản. Dự án nâng cấp áp dụng nhiều kỹ thuật phức tạp hơn.
+
+\begin{table}[H]
+\centering
+\caption{So sánh xử lý dữ liệu}
+\label{tab:preprocessing_comparison}
+\small
+\rowcolors{2}{gray!10}{white}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X}
+\toprule
+\rowcolor{gray!20}
+\textbf{Tiêu chí} & \textbf{Dự án gốc} & \textbf{Dự án nâng cấp} \\
+\midrule
+\textit{Preprocessing} & 
+\begin{itemize}[leftmargin=*]
+\item Drop columns có >50\% missing
+\item Fillna("none") cho categorical
+\item One-hot encoding đơn giản
+\item MinMaxScaler cho numeric
+\end{itemize} & 
+\begin{itemize}[leftmargin=*]
+\item Custom transformers: \texttt{OrdinalMapper}, \texttt{TargetEncoderTransformer}, \texttt{RarePooler}, \texttt{MissingnessIndicator}, \texttt{FiniteCleaner}, \texttt{DropAllNaNColumns}
+\item Missingness indicators tự động
+\item QuantileTransformer cho numeric
+\item Pipeline có cấu trúc với ColumnTransformer
+\end{itemize} \\
+\midrule
+\textit{Feature Engineering} & 
+Không có & 
+\begin{itemize}[leftmargin=*]
+\item 18 domain features: \texttt{TotalSF}, \texttt{TotalBath}, \texttt{HouseAge}, \texttt{LotAreaRatio}
+\item Interaction features: \texttt{IQ\_OQ\_GrLiv}, \texttt{IQ\_OQ\_TotalSF}
+\item Seasonal encoding: \texttt{MoSold\_sin}, \texttt{MoSold\_cos}
+\item Log transformation: \texttt{Ln\_TotalSF}
+\item Winsorization: \texttt{LotArea\_clip}
+\end{itemize} \\
+\midrule
+\textit{Reproducibility} & 
+Manual steps, khó tái lập & 
+Pipeline tự động, có thể serialize bằng \texttt{joblib} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Quan sát Bảng~\ref{tab:preprocessing_comparison}, ta thấy rằng dự án nâng cấp có nhiều tính năng mạnh mẽ hơn. Ta sử dụng custom transformers để xử lý dữ liệu một cách linh hoạt. Ta cũng tạo thêm 18 đặc trưng domain-specific để cải thiện hiệu năng mô hình.
+
+\textbf{Lưu ý:} Pipeline tự động giúp ta dễ dàng tái lập quá trình xử lý dữ liệu. Điều này rất quan trọng khi làm việc với dữ liệu mới hoặc cập nhật mô hình.
+
+\subsubsection{Mô hình học máy}
+
+Bây giờ, ta xem xét sự khác biệt về mô hình học máy. Dự án gốc chỉ sử dụng các mô hình hồi quy tuyến tính đơn giản. Dự án nâng cấp áp dụng nhiều mô hình nâng cao và kỹ thuật ensemble.
+
+\begin{table}[H]
+\centering
+\caption{So sánh mô hình và đánh giá}
+\label{tab:model_comparison}
+\small
+\rowcolors{2}{gray!10}{white}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X}
+\toprule
+\rowcolor{gray!20}
+\textbf{Tiêu chí} & \textbf{Dự án gốc} & \textbf{Dự án nâng cấp} \\
+\midrule
+\textit{Models} & 
+\begin{itemize}[leftmargin=*]
+\item Linear Regression (baseline)
+\item Ridge Regression
+\item Lasso Regression
+\item Polynomial Regression
+\end{itemize} & 
+\begin{itemize}[leftmargin=*]
+\item 8 base models: XGBoost, CatBoost, LGBM, RandomForest, Ridge, Lasso, ElasticNet, SVR
+\item Stacking ensemble với meta-learner (Ridge)
+\item Optuna hyperparameter optimization
+\end{itemize} \\
+\midrule
+\textit{Hyperparameter Tuning} & 
+Không có hoặc manual & 
+Optuna với 40+ trials, tự động log vào MLflow \\
+\midrule
+\textit{Evaluation} & 
+Simple train/test split, RMSE và R² & 
+\begin{itemize}[leftmargin=*]
+\item 5-fold Cross-Validation
+\item Test set evaluation
+\item Kaggle submission với RMSLE
+\item Metrics tracking qua MLflow
+\end{itemize} \\
+\midrule
+\textit{Best Performance} & 
+Lasso: Test RMSE = 26362.31, R² = 0.9008 & 
+XGBoost: Test RMSE = 24608.89, R² = 0.9210 \\
+\midrule
+\textit{Model Persistence} & 
+Không có & 
+\texttt{joblib} serialization, MLflow model registry \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Quan sát Bảng~\ref{tab:model_comparison}, ta thấy rằng dự án nâng cấp đạt được hiệu năng tốt hơn đáng kể. RMSE giảm từ 26362 xuống 24609, tương đương cải thiện khoảng 7\%. Điều này nhờ vào việc sử dụng các mô hình ensemble và tối ưu hóa siêu tham số tự động.
+
+\textbf{Lưu ý:} Tối ưu hóa siêu tham số với Optuna giúp ta tìm ra cấu hình tối ưu một cách tự động. Quá trình này được ghi log vào MLflow để ta dễ dàng theo dõi và so sánh.
+
+\subsubsection{Experiment Tracking và Version Control}
+
+Tiếp theo, ta xem xét sự khác biệt về quản lý thí nghiệm. Dự án gốc không có hệ thống theo dõi thí nghiệm. Dự án nâng cấp tích hợp MLflow để quản lý mọi thứ một cách tự động.
+
+\begin{table}[H]
+\centering
+\caption{So sánh quản lý thí nghiệm}
+\label{tab:tracking_comparison}
+\small
+\rowcolors{2}{gray!10}{white}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X}
+\toprule
+\rowcolor{gray!20}
+\textbf{Tiêu chí} & \textbf{Dự án gốc} & \textbf{Dự án nâng cấp} \\
+\midrule
+\textit{Experiment Tracking} & 
+Không có & 
+MLflow với:
+\begin{itemize}[leftmargin=*]
+\item Parameters logging
+\item Metrics tracking (CV RMSE, Test RMSE, R²)
+\item Artifacts storage (model files, configs)
+\item UI dashboard tại \texttt{localhost:5555}
+\end{itemize} \\
+\midrule
+\textit{Model Versioning} & 
+Không có & 
+MLflow Model Registry, version tagging \\
+\midrule
+\textit{Reproducibility} & 
+Khó khăn, phụ thuộc vào manual notes & 
+Tự động: code, data, config, seed đều được track \\
+\midrule
+\textit{Comparison} & 
+Manual comparison giữa notebooks & 
+MLflow UI cho phép so sánh nhiều runs trực quan \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Quan sát Bảng~\ref{tab:tracking_comparison}, ta thấy rằng MLflow mang lại nhiều lợi ích. Ta có thể so sánh các thí nghiệm một cách trực quan. Ta cũng có thể khôi phục lại bất kỳ phiên bản mô hình nào một cách dễ dàng.
+
+\subsubsection{Triển khai và Deployment}
+
+Bây giờ, ta xem xét sự khác biệt về khả năng triển khai. Dự án gốc chỉ có thể chạy trong notebook. Dự án nâng cấp có thể được triển khai như một dịch vụ web.
+
+\begin{table}[H]
+\centering
+\caption{So sánh khả năng triển khai}
+\label{tab:deployment_comparison}
+\small
+\rowcolors{2}{gray!10}{white}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X}
+\toprule
+\rowcolor{gray!20}
+\textbf{Tiêu chí} & \textbf{Dự án gốc} & \textbf{Dự án nâng cấp} \\
+\midrule
+\textit{API} & 
+Không có & 
+FastAPI với:
+\begin{itemize}[leftmargin=*]
+\item \texttt{POST /predict} (single prediction)
+\item \texttt{POST /predict/batch} (batch inference)
+\item \texttt{GET /health}, \texttt{GET /model/info}
+\item Pydantic models cho validation
+\item Auto-generated OpenAPI docs
+\end{itemize} \\
+\midrule
+\textit{Frontend} & 
+Không có & 
+Streamlit UI với:
+\begin{itemize}[leftmargin=*]
+\item Form input cho house features
+\item Real-time prediction display
+\item Preset configurations
+\item Responsive design
+\end{itemize} \\
+\midrule
+\textit{Containerization} & 
+Không có & 
+Docker Compose với 3 services:
+\begin{itemize}[leftmargin=*]
+\item MLflow tracking server
+\item FastAPI inference API
+\item Streamlit frontend
+\item Network isolation, volume mounting
+\end{itemize} \\
+\midrule
+\textit{CLI Interface} & 
+Không có & 
+\texttt{src/api/inference.py} cho batch prediction từ CSV \\
+\midrule
+\textit{Production Readiness} & 
+Chỉ dùng để demo/experiment & 
+Có health checks, error handling, CORS support \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Quan sát Bảng~\ref{tab:deployment_comparison}, ta thấy rằng dự án nâng cấp có đầy đủ các công cụ để triển khai. Ta có thể cung cấp dịch vụ dự đoán qua API hoặc giao diện web. Ta cũng có thể xử lý batch prediction một cách tự động.
+
+\paragraph{Nâng cấp giao diện Streamlit:}
+Dự án gốc hoàn toàn không có giao diện người dùng. Ta chỉ có thể tương tác với mô hình thông qua việc chạy code trong notebook.  
+Dự án nâng cấp đã tích hợp \textbf{Streamlit UI}. Giao diện web này thân thiện và dễ sử dụng.
+
+Giao diện Streamlit bao gồm các tính năng sau:
+\begin{itemize}
+    \item \textbf{Form input trực quan:} Ta có thể nhập các thuộc tính của nhà (diện tích, số phòng, năm xây dựng, v.v.) thông qua các trường input được thiết kế rõ ràng.
+    \item \textbf{Real-time prediction:} Kết quả dự đoán được hiển thị ngay lập tức. Ta chỉ cần nhập thông tin và nhấn nút dự đoán.
+    \item \textbf{Preset configurations:} Ta cung cấp các cấu hình mẫu. Điều này giúp ta thử nghiệm nhanh với các loại nhà phổ biến.
+    \item \textbf{Responsive design:} Giao diện tự động điều chỉnh để hiển thị tốt trên các thiết bị khác nhau. Từ desktop đến tablet, giao diện đều hoạt động tốt.
+    \item \textbf{Kết nối với API:} Giao diện giao tiếp với FastAPI backend thông qua biến môi trường \texttt{API\_URL}. Điều này cho phép ta dễ dàng thay đổi endpoint khi cần.
+\end{itemize}
+
+Điều này giúp ta không cần kiến thức về lập trình để sử dụng mô hình. Ta chỉ cần truy cập vào giao diện web và nhập thông tin nhà. Ta sẽ nhận được dự đoán giá ngay lập tức.
+
+\subsubsection{Workflow và Tự động hóa}
+
+Cuối cùng, ta xem xét sự khác biệt về workflow và tự động hóa. Dự án gốc đòi hỏi nhiều thao tác thủ công. Dự án nâng cấp tự động hóa hầu hết các bước.
+
+\begin{table}[H]
+\centering
+\caption{So sánh workflow}
+\label{tab:workflow_comparison}
+\small
+\rowcolors{2}{gray!10}{white}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X}
+\toprule
+\rowcolor{gray!20}
+\textbf{Tiêu chí} & \textbf{Dự án gốc} & \textbf{Dự án nâng cấp} \\
+\midrule
+\textit{Training Process} & 
+Manual execution từng cell & 
+Single command: \texttt{python train.py} \\
+\midrule
+\textit{Pipeline Automation} & 
+Không có & 
+End-to-end pipeline:
+\begin{itemize}[leftmargin=*]
+\item Data loading
+\item Feature engineering
+\item Model training
+\item Evaluation
+\item Model saving
+\item MLflow logging
+\end{itemize} \\
+\midrule
+\textit{Testing} & 
+Manual testing trong notebook & 
+\texttt{test\_api.py} cho API endpoints \\
+\midrule
+\textit{Documentation} & 
+Markdown cells trong notebook & 
+README.md chi tiết, API docs tự động \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Quan sát Bảng~\ref{tab:workflow_comparison}, ta thấy rằng dự án nâng cấp giúp ta tiết kiệm nhiều thời gian. Ta chỉ cần chạy một lệnh để hoàn tất toàn bộ pipeline. Điều này giúp ta tập trung vào việc cải thiện mô hình thay vì thực hiện các thao tác lặp lại.
+
+\subsection{Tổng hợp các nâng cấp chính}
+\label{subsec:comparison-summary}
+
+Dựa trên phân tích ở trên, ta có thể tổng hợp các nâng cấp thành 5 nhóm chính. Mỗi nhóm đóng góp một phần quan trọng vào sự cải thiện tổng thể.
+
+\paragraph{1. Kiến trúc và Cấu trúc Code}
+Nhóm nâng cấp đầu tiên liên quan đến cấu trúc code. Ta chuyển từ notebook monolith sang kiến trúc module hóa. Các module được tách biệt rõ ràng: processing, training, API, frontend. Ta cũng sử dụng configuration-driven thay vì hard-coded parameters. Điều này giúp ta dễ dàng thay đổi cấu hình mà không cần sửa code.
+
+\paragraph{2. Xử lý dữ liệu và Feature Engineering}
+Nhóm thứ hai tập trung vào việc xử lý dữ liệu. Ta sử dụng custom transformers để xử lý dữ liệu phức tạp hơn. Ta tạo thêm 18 domain-specific features thay vì chỉ dùng raw features. Pipeline có thể serialize và tái sử dụng, giúp ta đảm bảo tính nhất quán. Ta cũng xử lý missing values một cách thông minh hơn với indicators và imputation strategies.
+
+\paragraph{3. Mô hình và Tối ưu hóa}
+Nhóm thứ ba liên quan đến mô hình học máy. Ta mở rộng từ 3 linear models lên 8+ models, bao gồm các ensemble methods. Ta sử dụng Optuna để tối ưu hóa siêu tham số tự động. Ta áp dụng stacking ensemble để kết hợp sức mạnh của nhiều models. Kết quả là hiệu năng được cải thiện đáng kể: RMSE giảm từ 26362 xuống 24609, tương đương cải thiện khoảng 7\%.
+
+\paragraph{4. MLOps và Experiment Management}
+Nhóm thứ tư tập trung vào MLOps. Ta tích hợp MLflow để theo dõi thí nghiệm. Ta có model versioning và registry để quản lý các phiên bản mô hình. Ta đảm bảo reproducibility tự động bằng cách track code, data, config và seed. Ta có thể so sánh các thí nghiệm một cách trực quan thông qua MLflow UI.
+
+\paragraph{5. Deployment và Production Readiness}
+Nhóm cuối cùng liên quan đến triển khai. Ta xây dựng RESTful API với FastAPI để cung cấp dịch vụ dự đoán. Ta tạo web UI với Streamlit để người dùng có thể tương tác dễ dàng. Ta sử dụng Docker để containerize toàn bộ hệ thống. Ta thêm health checks và monitoring để đảm bảo hệ thống hoạt động ổn định. Ta cũng có CLI interface để xử lý batch prediction.
+
+\subsection{Đánh giá tổng thể}
+\label{subsec:comparison-evaluation}
+
+Việc nâng cấp từ dự án gốc lên \textbf{MLDockFlow} đã chuyển đổi một prototype đơn giản thành một hệ thống học máy production-ready.  
+Các cải tiến không chỉ về mặt kỹ thuật mà còn về khả năng quản lý, triển khai và mở rộng.
+
+\paragraph{Ưu điểm chính:}
+Các ưu điểm chính của dự án nâng cấp bao gồm:
+\begin{itemize}
+    \item \textbf{Maintainability:} Cấu trúc code rõ ràng giúp ta dễ bảo trì và mở rộng. Ta có thể thay đổi từng phần mà không ảnh hưởng đến phần khác.
+    \item \textbf{Reproducibility:} Ta có thể tái lập mọi thứ nhờ MLflow và Docker. Mọi thứ đều được track và có thể khôi phục lại.
+    \item \textbf{Scalability:} Ta có thể dễ dàng thêm models, features, hoặc endpoints mới. Cấu trúc module hóa hỗ trợ việc mở rộng.
+    \item \textbf{Usability:} API và UI giúp người dùng không cần code để sử dụng. Họ có thể dự đoán giá nhà một cách dễ dàng.
+    \item \textbf{Performance:} Ta đạt được cải thiện đáng kể về độ chính xác và khả năng tổng quát hóa. RMSE giảm khoảng 7\% so với dự án gốc.
+\end{itemize}
+
+\paragraph{Điểm cần lưu ý:}
+Bên cạnh các ưu điểm, ta cũng cần lưu ý một số điểm sau:
+\begin{itemize}
+    \item Độ phức tạp tăng lên đáng kể. Ta cần hiểu biết về MLOps để vận hành hệ thống hiệu quả.
+    \item Ta cần có infrastructure như Docker và MLflow server để vận hành đầy đủ. Điều này đòi hỏi setup ban đầu.
+    \item Thời gian setup ban đầu lâu hơn so với chạy notebook trực tiếp. Tuy nhiên, điều này được bù đắp bởi tính ổn định và khả năng tái sử dụng.
+\end{itemize}
+
+\noindent Nhìn chung, những nâng cấp này là cần thiết và hợp lý cho một dự án muốn chuyển từ giai đoạn nghiên cứu sang triển khai thực tế. Chúng tạo nền tảng vững chắc cho việc phát triển các tính năng MLOps nâng cao hơn trong tương lai. Đây là bước khởi đầu quan trọng để xây dựng các hệ thống machine learning chuyên nghiệp.
