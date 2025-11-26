@@ -50,7 +50,9 @@ Nội dung blog được tổ chức thành các phần chính sau:
 **Repository của dự án:** Toàn bộ mã nguồn, cấu trúc dự án, và các tài liệu liên quan có thể được truy cập tại repository GitHub: https://github.com/sonvt8/AIO2025_Project5.1_HousesPricing/tree/main. Repository này chứa đầy đủ pipeline từ preprocessing, feature engineering, model training với MLflow tracking, đến deployment với Docker Compose. Bạn đọc có thể clone repository về để thực nghiệm, tùy chỉnh, hoặc triển khai trên môi trường của riêng mình. Phần thực nghiệm tham khảo từ https://github.com/HoangVo-Prog/HousePrices_AdvancedRegressionTechniques.git.
 
 <div align="center">
-![Logo](https://i.ibb.co/d41fHgXL/Logo-999.png)
+<img src="https://i.ibb.co/d41fHgXL/Logo-999.png" alt="Logo CONQ999" width="250">
+
+<sub>Bài viết được biên soạn bởi nhóm CONQ999</sub>
 </div>
 
 ---

@@ -9,7 +9,9 @@ Khi chạy nhiều LLM models cùng lúc, ta thường gặp khó khăn: không 
 > *"Từ bài toán giám sát LLM processes với hàng trăm metrics và logs — cùng tìm hiểu cách MonitorAI xây dựng hệ thống monitoring toàn diện với Grafana, Prometheus, Loki và Tempo."*
 
 <div align="center">
-![Logo](https://i.ibb.co/d41fHgXL/Logo-999.png)
+<img src="https://i.ibb.co/d41fHgXL/Logo-999.png" alt="Logo CONQ999" width="250">
+
+<sub>Bài viết được biên soạn bởi nhóm CONQ999</sub>
 </div>
 
 ## 1. Giới thiệu: Bài toán thực tế
