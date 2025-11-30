@@ -55,6 +55,27 @@ ax.axhline(y=gpu_limits['A100 40GB'], color='#FFC107', linestyle='--', linewidth
 ax.axhline(y=gpu_limits['A100/H100 80GB'], color='#DC3545', linestyle='--', linewidth=2, 
            label=f"A100/H100 80GB ({gpu_limits['A100/H100 80GB']}GB)", alpha=0.7)
 
+# Thêm chú thích tên GPU trực tiếp trên các đường
+# Đặt text ở bên trái biểu đồ để không đè lên cột
+ax.text(-0.5, gpu_limits['RTX 5090'],
+        f"RTX 5090 ({gpu_limits['RTX 5090']}GB)",
+        fontsize=9, fontweight='bold', color='#1E88E5',
+        va='center', ha='right',
+        bbox=dict(boxstyle='round,pad=0.3', facecolor='white',
+                  edgecolor='#1E88E5', alpha=0.8))
+ax.text(-0.5, gpu_limits['A100 40GB'],
+        f"A100 40GB ({gpu_limits['A100 40GB']}GB)",
+        fontsize=9, fontweight='bold', color='#FFC107',
+        va='center', ha='right',
+        bbox=dict(boxstyle='round,pad=0.3', facecolor='white',
+                  edgecolor='#FFC107', alpha=0.8))
+ax.text(-0.5, gpu_limits['A100/H100 80GB'],
+        f"A100/H100 80GB ({gpu_limits['A100/H100 80GB']}GB)",
+        fontsize=9, fontweight='bold', color='#DC3545',
+        va='center', ha='right',
+        bbox=dict(boxstyle='round,pad=0.3', facecolor='white',
+                  edgecolor='#DC3545', alpha=0.8))
+
 # Thêm nhãn số liệu trên mỗi thanh
 def add_value_labels(bars):
     for bar in bars:
@@ -84,6 +105,7 @@ ax.set_title('VRAM Requirements theo Kích thước Mô hình và Độ chính x
 ax.set_xticks(x)
 ax.set_xticklabels(model_sizes)
 ax.set_ylim(0, 220)  # Giới hạn trục Y đến 220GB để hiển thị break mark cho 70B
+ax.set_xlim(-1.2, len(model_sizes) - 0.5)  # Mở rộng trục X bên trái để hiển thị chú thích GPU
 
 # Thêm grid
 ax.grid(True, alpha=0.3, linestyle='-', linewidth=0.5)
@@ -98,10 +120,10 @@ break_y = 200
 break_x = x[-1]  # Vị trí của 70B
 ax.plot([break_x - 0.3, break_x - 0.1, break_x + 0.1, break_x + 0.3], 
         [break_y, break_y + 5, break_y, break_y + 5],
-        color='black', linewidth=2)
+        color='#666666', linewidth=1.5, alpha=0.6)
 
-# Thêm text giải thích
-ax.text(0.02, 0.98, 
+# Thêm text giải thích - di chuyển xuống dưới legend để không đè lên
+ax.text(0.02, 0.75, 
         'Lưu ý: Training cần thêm VRAM cho gradients và optimizer states.\n'
         'Inference chỉ cần model weights.',
         transform=ax.transAxes, fontsize=9,

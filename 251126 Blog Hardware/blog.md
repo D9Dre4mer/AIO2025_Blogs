@@ -275,7 +275,7 @@ VRAM ≈ (Model Parameters × 4 bytes) + (Batch Size × Sequence Length × Hidde
 
 Hãy giải thích từng phần. Phần đầu là dung lượng để lưu trữ mô hình. Mỗi tham số (parameter) chiếm 4 bytes. Phần thứ hai là dung lượng để xử lý dữ liệu trong quá trình training. Phần cuối là overhead - dung lượng dự phòng cho các tác vụ khác.
 
-![Mối quan hệ VRAM và kích thước mô hình - Biểu đồ grouped bar chart với trục X là kích thước mô hình (1B, 7B, 13B, 70B parameters) và trục Y là VRAM cần thiết (GB). Mỗi nhóm có 4 thanh: Training FP32 (màu đỏ đậm, cao nhất), Training FP16 (màu cam), Inference FP16 (màu vàng), Inference INT8 (màu xanh lá, thấp nhất). Có 3 đường ngang đứt nét đại diện cho giới hạn VRAM: RTX 5090 (32GB - đường xanh dương), A100 40GB (đường vàng), A100/H100 80GB (đường đỏ). Có nhãn số liệu trên mỗi thanh. Background trắng, grid lines mỗi 20GB, có legend và title rõ ràng.](https://i.ibb.co/8nCBSQkQ/c04f91f605df.png)
+![Mối quan hệ VRAM và kích thước mô hình - Biểu đồ grouped bar chart với trục X là kích thước mô hình (1B, 7B, 13B, 70B parameters) và trục Y là VRAM cần thiết (GB). Mỗi nhóm có 4 thanh: Training FP32 (màu đỏ đậm, cao nhất), Training FP16 (màu cam), Inference FP16 (màu vàng), Inference INT8 (màu xanh lá, thấp nhất). Có 3 đường ngang đứt nét đại diện cho giới hạn VRAM: RTX 5090 (32GB - đường xanh dương), A100 40GB (đường vàng), A100/H100 80GB (đường đỏ). Có nhãn số liệu trên mỗi thanh và chú thích GPU ở bên trái. Background trắng, grid lines mỗi 20GB, có legend và title rõ ràng.](https://i.ibb.co/5X00DW6N/93fc35c5b4ac.png)
 
 <div align="center">
 
@@ -302,6 +302,8 @@ Ba đường ngang đứt nét đại diện cho VRAM của các GPU phổ biế
 - **Đường xanh dương (32GB - RTX 5090):** Train 1B FP16 thoải mái; train 7B FP16 với tối ưu; inference 7B FP16 hoặc 13B INT8
 - **Đường vàng (40GB - A100 40GB):** Train 7B FP16 thoải mái; train 13B FP16 với multi-GPU; inference 13B FP16 hoặc 70B INT8
 - **Đường đỏ (80GB - A100/H100 80GB):** Train 13B FP16 thoải mái; train 70B FP16 với multi-GPU; inference 70B INT8 vừa đủ
+
+💡 **Lưu ý về break mark:** Ở vị trí mô hình 70B, ta có thể thấy một đường zigzag màu xám nhạt ở mức 200GB. Đây là **break mark** (dấu cắt biểu đồ) để chỉ ra rằng một số giá trị vượt quá giới hạn hiển thị. Cụ thể, Training FP32 và Training FP16 của mô hình 70B cần 782GB và 391GB VRAM tương ứng - vượt xa giới hạn 220GB của trục Y. Break mark này giúp ta hiểu rằng biểu đồ đã được cắt để hiển thị các giá trị nhỏ hơn rõ ràng hơn, trong khi các giá trị lớn vẫn được đánh dấu bằng nhãn số liệu ở trên cùng.
 
 Từ biểu đồ, ta có thể rút ra một số kết luận quan trọng. Thứ nhất, **training cần VRAM gấp 3-6 lần so với inference** cho cùng một mô hình. Điều này giải thích tại sao nhiều người train trên cloud nhưng inference trên edge devices.
 
@@ -656,8 +658,9 @@ Cuối cùng, hệ thống này **không phù hợp cho production scale**. Nó 
 
 **Cấu hình đề xuất:**
 
+**Tùy chọn 1: Single Node (8 GPU)**
 ```text
-- Server: NVIDIA DGX A100 (8x A100 80GB) hoặc tương đương
+- Server: NVIDIA DGX A100 (8x A100 80GB)
 - CPU: 2x AMD EPYC 7763 hoặc Intel Xeon Platinum
 - RAM: 512 GB - 1 TB
 - Storage: 10-20 TB NVMe SSD array
@@ -665,23 +668,59 @@ Cuối cùng, hệ thống này **không phù hợp cho production scale**. Nó 
 - Power: 6.5 kW per node
 ```
 
+**Tùy chọn 2: Multi-Node hoặc Hệ thống Tùy chỉnh (16 GPU)**
+```text
+- Server: 2x DGX A100 hoặc hệ thống tùy chỉnh (16x A100 80GB)
+- CPU: 2x AMD EPYC 7763 hoặc Intel Xeon Platinum
+- RAM: 512 GB - 1 TB per node
+- Storage: 20-40 TB NVMe SSD array
+- Networking: InfiniBand HDR (200 Gbps) giữa các nodes
+- Power: 13 kW cho hệ thống 16 GPU
+```
+
 **Đặc điểm:**
 
 - **NVIDIA DGX A100:** Hệ thống được tối ưu hóa sẵn, dễ triển khai
-- **NVLink:** Kết nối tốc độ cao giữa các GPU (600 GB/s)
-- **Multi-node support:** Có thể mở rộng lên hàng trăm GPU
+- **NVLink:** Kết nối tốc độ cao giữa các GPU (600 GB/s) trong cùng một node
+- **Multi-node support:** Có thể mở rộng lên hàng trăm GPU bằng cách kết nối nhiều nodes
+- **Hệ thống 16 GPU:** Phù hợp cho training mô hình 70B+ parameters hoặc xử lý nhiều workload đồng thời
 
-**Chi phí:** Khoảng 200,000 - 300,000 USD cho một node DGX A100.
+**Chi phí:** 
+- **Single node (8 GPU):** Khoảng 200,000 - 300,000 USD
+- **Multi-node/16 GPU:** Khoảng 400,000 - 600,000 USD tùy cấu hình
 
 > 💰 **Fun Fact:** NVIDIA DGX A100 được bán với giá khoảng 200,000 USD, nhưng nếu bạn mua từng linh kiện riêng lẻ (8x A100 GPU, CPU, RAM, storage), giá có thể lên tới 300,000+ USD. Sự chênh lệch này là do NVIDIA tối ưu hóa toàn bộ hệ thống và cung cấp software stack chuyên dụng. Một số công ty đã mua hàng chục DGX để tạo "supercomputer" riêng!
 
-![NVIDIA DGX A100 - Hình minh họa diagram hệ thống server: Khối hình chữ nhật lớn đại diện cho server chassis, bên trong có 8 khối nhỏ đại diện cho GPU A100 được sắp xếp thành 2 hàng, mỗi GPU có label "A100 80GB". Có các đường kết nối NVLink giữa các GPU (mũi tên hai chiều). Phía trên có icon CPU và RAM với label "2x EPYC, 512GB-1TB RAM". Phía dưới có icon network với label "InfiniBand HDR 200 Gbps". Có logo NVIDIA ở góc. Background trắng, phong cách technical diagram với grid. Màu sắc: xanh NVIDIA (#76B900) cho GPU, xám cho chassis.](https://i.ibb.co/PzG5bnGp/755fe6bc87bf.png)
+![NVIDIA DGX A100 - Hình minh họa diagram hệ thống server: Khối hình chữ nhật lớn đại diện cho server chassis, bên trong có 16 khối nhỏ đại diện cho GPU A100 được sắp xếp thành lưới 4x4, mỗi GPU có label "A100 80GB". Có các đường kết nối NVLink giữa các GPU (mũi tên hai chiều) tạo thành mạng lưới kết nối tốc độ cao. Phía trên có icon CPU và RAM với label "2x EPYC, 512GB-1TB RAM". Phía dưới có icon network với label "InfiniBand HDR 200 Gbps". Có logo NVIDIA ở góc. Background trắng, phong cách technical diagram với grid. Màu sắc: xanh NVIDIA (#76B900) cho GPU, xám cho chassis.](https://i.ibb.co/PzG5bnGp/755fe6bc87bf.png)
 
 <div align="center">
 
-**Hình 11:** NVIDIA DGX A100 - hệ thống AI enterprise với 8 GPU A100.
+**Hình 11:** Hệ thống server AI enterprise với 16 GPU A100 80GB - cấu hình multi-node hoặc hệ thống tùy chỉnh.
 
 </div>
+
+Quan sát Hình 11, ta có thể thấy hệ thống server với **16 GPU A100 80GB** được sắp xếp thành lưới 4x4. Đây là cấu hình lớn hơn so với **NVIDIA DGX A100 tiêu chuẩn** (8 GPU mỗi node). 
+
+💡 **Giải thích về số lượng GPU:**
+
+Hình ảnh minh họa có thể đại diện cho một trong các cấu hình sau:
+
+1. **Hệ thống multi-node:** Kết hợp 2 nodes DGX A100 (mỗi node 8 GPU) thành một hệ thống thống nhất thông qua InfiniBand. Đây là cách phổ biến nhất để mở rộng quy mô training cho các mô hình rất lớn. Trong cấu hình này, mỗi node vẫn giữ 8 GPU, nhưng chúng được kết nối với nhau để hoạt động như một hệ thống 16 GPU.
+
+2. **Hệ thống tùy chỉnh trong một chassis:** Một số nhà sản xuất như Supermicro, Dell, hoặc các công ty tùy chỉnh xây dựng hệ thống với 16 GPU trong một chassis duy nhất. Các hệ thống này thường sử dụng NVSwitch để kết nối tất cả 16 GPU với nhau, tạo thành một mạng lưới kết nối tốc độ cao.
+
+3. **Cấu hình mở rộng:** Với 16 GPU, hệ thống này có thể train các mô hình lên đến 70B+ parameters một cách hiệu quả, hoặc xử lý nhiều workload training đồng thời.
+
+**So sánh với DGX A100 tiêu chuẩn:**
+
+- **DGX A100 (8 GPU):** Phù hợp cho hầu hết các dự án enterprise, chi phí khoảng 200,000 USD. Đây là sản phẩm tiêu chuẩn của NVIDIA.
+- **Hệ thống 16 GPU (như trong hình):** 
+  - **Multi-node (2x DGX A100):** Chi phí khoảng 400,000-600,000 USD, bao gồm cả chi phí kết nối InfiniBand
+  - **Hệ thống tùy chỉnh trong một chassis:** Chi phí có thể từ 500,000-800,000 USD tùy nhà sản xuất và cấu hình
+
+**Lưu ý quan trọng:** Hệ thống 16 GPU trong một chassis (như minh họa) **không phải là sản phẩm tiêu chuẩn của NVIDIA DGX A100**. DGX A100 chỉ có 8 GPU mỗi node. Hệ thống 16 GPU trong một chassis là giải pháp tùy chỉnh từ các nhà sản xuất khác hoặc được xây dựng đặc biệt cho các trung tâm dữ liệu lớn.
+
+Các kết nối NVLink (hoặc NVSwitch trong hệ thống tùy chỉnh) giữa 16 GPU tạo thành một mạng lưới kết nối tốc độ cao, cho phép trao đổi dữ liệu nhanh chóng giữa các GPU trong quá trình training phân tán. Điều này đặc biệt quan trọng cho các mô hình lớn yêu cầu nhiều GPU làm việc cùng nhau.
 
 ### 4.4 Giải Pháp Cho Inference Production
 
