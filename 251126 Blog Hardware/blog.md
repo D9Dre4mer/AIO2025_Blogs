@@ -942,6 +942,6 @@ Cuối cùng, hãy nhớ rằng phần cứng chỉ là một phần của câu 
 
 ---
 
-**Ghi chú:** Tất cả các hình ảnh minh họa trong bài viết được tạo với Nano Banana Pro.
+💡 **Lưu ý:** Mọi hình ảnh minh họa trong bài đều do tác giả tự thực hiện hoặc được tạo với công cụ Nano Banana Pro nhằm đảm bảo tính trực quan và minh bạch.
 
 ---
