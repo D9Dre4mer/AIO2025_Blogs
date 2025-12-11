@@ -838,7 +838,7 @@ Hình 9: Phân tích cải tiến PatchTST cho dữ liệu không tuyến tính 
 
 </p>
 
-Quan sát Hình 10 cho thấy phân tích toàn diện về cải tiến PatchTST để học tốt hơn dữ liệu không tuyến tính qua bốn biểu đồ. **Biểu đồ trên trái** so sánh top 3 phương pháp tốt nhất (Ensemble + Post-processing với Linear MSE 56.11, Ridge alpha=1.0 MSE 56.11, Ridge alpha=10.0 MSE 56.14) với giá thực tế. Cả ba phương pháp đều theo sát xu hướng giá thực tế, đặc biệt trong các giai đoạn biến động (khoảng time step 20-30 và sau đó). **Biểu đồ trên phải** so sánh volatility (std của differences): PatchTST_Best có volatility ~1.5, Ensemble ~1.1, Ensemble + Post-processing (Linear) ~0.9, trong khi Thực tế có volatility cao nhất ~2.1. Điều này cho thấy post-processing giảm volatility đáng kể so với thực tế, phản ánh predictions mượt hơn. **Biểu đồ dưới trái** hiển thị phân bố error của Ensemble + Post-processing (Linear): errors tập trung quanh 0 với đỉnh cao nhất ở khoảng -1 đến 0, mean error = 1.93, cho thấy model có xu hướng under-predict nhẹ. **Biểu đồ dưới phải** là scatter plot, các điểm phân tán quanh đường y=x nhưng có độ lệch ở các giá trị cao. Kết quả này cho thấy ensemble kết hợp post-processing đạt MSE thấp nhất (56.11) so với PatchTST baseline (212.37), cải thiện 73.58%, nhưng volatility vẫn thấp hơn thực tế (ratio 0.42), cho thấy predictions còn khá mượt.
+Quan sát Hình 9 cho thấy phân tích Phương pháp Post-processing được áp dụng trên Ensemble Model. **Biểu đồ trên trái** so sánh top 3 phương pháp tốt nhất (Ensemble + Post-processing với Linear MSE 56.11, Ridge alpha=1.0 MSE 56.11, Ridge alpha=10.0 MSE 56.14) với giá thực tế. Cả ba phương pháp đều theo sát xu hướng giá thực tế, đặc biệt trong các giai đoạn biến động (khoảng time step 20-30 và sau đó). **Biểu đồ trên phải** so sánh volatility (std của differences): PatchTST_Best có volatility ~1.5, Ensemble ~1.1, Ensemble + Post-processing (Linear) ~0.9, trong khi Thực tế có volatility cao nhất ~2.1. Điều này cho thấy post-processing giảm volatility đáng kể so với thực tế, phản ánh predictions mượt hơn. **Biểu đồ dưới trái** hiển thị phân bố error của Ensemble + Post-processing (Linear): errors tập trung quanh 0 với đỉnh cao nhất ở khoảng -1 đến 0, mean error = 1.93, cho thấy model có xu hướng under-predict nhẹ. **Biểu đồ dưới phải** là scatter plot, các điểm phân tán quanh đường y=x nhưng có độ lệch ở các giá trị cao. Kết quả này cho thấy ensemble kết hợp post-processing đạt MSE thấp nhất (56.11) so với PatchTST baseline (212.37), cải thiện 73.58%, nhưng volatility vẫn thấp hơn thực tế (ratio 0.42), cho thấy predictions còn khá mượt.
 
 #### 5.1.5. Về sự kiện "thiên nga đen"
 
@@ -979,9 +979,9 @@ Hình 12: So sánh tổng quan các phương pháp - Bốn biểu đồ so sánh
 
 </p>
 
-Quan sát Hình 11 cho thấy so sánh toàn diện các phương pháp qua bốn biểu đồ. **Biểu đồ trên trái** so sánh top 3 phương pháp tốt nhất (NLinear_PostProcessing_Lasso với MSE 98.52, Ridge 99.29, Linear 99.31) với giá thực tế. Cả ba phương pháp đều theo sát xu hướng giá thực tế, đặc biệt trong các giai đoạn biến động (khoảng time step 20-30 và sau đó). **Biểu đồ trên phải** so sánh MSE của top 10 methods: ba phương pháp post-processing đứng đầu với MSE dưới 100, tiếp theo là PatchTST (172.59), NHITS (221.80), NBEATS (363.90), TimesNet (422.96), trong khi NLinear baseline và NLinear_Baseline có MSE cao nhất (587.38). **Biểu đồ dưới trái** so sánh best MSE theo method type: Bias Correction đạt 98.52 (NLinear_PostProcessing_Lasso), thấp hơn đáng kể so với SOTA Model (172.59 từ PatchTST). **Biểu đồ dưới phải** so sánh Bias (Mean Error) của top 10 methods: ba phương pháp post-processing có bias thấp nhất, trong khi NLinear và NLinear_Baseline có bias cao nhất. Kết quả này khẳng định hiệu quả của post-processing trong việc giảm MSE, vượt trội so với các SOTA models phức tạp.
+Quan sát Hình 12 cho thấy so sánh toàn diện các phương pháp qua bốn biểu đồ. **Biểu đồ trên trái** so sánh top 3 phương pháp tốt nhất (NLinear_PostProcessing_Lasso với MSE 98.52, Ridge 99.29, Linear 99.31) với giá thực tế. Cả ba phương pháp đều theo sát xu hướng giá thực tế, đặc biệt trong các giai đoạn biến động (khoảng time step 20-30 và sau đó). **Biểu đồ trên phải** so sánh MSE của top 10 methods: ba phương pháp post-processing đứng đầu với MSE dưới 100, tiếp theo là PatchTST (172.59), NHITS (221.80), NBEATS (363.90), TimesNet (422.96), trong khi NLinear baseline và NLinear_Baseline có MSE cao nhất (587.38). **Biểu đồ dưới trái** so sánh best MSE theo method type: Bias Correction đạt 98.52 (NLinear_PostProcessing_Lasso), thấp hơn đáng kể so với SOTA Model (172.59 từ PatchTST). **Biểu đồ dưới phải** so sánh Bias (Mean Error) của top 10 methods: ba phương pháp post-processing có bias thấp nhất, trong khi NLinear và NLinear_Baseline có bias cao nhất. Kết quả này khẳng định hiệu quả của post-processing trong việc giảm MSE, vượt trội so với các SOTA models phức tạp.
 
-![Top 5 Methods Detailed Comparison](https://i.ibb.co/spqHV3Cb/ef368eb0f776.png)
+![Top 5 Methods Detailed Comparison](https://i.ibb.co/xSRdDKbL/comprehensive-comparison-2.png)
 
 <p align="center">
 
@@ -989,7 +989,7 @@ Hình 13: So sánh chi tiết top 5 methods - Mỗi phương pháp được so s
 
 </p>
 
-Quan sát Hình 12 cho thấy so sánh chi tiết của top 5 phương pháp tốt nhất, mỗi phương pháp được so sánh trực tiếp với ground truth trong các subplot riêng biệt. Hình ảnh này cho phép phân tích sâu hơn về độ chính xác và pattern dự đoán của từng method. Top 3 methods (NLinear với các biến thể post-processing) cho thấy predictions gần với ground truth nhất, với độ chính xác cao và ít sai số. PatchTST baseline cho thấy hiệu suất tốt nhưng vẫn có một số điểm lệch so với ground truth, đặc biệt là trong các giai đoạn có biến động lớn. NHITS cho thấy hiệu suất tương đối tốt nhưng vẫn kém hơn các phương pháp top 3. Phân tích chi tiết cho thấy các phương pháp post-processing không chỉ cải thiện độ chính xác tổng thể mà còn cải thiện khả năng theo dõi các biến động trong dữ liệu. Các phương pháp tốt nhất có khả năng phản ứng nhanh với các thay đổi trong xu hướng, trong khi các phương pháp kém hơn có xu hướng lag hoặc không bắt kịp các biến động. So sánh này cung cấp insights quan trọng về điểm mạnh và điểm yếu của từng phương pháp, giúp hiểu rõ hơn về lý do tại sao một số phương pháp cho kết quả tốt hơn các phương pháp khác.
+Quan sát Hình 13 cho thấy so sánh chi tiết của top 5 phương pháp tốt nhất, mỗi phương pháp được so sánh trực tiếp với ground truth trong các subplot riêng biệt. Hình ảnh này cho phép phân tích sâu hơn về độ chính xác và pattern dự đoán của từng method. Top 3 methods (NLinear với các biến thể post-processing) cho thấy predictions gần với ground truth nhất, với độ chính xác cao và ít sai số. PatchTST baseline cho thấy hiệu suất tốt nhưng vẫn có một số điểm lệch so với ground truth, đặc biệt là trong các giai đoạn có biến động lớn. NHITS cho thấy hiệu suất tương đối tốt nhưng vẫn kém hơn các phương pháp top 3. Phân tích chi tiết cho thấy các phương pháp post-processing không chỉ cải thiện độ chính xác tổng thể mà còn cải thiện khả năng theo dõi các biến động trong dữ liệu. Các phương pháp tốt nhất có khả năng phản ứng nhanh với các thay đổi trong xu hướng, trong khi các phương pháp kém hơn có xu hướng lag hoặc không bắt kịp các biến động. So sánh này cung cấp insights quan trọng về điểm mạnh và điểm yếu của từng phương pháp, giúp hiểu rõ hơn về lý do tại sao một số phương pháp cho kết quả tốt hơn các phương pháp khác.
 
 ![Error Analysis for Best Method](https://i.ibb.co/rGRmrHv7/d7ebef080ebc.png)
 
@@ -1023,7 +1023,7 @@ Hình 15: Kiến trúc Pipeline PatchTST - Flowchart chi tiết hiển thị to�
 
 </p>
 
-Quan sát Hình 14 cho thấy kiến trúc pipeline hoàn chỉnh của phương pháp PatchTST với bias correction. **Luồng chính (hàng trên)** bắt đầu từ Time Series Input, trải qua các bước: Data Preparation (chuẩn bị dữ liệu), Optuna Tuning (tối ưu hyperparameters), PatchTST Model với Best Parameters (mô hình chính), Post-processing với Linear Regression (học bias từ TimeSeriesSplit 3 folds, áp dụng công thức $y_{\text{corrected}} = \text{coef} \times y_{\text{predicted}} + \text{intercept}$, trong đó $\text{coef}$ là hệ số điều chỉnh và $\text{intercept}$ là hệ số chặn, được học từ dữ liệu validation để điều chỉnh predictions của baseline về gần với giá trị thực tế hơn), Smooth Correction (kết hợp baseline và post-processed predictions với weights chuyển từ 0→1 trong 20% đầu), và cuối cùng là Forecast Output. **Kiến trúc bên trong PatchTST Model (hàng dưới)** mở rộng chi tiết mô hình: RevIN (Reversible Instance Normalization để xử lý non-stationarity), Patch (chia chuỗi thời gian thành các patch), Embedding (chuyển đổi patch thành vector đặc trưng), Transformer Encoder (Attention + FFN để học mối quan hệ phức tạp), và Output với horizon h=100 (dự đoán 100 ngày). Baseline Predictions từ PatchTST được đưa vào Smooth Correction cùng với Post-processed predictions để tạo ra kết quả cuối cùng. Cấu trúc này phản ánh cách tiếp cận toàn diện, kết hợp mô hình Transformer hiện đại với các kỹ thuật bias correction để đạt được độ chính xác cao nhất.
+Quan sát Hình 15 cho thấy kiến trúc pipeline hoàn chỉnh của phương pháp PatchTST với bias correction. **Luồng chính (hàng trên)** bắt đầu từ Time Series Input, trải qua các bước: Data Preparation (chuẩn bị dữ liệu), Optuna Tuning (tối ưu hyperparameters), PatchTST Model với Best Parameters (mô hình chính), Post-processing với Linear Regression (học bias từ TimeSeriesSplit 3 folds, áp dụng công thức $y_{\text{corrected}} = \text{coef} \times y_{\text{predicted}} + \text{intercept}$, trong đó $\text{coef}$ là hệ số điều chỉnh và $\text{intercept}$ là hệ số chặn, được học từ dữ liệu validation để điều chỉnh predictions của baseline về gần với giá trị thực tế hơn), Smooth Correction (kết hợp baseline và post-processed predictions với weights chuyển từ 0→1 trong 20% đầu), và cuối cùng là Forecast Output. **Kiến trúc bên trong PatchTST Model (hàng dưới)** mở rộng chi tiết mô hình: RevIN (Reversible Instance Normalization để xử lý non-stationarity), Patch (chia chuỗi thời gian thành các patch), Embedding (chuyển đổi patch thành vector đặc trưng), Transformer Encoder (Attention + FFN để học mối quan hệ phức tạp), và Output với horizon h=100 (dự đoán 100 ngày). Baseline Predictions từ PatchTST được đưa vào Smooth Correction cùng với Post-processed predictions để tạo ra kết quả cuối cùng. Cấu trúc này phản ánh cách tiếp cận toàn diện, kết hợp mô hình Transformer hiện đại với các kỹ thuật bias correction để đạt được độ chính xác cao nhất.
 
 Sau khi xác định PatchTST là mô hình có tiềm năng, hyperparameters được tối ưu bằng Optuna. Kết quả validation cũng được phân tích kỹ lưỡng. Đây là bước quan trọng để đạt được kết quả tốt nhất.
 
@@ -1249,7 +1249,7 @@ Hình 16: Phân tích validation 3-fold cross-validation - Actual vs Predicted v
 
 </p>
 
-Quan sát Hình 15 cho thấy phân tích validation từ 3-fold cross-validation với 6 subplots (3 hàng × 2 cột), phản ánh sự cải thiện và thay đổi hiệu suất của mô hình qua từng fold.
+Quan sát Hình 16 cho thấy phân tích validation từ 3-fold cross-validation với 6 subplots (3 hàng × 2 cột), phản ánh sự cải thiện và thay đổi hiệu suất của mô hình qua từng fold.
 
 **Fold 1** (hàng trên, n=258 điểm): Predictions (đường xanh nét đứt) có volatility cao, overshoot đỉnh quanh time step 150 (vượt 80 trong khi actual ~58-59), MSE 257.31. Residuals plot cho thấy pattern giảm dần: under-prediction ở giá trị thấp (<55), over-prediction ở giá trị cao (>55), và heteroscedasticity rõ rệt (spread tăng theo predicted values). Đây là fold đầu tiên, mô hình chưa được điều chỉnh tốt, thể hiện qua MSE cao.
 
@@ -1267,7 +1267,7 @@ Hình 17: Biểu đồ tổng thể - Training data và 3-fold validation predic
 
 </p>
 
-Quan sát Hình 16 cho thấy biểu đồ tổng thể hiển thị toàn bộ training data (đường đen) từ time step 1 đến 1033, với giá bắt đầu từ ~20 k VND và tăng dần lên ~110-120 k VND, phản ánh xu hướng tăng (uptrend) mạnh của cổ phiếu FPT trong thực tế. Ba validation folds được đặt tại đúng vị trí của chúng trong chuỗi thời gian. **Fold 1** (khoảng time step 260-517, 258 điểm): Predictions (đường xanh nét đứt) theo sát xu hướng training data nhưng có volatility cao, đặc biệt overshoot đỉnh quanh time step 400 (vượt 80 k VND trong khi actual ~60 k VND). Actual validation data (điểm tròn xanh) khớp với training data, xác nhận vị trí đúng. **Fold 2** (khoảng time step 518-775, 258 điểm): Predictions (đường xanh lá nét đứt) có pattern dao động mạnh, thường xuyên overshoot và undershoot so với actual (điểm tròn xanh lá), phản ánh hiệu suất không ổn định trong fold này. **Fold 3** (khoảng time step 776-1033, 258 điểm): Predictions (đường cam nét đứt) mượt hơn nhưng consistently thấp hơn actual (điểm tròn cam), đặc biệt ở phần cuối khi giá tăng mạnh lên 110-120 k VND, predictions chỉ đạt ~100-110 k VND. 
+Quan sát Hình 17 cho thấy biểu đồ tổng thể hiển thị toàn bộ training data (đường đen) từ time step 1 đến 1033, với giá bắt đầu từ ~20 k VND và tăng dần lên ~110-120 k VND, phản ánh xu hướng tăng (uptrend) mạnh của cổ phiếu FPT trong thực tế. Ba validation folds được đặt tại đúng vị trí của chúng trong chuỗi thời gian. **Fold 1** (khoảng time step 260-517, 258 điểm): Predictions (đường xanh nét đứt) theo sát xu hướng training data nhưng có volatility cao, đặc biệt overshoot đỉnh quanh time step 400 (vượt 80 k VND trong khi actual ~60 k VND). Actual validation data (điểm tròn xanh) khớp với training data, xác nhận vị trí đúng. **Fold 2** (khoảng time step 518-775, 258 điểm): Predictions (đường xanh lá nét đứt) có pattern dao động mạnh, thường xuyên overshoot và undershoot so với actual (điểm tròn xanh lá), phản ánh hiệu suất không ổn định trong fold này. **Fold 3** (khoảng time step 776-1033, 258 điểm): Predictions (đường cam nét đứt) mượt hơn nhưng consistently thấp hơn actual (điểm tròn cam), đặc biệt ở phần cuối khi giá tăng mạnh lên 110-120 k VND, predictions chỉ đạt ~100-110 k VND. 
 
 Điểm quan trọng từ biểu đồ này là các dự đoán có xu hướng lạc quan (optimistic), phản ánh đúng tính chất của dữ liệu cổ phiếu FPT đang ở trạng thái uptrend. Mô hình học được pattern tăng giá từ dữ liệu training và áp dụng xu hướng này vào predictions, dẫn đến các dự đoán thường cao hơn hoặc theo sát xu hướng tăng. Điều này đặc biệt rõ ràng ở Fold 1 và Fold 2, nơi predictions có xu hướng overshoot hoặc dao động mạnh theo hướng tăng. Tuy nhiên, ở Fold 3, mặc dù mô hình vẫn giữ xu hướng tăng nhưng không bắt kịp tốc độ tăng mạnh của giá thực tế, cho thấy mô hình gặp khó khăn khi dự đoán các biến động lớn ở phần cuối của chuỗi. Biểu đồ này cho phép so sánh trực quan hiệu suất mô hình trên các phần dữ liệu khác nhau trong training set, cho thấy mô hình có xu hướng học tốt hơn ở phần giữa (Fold 2) và gặp khó khăn ở phần cuối (Fold 3) khi giá tăng mạnh. Các đường phân cách (đường đứt nét xám) giữa các folds giúp phân biệt rõ ràng từng validation period.
 
@@ -1281,7 +1281,7 @@ Hình 18: So sánh dự đoán tất cả phương pháp (từ notebook patchtst
 
 💡 **Lưu ý:** Kết quả trong Hình 17 đến từ notebook `patchtst_validation_analysis.ipynb`, có thể khác một chút so với kết quả cuối cùng trong `patchtst_fixed_params.ipynb` (MSE 48.62 và 15.26) do cách chia dữ liệu và validation folds khác nhau. Kết quả cuối cùng chính thức sử dụng `patchtst_fixed_params.ipynb`.
 
-Quan sát Hình 17 cho thấy so sánh trực quan ba phương pháp dự đoán với ground truth qua hai biểu đồ. **Biểu đồ trên (toàn bộ 100 ngày)**: Ground Truth (đường đen) bắt đầu từ ~118-120 k VND, giảm mạnh xuống ~90-92 k VND ở ngày 20, sau đó dao động và tăng dần lên 110-118 k VND ở cuối chuỗi. **Baseline** (đường đỏ nét đứt, MSE 641.50) có bias lạc quan rõ rệt, consistently overestimate: bắt đầu ~118 k VND, tăng lên 125-130 k VND ở ngày 20 (trong khi actual giảm), đạt đỉnh 135-138 k VND ở ngày 50-60. Bias lạc quan này phản ánh xu hướng uptrend của FPT trong training data, khiến mô hình dự đoán giá cao hơn thực tế. **Post-processing** (đường cam nét đứt, MSE 44.94) đã giảm đáng kể bias lạc quan: bắt đầu ~96 k VND, tăng nhẹ lên ~100 k VND, ổn định quanh 98-100 k VND, phản ánh đúng tình trạng thực tế hơn so với baseline. **Best Method - Smooth 20%** (đường xanh lá nét liền, MSE 17.49) theo sát ground truth nhất: bắt đầu ~118 k VND, giảm cùng xu hướng xuống ~100 k VND ở ngày 20, sau đó dao động trong khoảng 100-115 k VND. **Biểu đồ dưới (zoom 30 ngày đầu)**: Cho thấy chi tiết giai đoạn giảm mạnh. Baseline vẫn giữ mức cao 118-122 k VND, không phản ứng với sự giảm giá. Post-processing và Smooth 20% đều phản ứng tốt hơn với biến động thực tế.
+Quan sát Hình 18 cho thấy so sánh trực quan ba phương pháp dự đoán với ground truth qua hai biểu đồ. **Biểu đồ trên (toàn bộ 100 ngày)**: Ground Truth (đường đen) bắt đầu từ ~118-120 k VND, giảm mạnh xuống ~90-92 k VND ở ngày 20, sau đó dao động và tăng dần lên 110-118 k VND ở cuối chuỗi. **Baseline** (đường đỏ nét đứt, MSE 641.50) có bias lạc quan rõ rệt, consistently overestimate: bắt đầu ~118 k VND, tăng lên 125-130 k VND ở ngày 20 (trong khi actual giảm), đạt đỉnh 135-138 k VND ở ngày 50-60. Bias lạc quan này phản ánh xu hướng uptrend của FPT trong training data, khiến mô hình dự đoán giá cao hơn thực tế. **Post-processing** (đường cam nét đứt, MSE 44.94) đã giảm đáng kể bias lạc quan: bắt đầu ~96 k VND, tăng nhẹ lên ~100 k VND, ổn định quanh 98-100 k VND, phản ánh đúng tình trạng thực tế hơn so với baseline. **Best Method - Smooth 20%** (đường xanh lá nét liền, MSE 17.49) theo sát ground truth nhất: bắt đầu ~118 k VND, giảm cùng xu hướng xuống ~100 k VND ở ngày 20, sau đó dao động trong khoảng 100-115 k VND. **Biểu đồ dưới (zoom 30 ngày đầu)**: Cho thấy chi tiết giai đoạn giảm mạnh. Baseline vẫn giữ mức cao 118-122 k VND, không phản ứng với sự giảm giá. Post-processing và Smooth 20% đều phản ứng tốt hơn với biến động thực tế.
 
 **Giải thích tại sao kết quả này đúng:**
 
@@ -1291,17 +1291,11 @@ Kết quả này phản ánh đúng cơ chế hoạt động của từng phươ
 
 **Smooth 20% đạt kết quả tốt nhất** vì kết hợp ưu điểm của cả hai phương pháp: giữ nguyên giá trị đầu tiên (tăng độ tin cậy), smooth transition tránh thay đổi đột ngột, và phần cuối sử dụng post-processing để điều chỉnh bias. Phương pháp này vừa giải quyết được bias lạc quan, vừa phản ánh đúng tình trạng thực tế với độ chính xác cao (MSE 15.26 trong notebook `patchtst_fixed_params.ipynb`).
 
-<p align="center">
-
-Hình 19: Scatter Plot sau Post-processing - Các điểm gần với đường y=x hơn so với baseline.
-
-</p>
-
 ![Complete Overview - Training and Test Data](https://i.ibb.co/k6wQst3Z/9b2633ab8e5f.png)
 
 <p align="center">
 
-Hình 20: Biểu đồ tổng thể - Training data, Test data và tất cả predictions - Hiển thị toàn bộ training data (919 điểm), validation data (114 điểm), test data (100 điểm), 3-fold validation predictions, và predictions của 3 phương pháp (Baseline, Post-processing, Smooth 20%) trên test period.
+Hình 19: Biểu đồ tổng thể - Training data, Test data và tất cả predictions - Hiển thị toàn bộ training data (919 điểm), validation data (114 điểm), test data (100 điểm), 3-fold validation predictions, và predictions của 3 phương pháp (Baseline, Post-processing, Smooth 20%) trên test period.
 
 </p>
 
@@ -1311,11 +1305,11 @@ Quan sát Hình 19 cho thấy biểu đồ tổng thể hiển thị toàn bộ 
 
 <p align="center">
 
-Hình 21: Phân tích Residuals - Best Method (Smooth 20%) - Biểu đồ trên là time series residuals theo thời gian trong test period, biểu đồ dưới là scatter plot residuals theo predicted values, cả hai đều có đường Zero Error (đường đỏ nét đứt) ở Y=0.
+Hình 20: Phân tích Residuals - Best Method (Smooth 20%) - Biểu đồ trên là time series residuals theo thời gian trong test period, biểu đồ dưới là scatter plot residuals theo predicted values, cả hai đều có đường Zero Error (đường đỏ nét đứt) ở Y=0.
 
 </p>
 
-Quan sát Hình 21 cho thấy phân tích residuals của Best Method (Smooth 20%) trên test period qua hai biểu đồ. **Biểu đồ trên (Residuals theo Thời Gian)**: Time series residuals trong test period (time step 1035-1125) cho thấy pattern rõ ràng với các giai đoạn under-prediction (residuals dương, đạt đỉnh ~9.0-9.5 quanh time step 1075) và over-prediction (residuals âm, đạt -7.5 quanh time step 1040, 1090, và 1125). Pattern này cho thấy mô hình vẫn chưa nắm bắt hoàn toàn các temporal dependencies trong test data, đặc biệt ở các giai đoạn biến động mạnh. **Biểu đồ dưới (Residuals Plot)**: Scatter plot residuals theo predicted values (97.5-115.0 k VND) cho thấy residuals phân tán quanh đường Zero Error, không có bias hệ thống. Phần lớn residuals nằm trong khoảng -5.0 đến 5.0, nhưng có một số outliers đạt gần 10.0 và -10.0. Spread của residuals tương đối nhất quán, không có dấu hiệu mạnh của heteroscedasticity. Mặc dù vẫn có lỗi dự đoán lớn ở một số điểm, so với baseline, Smooth 20% đã cải thiện đáng kể, chứng tỏ phương pháp này đã giải quyết được phần lớn vấn đề bias lạc quan.
+Quan sát Hình 20 cho thấy phân tích residuals của Best Method (Smooth 20%) trên test period qua hai biểu đồ. **Biểu đồ trên (Residuals theo Thời Gian)**: Time series residuals trong test period (time step 1035-1125) cho thấy pattern rõ ràng với các giai đoạn under-prediction (residuals dương, đạt đỉnh ~9.0-9.5 quanh time step 1075) và over-prediction (residuals âm, đạt -7.5 quanh time step 1040, 1090, và 1125). Pattern này cho thấy mô hình vẫn chưa nắm bắt hoàn toàn các temporal dependencies trong test data, đặc biệt ở các giai đoạn biến động mạnh. **Biểu đồ dưới (Residuals Plot)**: Scatter plot residuals theo predicted values (97.5-115.0 k VND) cho thấy residuals phân tán quanh đường Zero Error, không có bias hệ thống. Phần lớn residuals nằm trong khoảng -5.0 đến 5.0, nhưng có một số outliers đạt gần 10.0 và -10.0. Spread của residuals tương đối nhất quán, không có dấu hiệu mạnh của heteroscedasticity. Mặc dù vẫn có lỗi dự đoán lớn ở một số điểm, so với baseline, Smooth 20% đã cải thiện đáng kể, chứng tỏ phương pháp này đã giải quyết được phần lớn vấn đề bias lạc quan.
 
 #### 5.3.5. Smooth Bias Correction - Phương pháp tốt nhất
 
@@ -1440,7 +1434,7 @@ Bước thứ năm là visualization, bao gồm vẽ biểu đồ so sánh các 
 
 <p align="center">
 
-Hình 22: So sánh dự đoán tất cả phương pháp - Biểu đồ trên so sánh Baseline (MSE 641.50), Post-processing (MSE 48.62), và Smooth 20% (MSE 15.26) với ground truth trên toàn bộ 100 ngày, biểu đồ dưới zoom vào 30 ngày đầu để xem chi tiết giai đoạn giảm mạnh.
+Hình 21: So sánh dự đoán tất cả phương pháp - Biểu đồ trên so sánh Baseline (MSE 641.50), Post-processing (MSE 48.62), và Smooth 20% (MSE 15.26) với ground truth trên toàn bộ 100 ngày, biểu đồ dưới zoom vào 30 ngày đầu để xem chi tiết giai đoạn giảm mạnh.
 
 </p>
 
@@ -1450,7 +1444,7 @@ Quan sát Hình 21 cho thấy so sánh ba phương pháp dự đoán với groun
 
 <p align="center">
 
-Hình 23: Phân tích Residuals Smooth 20% - Biểu đồ trái là scatter plot residuals theo predicted values, biểu đồ phải là time series residuals theo thời gian, cả hai đều có đường Zero Error (đường đỏ nét đứt) ở Y=0.
+Hình 22: Phân tích Residuals Smooth 20% - Biểu đồ trái là scatter plot residuals theo predicted values, biểu đồ phải là time series residuals theo thời gian, cả hai đều có đường Zero Error (đường đỏ nét đứt) ở Y=0.
 
 </p>
 
@@ -1501,11 +1495,11 @@ Bảng 8: Kết quả cuối cùng - So sánh hiệu suất của Baseline, Post
 
 <p align="center">
 
-Hình 24: Kaggle Leaderboard - Kết quả nộp bài trên Kaggle của nhóm nghiên cứu. Team CONQ999 với account "hg gggv" đứng thứ 5 với score MSE 15.0147. Kết quả này phản ánh hiệu suất của phương pháp PatchTST + Smooth Linear 20% + Post-processing trên test set của cuộc thi *AIO-2025: LTSF-Linear Forecasting Challenge**
+Hình 23: Kaggle Leaderboard - Kết quả nộp bài trên Kaggle của nhóm nghiên cứu. Team CONQ999 với account "hg gggv" đứng thứ 5 với score MSE 15.0147. Kết quả này phản ánh hiệu suất của phương pháp PatchTST + Smooth Linear 20% + Post-processing trên test set của cuộc thi *AIO-2025: LTSF-Linear Forecasting Challenge**
 
 </p>
 
-Quan sát Hình 24 cho thấy kết quả nộp bài trên Kaggle của nhóm nghiên cứu. Team CONQ999 với account "hg gggv" đạt kết quả cao với **score MSE 15.0147**. Kết quả này tương đương với kết quả trên validation set (MSE 15.2606), chứng tỏ phương pháp đã được áp dụng đúng và có khả năng generalization tốt. So sánh với các team khác, team "Conq030" đứng thứ 4 với score 7.7036 (118 entries), team "hoanggvo" đứng thứ 3 với score 0.0179 (87 entries), và hai team đứng đầu có score 0.0000. Kết quả này cho thấy phương pháp PatchTST + Smooth Linear 20% + Post-processing đã đạt được hiệu suất tốt trong cuộc thi, đặc biệt là với chỉ một entry duy nhất.
+Quan sát Hình 23 cho thấy kết quả nộp bài trên Kaggle của nhóm nghiên cứu. Team CONQ999 với account "hg gggv" đạt kết quả cao với **score MSE 15.0147**. Kết quả này tương đương với kết quả trên validation set (MSE 15.2606), chứng tỏ phương pháp đã được áp dụng đúng và có khả năng generalization tốt. Kết quả này cho thấy phương pháp PatchTST + Smooth Linear 20% + Post-processing đã đạt được hiệu suất tốt trong cuộc thi, đặc biệt là với chỉ một entry duy nhất.
 
 💡 **Lưu ý:** Đây là kết quả cuối cùng chính thức từ notebook `patchtst_fixed_params.ipynb`. Kết quả có thể khác một chút so với notebook `patchtst_validation_analysis.ipynb` (MSE 44.94 và 17.49) do cách chia dữ liệu và validation folds khác nhau. Notebook `patchtst_fixed_params.ipynb` được sử dụng làm kết quả cuối cùng vì sử dụng fixed parameters từ Optuna và có quy trình validation nhất quán hơn.
 
@@ -1691,7 +1685,7 @@ Khi hệ thống phát hiện có file dataset trong thư mục `data/raw/` (fil
 
 <p align="center">
 
-Hình 25: Giao diện Realtime API khi có dataset sẵn - Sidebar hiển thị "Dataset found: FPT_train.csv" và các slider điều khiển. Khu vực chính hiển thị banner "Fetched new data from internet! Total: 1336 days", metrics cards (Latest Close ₫97.25K, Avg Projected Return -0.13%), và biểu đồ Market Pulse & Projection với đường historical (tím) và forecast (xanh nhạt) cho 60 ngày tương lai.
+Hình 24: Giao diện Realtime API khi có dataset sẵn - Sidebar hiển thị "Dataset found: FPT_train.csv" và các slider điều khiển. Khu vực chính hiển thị banner "Fetched new data from internet! Total: 1336 days", metrics cards (Latest Close ₫97.25K, Avg Projected Return -0.13%), và biểu đồ Market Pulse & Projection với đường historical (tím) và forecast (xanh nhạt) cho 60 ngày tương lai.
 
 </p>
 
@@ -1711,7 +1705,7 @@ Người dùng có thể tải lên file CSV chứa dữ liệu lịch sử. Sau
 
 <p align="center">
 
-Hình 26: Kết quả dự đoán sau khi tải file lên - Sidebar hiển thị "Upload CSV file" được chọn và slider Historical days (330 ngày). Khu vực chính hiển thị kết quả realtime forecast với metrics (Latest Close ₫97.30K tăng 0.72%, Avg Projected Return -0.13%, Forecast Days 60d) và biểu đồ Market Pulse & Projection với đường historical (tím) từ 4/2024 đến cuối 2025 và đường forecast (xanh nhạt) cho 60 ngày tương lai với xu hướng giảm.
+Hình 25: Kết quả dự đoán sau khi tải file lên - Sidebar hiển thị "Upload CSV file" được chọn và slider Historical days (330 ngày). Khu vực chính hiển thị kết quả realtime forecast với metrics (Latest Close ₫97.30K tăng 0.72%, Avg Projected Return -0.13%, Forecast Days 60d) và biểu đồ Market Pulse & Projection với đường historical (tím) từ 4/2024 đến cuối 2025 và đường forecast (xanh nhạt) cho 60 ngày tương lai với xu hướng giảm.
 
 </p>
 
@@ -1732,7 +1726,7 @@ Nếu người dùng chọn không tải file, hệ thống sẽ:
 
 <p align="center">
 
-Hình 27: Giao diện khi chưa có dataset sẵn - Sidebar hiển thị cảnh báo "No dataset found in data/raw/" và hai lựa chọn: "Upload CSV file" hoặc "Fetch from internet (use slider)". Khu vực chính hiển thị tiêu đề "FPT Stock Intelligence" và banner hướng dẫn người dùng chọn một trong hai tùy chọn trong sidebar.
+Hình 26: Giao diện khi chưa có dataset sẵn - Sidebar hiển thị cảnh báo "No dataset found in data/raw/" và hai lựa chọn: "Upload CSV file" hoặc "Fetch from internet (use slider)". Khu vực chính hiển thị tiêu đề "FPT Stock Intelligence" và banner hướng dẫn người dùng chọn một trong hai tùy chọn trong sidebar.
 
 </p>
 
@@ -1752,7 +1746,7 @@ Chế độ này cho phép người dùng tải lên file CSV chứa dữ liệu
 
 <p align="center">
 
-Hình 28: Kết quả dự đoán từ chế độ Upload CSV → API - Dashboard hiển thị Key Metrics (Latest Close ₫119.19K, Avg Projected Return -0.35%, Forecast Days 60d), biểu đồ Market Pulse & Projection với đường historical (tím) và forecast (xanh nhạt), và bảng Upcoming Forecast Snapshots liệt kê chi tiết từng ngày dự đoán với giá và phần trăm thay đổi.
+Hình 27: Kết quả dự đoán từ chế độ Upload CSV → API - Dashboard hiển thị Key Metrics (Latest Close ₫119.19K, Avg Projected Return -0.35%, Forecast Days 60d), biểu đồ Market Pulse & Projection với đường historical (tím) và forecast (xanh nhạt), và bảng Upcoming Forecast Snapshots liệt kê chi tiết từng ngày dự đoán với giá và phần trăm thay đổi.
 
 </p>
 
