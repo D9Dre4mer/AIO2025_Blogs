@@ -12,7 +12,7 @@ Việc chọn đúng phần cứng là cực kỳ quan trọng, nếu không ch�
 
 Bài viết này sẽ tiếp nối series Hardware bằng cách đi sâu vào vấn đề **cross-GPU reproducibility** - tính tái lập kết quả giữa các GPU khác nhau. Dựa trên 65 thực nghiệm chi tiết, ta sẽ cùng phân tích nguyên nhân gốc rễ, từ khác biệt số học (floating-point precision) đến các tối ưu phần cứng mặc định, và đưa ra các giải pháp thực tế để đạt được reproducibility tốt nhất có thể.
 
-Tất cả code và notebook thực nghiệm được trình bày trong bài viết này đều có sẵn trong [GitHub repository](https://github.com/D9Dre4mer/AIO2025_Blogs/tree/main/251226%20Blog%20Hardware%202) (`AIO2025_Blogs/251226 Blog Hardware 2`). Người đọc có thể truy cập repository để xem chi tiết các notebook training trên từng GPU/TPU, code phân tích kết quả, và tất cả các file JSON chứa kết quả thực nghiệm. Điều này cho phép người đọc reproduce và verify các findings được trình bày trong bài viết.
+Tất cả code và notebook thực nghiệm được trình bày trong bài viết này đều có sẵn trong [GitHub repository](https://github.com/D9Dre4mer/AIO2025_Blogs/tree/main/251226%20Blog%20Hardware%202) ([`AIO2025_Blogs/251226 Blog Hardware 2`](https://github.com/D9Dre4mer/AIO2025_Blogs/tree/main/251226%20Blog%20Hardware%202)). Người đọc có thể truy cập repository để xem chi tiết các notebook training trên từng GPU/TPU, code phân tích kết quả, và tất cả các file JSON chứa kết quả thực nghiệm. Điều này cho phép người đọc reproduce và verify các findings được trình bày trong bài viết.
 
 ---
 
@@ -24,9 +24,13 @@ Hãy tưởng tượng bạn đã chọn được GPU phù hợp, thiết lập 
 
 Câu hỏi đặt ra: **Tại sao lại như vậy?** Cùng mô hình, cùng seed, cùng dataset, nhưng kết quả khác nhau. Đây không phải là lỗi code hay cấu hình sai, mà là một hiện tượng phổ biến trong deep learning.
 
-![Reproducibility Challenge](img/reproducibility.png)
+<div align="center">
+
+![Reproducibility Challenge](https://i.ibb.co/wrWK46dh/Reproducibility-Challenge.png)
 
 **Hình 1:** Minh họa thách thức reproducibility — cùng một mô hình deep learning chạy trên các GPU platform khác nhau (A, B, C) cho kết quả hơi khác nhau, tạo ra "Reproducibility Challenge" (hình AI minh hoạ).
+
+</div>
 
 Quan sát Hình 1, ta có thể thấy rằng mặc dù cùng một mô hình deep learning, nhưng khi chạy trên các GPU platform khác nhau, kết quả có sự khác biệt nhỏ (như các giá trị 0.9874, 0.9872, 0.9875). Đây chính là vấn đề mà ta sẽ phân tích chi tiết trong bài viết này.
 
@@ -55,9 +59,13 @@ TPU cho thấy dấu hiệu reproducibility cao trong phạm vi thực nghiệm 
 
 Quan sát training curves, ta thấy rằng mặc dù giá trị accuracy cuối cùng khác nhau, nhưng **xu hướng học tập (training trajectory) lại rất tương đồng** giữa các GPU. Correlation giữa các trajectories đạt 0.978-0.999, cho thấy mô hình học theo cùng một cách, chỉ khác nhau về giá trị tuyệt đối.
 
-![Training Trajectory Comparison](results/blog_figures/trajectory_comparison.png)
+<div align="center">
+
+![Training Trajectory Comparison](https://i.ibb.co/xqY0drDX/Training-Trajectory-Comparison.png)
 
 **Hình 2:** Training curves so sánh giữa các GPU - xu hướng tương đồng nhưng giá trị khác nhau.
+
+</div>
 
 Quan sát Hình 2, ta có thể thấy rằng tất cả các đường cong accuracy đều có hình dạng tương tự nhau. Chúng đều tăng dần từ epoch đầu tiên, đạt peak ở khoảng epoch 7-8, và sau đó ổn định. Điều này cho thấy mô hình học theo cùng một cách trên tất cả các GPU, chỉ khác nhau về giá trị tuyệt đối.
 
@@ -127,9 +135,13 @@ Giả thuyết đầu tiên: Các GPU có cấu hình mặc định khác nhau, 
 
 💡 **Fun fact**: TPU (Tensor Processing Unit) được Google phát triển từ năm 2015 (starting from the original TPU architecture [ISCA'17]) và đã được sử dụng trong trận đấu cờ vây nổi tiếng giữa AlphaGo và kỳ thủ Lee Sedol vào năm 2016. Trong bài viết này, ta sử dụng TPU v6e-1, một thế hệ hiện đại hơn nhiều so với TPU v1 được mô tả trong paper ISCA 2017. Từ thế hệ đầu tiên với hiệu suất 23 TFLOPs, đến năm 2024, thế hệ TPU Trillium đã đạt hiệu suất cao hơn 4,7 lần so với thế hệ trước và tiết kiệm năng lượng hơn 67%. Điều thú vị là TPU được thiết kế chuyên biệt cho AI, nên có thể tiết kiệm năng lượng gấp 80 lần so với GPU trong một số trường hợp.
 
-![Config Impact Comparison](results/blog_figures/config_impact_comparison.png)
+<div align="center">
+
+![Config Impact Comparison](https://i.ibb.co/ZpZTCYMx/Config-Impact-Comparison.png)
 
 **Hình 3:** Ảnh hưởng của các cấu hình (TF32, AMP, num_workers, deterministic algorithms) đến accuracy.
+
+</div>
 
 Quan sát Hình 3, ta có thể thấy rằng TF32 có ảnh hưởng khác nhau trên các GPU khác nhau. Trên GPU Ampere+, việc bật/tắt TF32 có thể thay đổi accuracy một chút, trong khi trên GPU không hỗ trợ TF32, không có sự khác biệt. Điều này xác nhận rằng TF32 là một trong những nguyên nhân gây ra khác biệt giữa các GPU.
 
@@ -181,9 +193,13 @@ Giả thuyết thứ tư: AMP (Automatic Mixed Precision) có thể ảnh hưở
 
 Để có cái nhìn tổng quan, ta đã tạo heatmap so sánh accuracy theo GPU và config:
 
-![Config Impact Heatmap](results/blog_figures/config_impact_heatmap.png)
+<div align="center">
+
+![Config Impact Heatmap](https://i.ibb.co/x8B3wSHy/Config-Impact-Heatmap.png)
 
 **Hình 4:** Heatmap accuracy theo GPU và config - cấu hình baseline (TF32=False, AMP=False, num_workers=0) cho reproducibility tốt nhất.
+
+</div>
 
 Quan sát Hình 4, ta có thể thấy rõ sự khác biệt accuracy giữa các GPU và config. Màu xanh lá (accuracy cao) và màu đỏ (accuracy thấp) được phân bố khác nhau tùy theo config. Điều này cho thấy config có ảnh hưởng đáng kể đến kết quả.
 
@@ -209,17 +225,25 @@ Một phát hiện quan trọng: Các optimizer khác nhau có độ nhạy cả
 
 So sánh này nhằm đánh giá độ nhạy với sai số số học, không nhằm khẳng định hiệu năng tối ưu của từng optimizer khi được tune đầy đủ.
 
-![Optimizer Sensitivity](results/blog_figures/optimizer_sensitivity.png)
+<div align="center">
+
+![Optimizer Sensitivity](https://i.ibb.co/vvQ6F0zd/Optimizer-Sensitivity.png)
 
 **Hình 5:** So sánh accuracy theo optimizer cho mỗi GPU - Adam tốt nhất, RMSprop và SGD thấp hơn đáng kể.
+
+</div>
 
 Quan sát Hình 5, ta có thể thấy rằng Adam cho kết quả tốt nhất trên tất cả các GPU, với accuracy trung bình 76.60%. RMSprop và SGD thấp hơn đáng kể, nhưng pattern tương tự nhau trên các GPU khác nhau. Điều này cho thấy optimizer có ảnh hưởng đến accuracy, nhưng không làm thay đổi pattern reproducibility giữa các GPU.
 
 **Cơ chế**: Adaptive optimizers (Adam, RMSProp) sử dụng momentum và adaptive learning rate, có thể **khuếch đại sai số nhỏ** từ floating-point precision thành khác biệt lớn hơn qua các epochs. Điều này giống như hiệu ứng "butterfly effect" - một sai số nhỏ ban đầu có thể dẫn đến khác biệt lớn sau nhiều epochs.
 
-![Adam Sensitivity Test - RTX 5090](results/adam_sensitivity_test_RTX5090.png)
+<div align="center">
+
+![Adam Sensitivity Test - RTX 5090](https://i.ibb.co/B2hxxQPH/Adam-Sensitivity-Test-RTX-5090.png)
 
 **Hình 6:** Training trajectory của Adam trên RTX 5090 - minh họa cách adaptive optimizer xử lý và tích lũy sai số qua các epochs.
+
+</div>
 
 Quan sát Hình 6, ta có thể thấy rằng mặc dù cùng sử dụng Adam optimizer và cùng seed, các lần chạy vẫn có thể cho kết quả hơi khác nhau do tích lũy sai số từ floating-point precision. Điều này minh họa rõ ràng cơ chế khuếch đại sai số của adaptive optimizers.
 

@@ -6,7 +6,7 @@
 
 Với cùng config (TF32=False, AMP=False, num_workers=0):
 
-- **TPU TPU**: 78.45% (std: 0.00%)
+- **TPU**: 78.45% (std: 0.00%)
 - **NVIDIA GeForce RTX 3060**: 77.92% (std: 0.24%)
 - **NVIDIA L4**: 77.85% (std: 0.10%)
 - **NVIDIA GeForce RTX 5090**: 77.81% (std: 0.07%)
