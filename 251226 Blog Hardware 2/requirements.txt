@@ -1,0 +1,13 @@
+torch>=2.0.0
+torchvision>=0.15.0
+numpy>=1.21.0
+matplotlib>=3.5.0
+pandas>=1.3.0
+jupyter>=1.0.0
+ipykernel>=6.0.0
+
+# TPU support (chỉ cần khi chạy trên TPU)
+# Cài đặt torch_xla từ Google Cloud repository:
+# pip install torch_xla[tpu] -f https://storage.googleapis.com/libtpu-releases/index.html
+# Hoặc trên Colab: torch_xla đã được cài đặt sẵn
+
