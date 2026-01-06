@@ -12,6 +12,8 @@ Việc chọn đúng phần cứng là cực kỳ quan trọng, nếu không ch�
 
 Bài viết này sẽ tiếp nối series Hardware bằng cách đi sâu vào vấn đề **cross-GPU reproducibility** - tính tái lập kết quả giữa các GPU khác nhau. Dựa trên 65 thực nghiệm chi tiết, ta sẽ cùng phân tích nguyên nhân gốc rễ, từ khác biệt số học (floating-point precision) đến các tối ưu phần cứng mặc định, và đưa ra các giải pháp thực tế để đạt được reproducibility tốt nhất có thể.
 
+Tất cả code và notebook thực nghiệm được trình bày trong bài viết này đều có sẵn trong [GitHub repository](https://github.com/D9Dre4mer/AIO2025_Blogs/tree/main/251226%20Blog%20Hardware%202) (`AIO2025_Blogs/251226 Blog Hardware 2`). Người đọc có thể truy cập repository để xem chi tiết các notebook training trên từng GPU/TPU, code phân tích kết quả, và tất cả các file JSON chứa kết quả thực nghiệm. Điều này cho phép người đọc reproduce và verify các findings được trình bày trong bài viết.
+
 ---
 
 ## ACT 1: Phát hiện Vấn đề (The Discovery)
@@ -24,7 +26,7 @@ Câu hỏi đặt ra: **Tại sao lại như vậy?** Cùng mô hình, cùng see
 
 ![Reproducibility Challenge](img/reproducibility.png)
 
-**Hình 1:** Minh họa thách thức reproducibility - cùng một mô hình deep learning chạy trên các GPU platform khác nhau (A, B, C) cho kết quả hơi khác nhau, tạo ra "Reproducibility Challenge".
+**Hình 1:** Minh họa thách thức reproducibility — cùng một mô hình deep learning chạy trên các GPU platform khác nhau (A, B, C) cho kết quả hơi khác nhau, tạo ra "Reproducibility Challenge" (hình AI minh hoạ).
 
 Quan sát Hình 1, ta có thể thấy rằng mặc dù cùng một mô hình deep learning, nhưng khi chạy trên các GPU platform khác nhau, kết quả có sự khác biệt nhỏ (như các giá trị 0.9874, 0.9872, 0.9875). Đây chính là vấn đề mà ta sẽ phân tích chi tiết trong bài viết này.
 
